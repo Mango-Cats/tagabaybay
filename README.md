@@ -1,7 +1,15 @@
-# Tagabaybay: Nativization for Filipino
+# TagaBaybay
 
-## Repository
-[🥭😺/TagaBaybay](https://github.com/Mango-Cats/TagaBaybay)
+Nativization for Filipino spelling written in Rust.
+
+| Author          | GitHub                                         |               |
+|-----------------|-----------------------------------------------|--------------------|
+| Zhean Ganituen | [@zrygan](https://github.com/zrygan)           | *Correspondence*   |
+| Nathaniel Oco |                                               | Faculty Adviser   |
+
+## The Name
+
+The name is a word play on the Tagalog prefix "taga-" which denotes the doer of an action, "Taga" as in **Taga**log, and "baybay" which is the root word of the Tagalog word _baybayin_ which means to spell.
 
 ## Project Description
 TagaBaybay ($\textbf{baybay}$) is a nativization algorithm that converts loan words or non-Filipino words $\omega$ to their corresponding nativized loan word $w$.
