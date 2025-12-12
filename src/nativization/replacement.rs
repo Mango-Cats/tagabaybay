@@ -1,55 +1,56 @@
 use std::vec;
 
+use crate::nativization::error::printe;
 use crate::tokenization::graphemes::Grapheme;
-use crate::tokenization::phoneme::{Phoneme, phonemes_to_string};
+use crate::tokenization::phoneme::Phoneme;
 use crate::tokenization::tokenize::tokenize;
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
-pub fn free_replacement(g: &Grapheme) -> Vec<Phoneme> {
-    match g {
+pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
+    match graphemes[index] {
         // Bigraph replacements
-        Grapheme::Ph => vec![Phoneme::F],
-        Grapheme::Th => vec![Phoneme::T],
-        Grapheme::Sh => vec![Phoneme::S],
-        Grapheme::Ch => vec![Phoneme::Ts],
-        Grapheme::Ee => vec![Phoneme::I],
-        Grapheme::Oo => vec![Phoneme::U],
-        Grapheme::Qu=> vec![Phoneme::K, Phoneme::U, Phoneme::W],
+        Grapheme::Ph => Some(vec![Phoneme::F]),
+        Grapheme::Th => Some(vec![Phoneme::T]),
+        Grapheme::Sh => Some(vec![Phoneme::S]),
+        Grapheme::Ee => Some(vec![Phoneme::I]),
+        Grapheme::Oo => Some(vec![Phoneme::U]),
+        Grapheme::Qu => Some(vec![Phoneme::K, Phoneme::U, Phoneme::W]),
 
         // Non-native consonant replacements
-        Grapheme::J => vec![Phoneme::Dy],
-        Grapheme::V => vec![Phoneme::B],
-        Grapheme::Z => vec![Phoneme::S],
-        Grapheme::F => vec![Phoneme::F],
+        Grapheme::J => Some(vec![Phoneme::Dy]),
+        Grapheme::V => Some(vec![Phoneme::B]),
+        Grapheme::Z => Some(vec![Phoneme::S]),
+        Grapheme::F => Some(vec![Phoneme::F]),
 
         // Native consonants (pass through)
-        Grapheme::B => vec![Phoneme::B],
-        Grapheme::D => vec![Phoneme::D],
-        Grapheme::G => vec![Phoneme::G],
-        Grapheme::H => vec![Phoneme::H],
-        Grapheme::K => vec![Phoneme::K],
-        Grapheme::L => vec![Phoneme::L],
-        Grapheme::M => vec![Phoneme::M],
-        Grapheme::N => vec![Phoneme::N],
-        Grapheme::P => vec![Phoneme::P],
-        Grapheme::R => vec![Phoneme::R],
-        Grapheme::S => vec![Phoneme::S],
-        Grapheme::T => vec![Phoneme::T],
-        Grapheme::W => vec![Phoneme::W],
-        Grapheme::Y => vec![Phoneme::Y],
+        Grapheme::B => Some(vec![Phoneme::B]),
+        Grapheme::D => Some(vec![Phoneme::D]),
+        Grapheme::G => Some(vec![Phoneme::G]),
+        Grapheme::H => Some(vec![Phoneme::H]),
+        Grapheme::K => Some(vec![Phoneme::K]),
+        Grapheme::L => Some(vec![Phoneme::L]),
+        Grapheme::M => Some(vec![Phoneme::M]),
+        Grapheme::N => Some(vec![Phoneme::N]),
+        Grapheme::P => Some(vec![Phoneme::P]),
+        Grapheme::R => Some(vec![Phoneme::R]),
+        Grapheme::S => Some(vec![Phoneme::S]),
+        Grapheme::T => Some(vec![Phoneme::T]),
+        Grapheme::W => Some(vec![Phoneme::W]),
+        Grapheme::Y => Some(vec![Phoneme::Y]),
 
         // Vowels (pass through)
-        Grapheme::A => vec![Phoneme::A],
-        Grapheme::E => vec![Phoneme::E],
-        Grapheme::I => vec![Phoneme::I],
-        Grapheme::O => vec![Phoneme::O],
-        Grapheme::U => vec![Phoneme::U],
+        Grapheme::A => Some(vec![Phoneme::A]),
+        Grapheme::E => Some(vec![Phoneme::E]),
+        Grapheme::I => Some(vec![Phoneme::I]),
+        Grapheme::O => Some(vec![Phoneme::O]),
+        Grapheme::U => Some(vec![Phoneme::U]),
 
         // Context-sensitive letters (handled in sensitive_replacement)
-        Grapheme::C | Grapheme::X => vec![], // Will be handled by sensitive_replacement
+        // see `sensitive_replacement()`
+        Grapheme::C | Grapheme::X | Grapheme::Ch => None,
 
         // Other characters (pass through as-is)
-        Grapheme::Other => vec![Phoneme::Other]
+        Grapheme::Other => Some(vec![Phoneme::Other]),
     }
 }
 
@@ -66,14 +67,10 @@ pub fn sensitive_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec
 
     match curr {
         // 'c' before 'e', 'i', or 'y' becomes 's', otherwise 'k'
-        Grapheme::C => {
-            match next {
-                Some(Grapheme::E | Grapheme::I | Grapheme::Y) => {
-                    Some(vec![Phoneme::S])
-                }
-                _ => Some(vec![Phoneme::K]),
-            }
-        }
+        Grapheme::C => match next {
+            Some(Grapheme::E | Grapheme::I | Grapheme::Y) => Some(vec![Phoneme::S]),
+            _ => Some(vec![Phoneme::K]),
+        },
 
         // 'x' at start becomes 's', otherwise 'ks'
         Grapheme::X => {
@@ -81,19 +78,6 @@ pub fn sensitive_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec
                 Some(vec![Phoneme::S])
             } else {
                 Some(vec![Phoneme::K, Phoneme::S])
-            }
-        }
-
-        // 'qu' becomes 'kw' before vowel, 'ku' otherwise
-        Grapheme::Qu => {
-            if let Some(next_g) = next {
-                if next_g.is_vowel() {
-                    Some(vec![Phoneme::K, Phoneme::W])
-                } else {
-                    Some(vec![Phoneme::K, Phoneme::U, Phoneme::W])
-                }
-            } else {
-                Some(vec![Phoneme::K, Phoneme::U])
             }
         }
 
@@ -114,19 +98,41 @@ pub fn sensitive_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec
 }
 
 /// Nativize an entire word: String -> Vec<Grapheme> -> Vec<Phoneme> -> String
-pub fn nativize_word(word: &str) -> String {
-    let graphemes = tokenize(word);
-    let mut phonemes: Vec<Phoneme> = Vec::new();
+pub fn nativize_word(word: &str) -> Vec<Phoneme> {
+    nativize(word, None, None)
+}
 
-    for (i, g) in graphemes.iter().enumerate() {
+pub fn nativize_word_set(word_list: &[&str], dataset_name: &str) -> Vec<Vec<Phoneme>> {
+    let mut res: Vec<Vec<Phoneme>> = Vec::new();
+
+    for (i, word) in word_list.iter().enumerate() {
+        res.push(nativize(&word, Some(i), Some(dataset_name)));
+    }
+
+    res
+}
+
+fn nativize(
+    word: &str,
+    word_number: Option<usize>,
+    dataset_name: Option<&str>,
+) -> Vec<Phoneme> {
+    let mut res: Vec<Phoneme> = Vec::new();
+    let graphemes = tokenize(word);
+
+    for (i, _) in graphemes.iter().enumerate() {
         // Try context-sensitive replacement first
-        if let Some(replacement) = sensitive_replacement(&graphemes, i) {
-            phonemes.extend(replacement);
+        if let Some(sens_res) = sensitive_replacement(&graphemes, i) {
+            res.extend(sens_res);
         } else {
             // Fall back to context-free replacement
-            phonemes.extend(free_replacement(g));
+            if let Some(free_res) = free_replacement(&graphemes, i) {
+                res.extend(free_res);
+            } else {
+                printe(&graphemes, i, word_number, dataset_name);
+            }
         }
     }
 
-    phonemes_to_string(&phonemes)
+    res
 }

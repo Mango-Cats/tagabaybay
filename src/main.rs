@@ -13,9 +13,9 @@ fn main() {
     println!("Tokenized '{}': {:?}", word, graphemes);
 
     // Test nativization
-    let test_words = ["phone", "cycle", "queen", "xray", "exam", "bangon", "vitamin"];
+    let test_words = ["???", "cycle", "queen", "xray", "exam", "bangon", "vitamin"];
     for word in test_words {
         let result = nativize_word(word);
-        println!("{} -> {}", word, result);
+        println!("{} -> {:?}", word, result);
     }
 }
