@@ -1,0 +1,44 @@
+Python Nativization Algorithm
+=============================
+
+BY              Zhean (zrygan) Robby Ganituen
+EMAIL           zr.<last name; no vowels> @ gmail . com
+LAST UPDATE     December 12, 2025
+
+Original toy nativization algorithm written in Python. By Clarence Ang,
+Zhean Ganituen, Roan Campo, Clive Ang, and Nathaniel Oco, as a final
+course project for Natural Language Processing by Nathaniel Oco at De
+La Salle University, Term 1 Academic Year 2025-2026.
+
+Important Notes
+---------------
+
+This work is very unfinished and a simple toy algorithm that shows it
+is possible to model phonetic nativization rules by the Komisyon sa
+Wikang Filipino as a deterministic/rule-based algorithm.
+
+This project is being continued as the `TagaBaybay` project 
+(https://github.com/Mango-Cats/TagaBaybay/) (which, as of writing this, 
+is also a work-in-progress). This project is currently being spearheaded
+by Zhean Ganituen, part of the original project and a member of an
+undergraduate thesis group being advised by Nathaniel Oco.
+
+I suggest you look at that project instead
+
+Essential Literature
+--------------------
+
+Those interested in this work is advised to check the TagaBayBay project.
+The literature we use for this project is the Manwal sa Masinop na Pagsulat
+by the Komisyon sa Wikang Filipino.
+
+    https://kwf.gov.ph/wp-content/uploads/MMP_Full.pdf
+    (this text is written in Filipino, you can message to help find an
+    alternative in English)
+
+The techniques we use here is similar to methodology Zhean et al. used
+for their grammar checking project for Tagalog and Bikol
+
+    (publication is forthcoming, for now see)
+    [1] https://github.com/zrygan/LanguageTool-Case-Study
+    [2] https://github.com/zrygan/Tagalog-and-Bikol-Case-Study
