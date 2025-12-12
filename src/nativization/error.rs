@@ -1,6 +1,8 @@
 use crate::tokenization::graphemes::Grapheme;
+use crate::consts::PANIC_AT_ERROR;
 
 /// Print an error message for nativization
+#[inline]
 pub fn printe(
     grapheme_vec: &[Grapheme],
     err_loc: usize,
@@ -8,19 +10,21 @@ pub fn printe(
     dataset_name: Option<&str>,
 ) {
     println!("error: the word nativization is invalid or impossible");
-
+    let graphs = grapheme_vec.iter().map(|f| f.as_str()).collect::<String>();
     match dataset_name {
         Some(s) => match word_number {
-            Some(n) => println!("  --> {s}::{}", n),
-            None => println!("  --> {s}"),
+            Some(n) => println!("  --> {graphs} @ {s}::{n}"),
+            None => println!("  --> {graphs} @ {s}"),
         },
-        None => {}
+        None => println!("  --> graphs")
     }
 
-    println!("\n|");
-    println!("\n|\t\t{:?}", grapheme_vec);
-    println!("\n|\t\t^ error at token {err_loc}");
-    println!("\n|");
+    println!("    |");
+    println!("    |\t{}", grapheme_vec.iter().map(|f| f.as_str()).collect::<String>());
+    println!("    |\t{}^ error at token {err_loc}", " ".repeat(err_loc-1));
+    println!("    |");
 
-    panic!()
+    if PANIC_AT_ERROR {
+        panic!()
+    }
 }
