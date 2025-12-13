@@ -1,3 +1,5 @@
+use std::vec;
+
 use crate::nativization::error::printe;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::{Phoneme, phonemes_to_string};
@@ -283,60 +285,44 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme
 }
 
 /// Convert a single letter to its Filipino phonetic alphabet name
-fn letter_to_phonetic(letter: char) -> &'static str {
+pub fn letter_to_phonetic(letter: char) -> Option<Vec<Phoneme>> {
     match letter.to_ascii_uppercase() {
-        'A' => "ey",
-        'B' => "bi",
-        'C' => "si",
-        'D' => "di",
-        'E' => "i",
-        'F' => "ef",
-        'G' => "dyi",
-        'H' => "eyts",
-        'I' => "ay",
-        'J' => "dyey",
-        'K' => "key",
-        'L' => "el",
-        'M' => "em",
-        'N' => "en",
-        'O' => "o",
-        'P' => "pi",
-        'Q' => "kyu",
-        'R' => "ar",
-        'S' => "es",
-        'T' => "ti",
-        'U' => "yu",
-        'V' => "vi",
-        'W' => "dobolyu",
-        'X' => "eks",
-        'Y' => "way",
-        'Z' => "zi",
-        _ => "",
+        'A' => Some(vec![Phoneme::E, Phoneme::Y]),
+        'B' => Some(vec![Phoneme::B, Phoneme::I]),
+        'C' => Some(vec![Phoneme::S, Phoneme::I]),
+        'D' => Some(vec![Phoneme::D, Phoneme::I]),
+        'E' => Some(vec![Phoneme::I]),
+        'F' => Some(vec![Phoneme::F, Phoneme::F]),
+        'G' => Some(vec![Phoneme::D, Phoneme::Y, Phoneme::I]),
+        'H' => Some(vec![Phoneme::E, Phoneme::Y, Phoneme::AFFTs]),
+        'I' => Some(vec![Phoneme::A, Phoneme::Y]),
+        'J' => Some(vec![Phoneme::AFFDy, Phoneme::DIPAy]),
+        'K' => Some(vec![Phoneme::K, Phoneme::E, Phoneme::Y]),
+        'L' => Some(vec![Phoneme::E, Phoneme::L]),
+        'M' => Some(vec![Phoneme::E, Phoneme::M]),
+        'N' => Some(vec![Phoneme::E, Phoneme::N]),
+        'O' => Some(vec![Phoneme::O, Phoneme::W]),
+        'P' => Some(vec![Phoneme::P, Phoneme::I]),
+        'Q' => Some(vec![Phoneme::K, Phoneme::Y, Phoneme::U]),
+        'R' => Some(vec![Phoneme::A, Phoneme::R]),
+        'S' => Some(vec![Phoneme::E, Phoneme::S]),
+        'T' => Some(vec![Phoneme::T, Phoneme::I]),
+        'U' => Some(vec![Phoneme::Y, Phoneme::U]),
+        'V' => Some(vec![Phoneme::B, Phoneme::I]),
+        'W' => Some(vec![
+            Phoneme::D,
+            Phoneme::O,
+            Phoneme::B,
+            Phoneme::O,
+            Phoneme::L,
+            Phoneme::Y,
+            Phoneme::U,
+        ]),
+        'X' => Some(vec![Phoneme::E, Phoneme::K, Phoneme::S]),
+        'Y' => Some(vec![Phoneme::W, Phoneme::DIPAy]),
+        'Z' => Some(vec![Phoneme::S, Phoneme::I]),
+        _ => None,
     }
-}
-
-/// Check if a word is an abbreviation (all uppercase letters)
-pub fn is_abbreviation(word: &str) -> bool {
-    !word.is_empty() && word.chars().all(|c| c.is_ascii_uppercase())
-}
-
-/// Check if a single character is an uppercase letter (for prefix handling like "L-", "C")
-pub fn is_single_letter(s: &str) -> bool {
-    s.len() == 1
-        && s.chars()
-            .next()
-            .map(|c| c.is_ascii_uppercase())
-            .unwrap_or(false)
-}
-
-/// Convert an abbreviation to Filipino phonetic transcription
-/// E.g., "XR" -> "eks ar", "IV" -> "ay vi"
-pub fn transcribe_abbreviation(abbr: &str) -> String {
-    abbr.chars()
-        .map(letter_to_phonetic)
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<_>>()
-        .join(" ")
 }
 
 pub fn preprocess(word: &str) -> String {
