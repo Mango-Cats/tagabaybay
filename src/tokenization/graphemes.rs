@@ -1,5 +1,3 @@
-use crate::tokenization::graphemes;
-
 /// Represents an input grapheme from English orthography
 /// These are patterns we recognize when tokenizing English text
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
