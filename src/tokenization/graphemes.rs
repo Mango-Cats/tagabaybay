@@ -41,6 +41,34 @@ pub enum Grapheme {
     Y,
     Z,
 
+    // Uppercase variants (for abbreviation detection)
+    UpperA,
+    UpperB,
+    UpperC,
+    UpperD,
+    UpperE,
+    UpperF,
+    UpperG,
+    UpperH,
+    UpperI,
+    UpperJ,
+    UpperK,
+    UpperL,
+    UpperM,
+    UpperN,
+    UpperO,
+    UpperP,
+    UpperQ,
+    UpperR,
+    UpperS,
+    UpperT,
+    UpperU,
+    UpperV,
+    UpperW,
+    UpperX,
+    UpperY,
+    UpperZ,
+
     // Spanish
     Enye,
 
@@ -97,6 +125,34 @@ impl Grapheme {
             Grapheme::Y => "y".to_string(),
             Grapheme::Z => "z".to_string(),
 
+            // Uppercase
+            Grapheme::UpperA => "A".to_string(),
+            Grapheme::UpperB => "B".to_string(),
+            Grapheme::UpperC => "C".to_string(),
+            Grapheme::UpperD => "D".to_string(),
+            Grapheme::UpperE => "E".to_string(),
+            Grapheme::UpperF => "F".to_string(),
+            Grapheme::UpperG => "G".to_string(),
+            Grapheme::UpperH => "H".to_string(),
+            Grapheme::UpperI => "I".to_string(),
+            Grapheme::UpperJ => "J".to_string(),
+            Grapheme::UpperK => "K".to_string(),
+            Grapheme::UpperL => "L".to_string(),
+            Grapheme::UpperM => "M".to_string(),
+            Grapheme::UpperN => "N".to_string(),
+            Grapheme::UpperO => "O".to_string(),
+            Grapheme::UpperP => "P".to_string(),
+            Grapheme::UpperQ => "Q".to_string(),
+            Grapheme::UpperR => "R".to_string(),
+            Grapheme::UpperS => "S".to_string(),
+            Grapheme::UpperT => "T".to_string(),
+            Grapheme::UpperU => "U".to_string(),
+            Grapheme::UpperV => "V".to_string(),
+            Grapheme::UpperW => "W".to_string(),
+            Grapheme::UpperX => "X".to_string(),
+            Grapheme::UpperY => "Y".to_string(),
+            Grapheme::UpperZ => "Z".to_string(),
+
             // Spanish
             Grapheme::Enye => "ñ".to_string(),
 
@@ -120,9 +176,80 @@ impl Grapheme {
                 | Grapheme::I
                 | Grapheme::O
                 | Grapheme::U
+                | Grapheme::UpperA
+                | Grapheme::UpperE
+                | Grapheme::UpperI
+                | Grapheme::UpperO
+                | Grapheme::UpperU
                 | Grapheme::Ee
                 | Grapheme::Oo
         )
+    }
+
+    /// Check if this grapheme is an uppercase letter
+    pub fn is_uppercase(&self) -> bool {
+        matches!(
+            self,
+            Grapheme::UpperA
+                | Grapheme::UpperB
+                | Grapheme::UpperC
+                | Grapheme::UpperD
+                | Grapheme::UpperE
+                | Grapheme::UpperF
+                | Grapheme::UpperG
+                | Grapheme::UpperH
+                | Grapheme::UpperI
+                | Grapheme::UpperJ
+                | Grapheme::UpperK
+                | Grapheme::UpperL
+                | Grapheme::UpperM
+                | Grapheme::UpperN
+                | Grapheme::UpperO
+                | Grapheme::UpperP
+                | Grapheme::UpperQ
+                | Grapheme::UpperR
+                | Grapheme::UpperS
+                | Grapheme::UpperT
+                | Grapheme::UpperU
+                | Grapheme::UpperV
+                | Grapheme::UpperW
+                | Grapheme::UpperX
+                | Grapheme::UpperY
+                | Grapheme::UpperZ
+        )
+    }
+
+    /// Convert uppercase grapheme to lowercase, returns self if already lowercase or not a letter
+    pub fn to_lowercase(&self) -> Grapheme {
+        match self {
+            Grapheme::UpperA => Grapheme::A,
+            Grapheme::UpperB => Grapheme::B,
+            Grapheme::UpperC => Grapheme::C,
+            Grapheme::UpperD => Grapheme::D,
+            Grapheme::UpperE => Grapheme::E,
+            Grapheme::UpperF => Grapheme::F,
+            Grapheme::UpperG => Grapheme::G,
+            Grapheme::UpperH => Grapheme::H,
+            Grapheme::UpperI => Grapheme::I,
+            Grapheme::UpperJ => Grapheme::J,
+            Grapheme::UpperK => Grapheme::K,
+            Grapheme::UpperL => Grapheme::L,
+            Grapheme::UpperM => Grapheme::M,
+            Grapheme::UpperN => Grapheme::N,
+            Grapheme::UpperO => Grapheme::O,
+            Grapheme::UpperP => Grapheme::P,
+            Grapheme::UpperQ => Grapheme::Q,
+            Grapheme::UpperR => Grapheme::R,
+            Grapheme::UpperS => Grapheme::S,
+            Grapheme::UpperT => Grapheme::T,
+            Grapheme::UpperU => Grapheme::U,
+            Grapheme::UpperV => Grapheme::V,
+            Grapheme::UpperW => Grapheme::W,
+            Grapheme::UpperX => Grapheme::X,
+            Grapheme::UpperY => Grapheme::Y,
+            Grapheme::UpperZ => Grapheme::Z,
+            _ => *self,
+        }
     }
 
     /// Check if this grapheme represents a consonant sound
@@ -132,15 +259,45 @@ impl Grapheme {
 
     /// Create a Grapheme from a single character
     pub fn from_char(c: char) -> Grapheme {
-        match c.to_ascii_lowercase() {
-            // Vowels
+        match c {
+            // Uppercase vowels
+            'A' => Grapheme::UpperA,
+            'E' => Grapheme::UpperE,
+            'I' => Grapheme::UpperI,
+            'O' => Grapheme::UpperO,
+            'U' => Grapheme::UpperU,
+
+            // Uppercase consonants
+            'B' => Grapheme::UpperB,
+            'C' => Grapheme::UpperC,
+            'D' => Grapheme::UpperD,
+            'F' => Grapheme::UpperF,
+            'G' => Grapheme::UpperG,
+            'H' => Grapheme::UpperH,
+            'J' => Grapheme::UpperJ,
+            'K' => Grapheme::UpperK,
+            'L' => Grapheme::UpperL,
+            'M' => Grapheme::UpperM,
+            'N' => Grapheme::UpperN,
+            'P' => Grapheme::UpperP,
+            'Q' => Grapheme::UpperQ,
+            'R' => Grapheme::UpperR,
+            'S' => Grapheme::UpperS,
+            'T' => Grapheme::UpperT,
+            'V' => Grapheme::UpperV,
+            'W' => Grapheme::UpperW,
+            'X' => Grapheme::UpperX,
+            'Y' => Grapheme::UpperY,
+            'Z' => Grapheme::UpperZ,
+
+            // Lowercase vowels
             'a' => Grapheme::A,
             'e' => Grapheme::E,
             'i' => Grapheme::I,
             'o' => Grapheme::O,
             'u' => Grapheme::U,
 
-            // Consonants
+            // Lowercase consonants
             'b' => Grapheme::B,
             'c' => Grapheme::C,
             'd' => Grapheme::D,
@@ -164,7 +321,7 @@ impl Grapheme {
             'z' => Grapheme::Z,
 
             // Spanish
-            'ñ' => Grapheme::Enye,
+            'ñ' | 'Ñ' => Grapheme::Enye,
 
             // Whitespace
             ' ' => Grapheme::Space,
