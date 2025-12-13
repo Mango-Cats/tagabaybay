@@ -9,15 +9,16 @@ A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
 
 ## The Team
 
-| Author         | GitHub                                             |
-| -------------- | -------------------------------------------------- |
-| Clarence Ang   | [@ClarenceAng](https://github.com/ClarenceAng)     |
-| Zhean Ganituen | [@zrygan](https://github.com/zrygan)               |
-| Roan Campo     | [@ImaginaryLogs](https://github.com/ImaginaryLogs) |
-| Clive Ang      | [@EvilConundrum](https://github.com/EvilConundrum) |
-| Nathaniel Oco  |                                                    |
+| Author          | GitHub                                             |
+| ---             | ---                                                |
+| Clarence Ang    | [@ClarenceAng](https://github.com/ClarenceAng)     |
+| Zhean Ganituen* | [@zrygan](https://github.com/zrygan)               |
+| Roan Campo      | [@ImaginaryLogs](https://github.com/ImaginaryLogs) |
+| Clive Ang       | [@EvilConundrum](https://github.com/EvilConundrum) |
+| Nathaniel Oco   |                                                    |
 
-**Correspondence:** Z. Ganituen via zr.<last name; no vowels>@gmail.com
+**Correspondence:** Z. Ganituen via zr.<last name; no vowels>@gmail.com.
+Authorship is based on contribution.
 
 ## The Project
 
@@ -27,7 +28,8 @@ This section discusses the project in depth.
 
 Working in NLP in the Philippine context is challenging due to
 the multilingual nature of Filipinos and their frequent tendency to 
-code-switch. Code-switching can occur through direct translation, for example:
+code-switch and borrowing. Code-switching can occur through direct
+translation, for example:
 
 ```
     Pupunta  ako  sa   paaralan  mamaya
@@ -47,8 +49,9 @@ loanwords, as in:
 ```
 
 Although there are linguistic descriptions and rules for phonetic nativization
-`[1]`, there is currently no computational approach for generating such
-nativizations. This project aims to address that gap.
+`[1]`, there is currently no software capable of automatically generating phonetic
+nativizations of English loanwords. This gap limits Taglish language processing,
+downstream NLP tasks, and broader computational work involving Philippine languages. 
 
 ### Algorithm
 
