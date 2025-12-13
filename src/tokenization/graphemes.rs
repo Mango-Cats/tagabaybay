@@ -262,7 +262,36 @@ impl Grapheme {
 
     /// Check if this grapheme represents a consonant sound
     pub fn is_consonant(&self) -> bool {
-        !self.is_vowel()
+        matches!(
+            self.to_lowercase(),
+            Grapheme::B
+                | Grapheme::C
+                | Grapheme::D
+                | Grapheme::F
+                | Grapheme::G
+                | Grapheme::H
+                | Grapheme::J
+                | Grapheme::K
+                | Grapheme::L
+                | Grapheme::M
+                | Grapheme::N
+                | Grapheme::P
+                | Grapheme::Q
+                | Grapheme::R
+                | Grapheme::S
+                | Grapheme::T
+                | Grapheme::V
+                | Grapheme::W
+                | Grapheme::X
+                | Grapheme::Y
+                | Grapheme::Z
+                | Grapheme::Enye
+                | Grapheme::BigraphPh
+                | Grapheme::BigraphPs
+                | Grapheme::BigraphCh
+                | Grapheme::BigraphTh
+                | Grapheme::BigraphSh
+        )
     }
 
     /// Create a Grapheme from a single character

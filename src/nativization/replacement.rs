@@ -95,6 +95,11 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
     };
     let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
 
+    // remove duplicates
+    if let Some(x) = sensitive_duplicates(curr, next, graphemes, index) {
+        return Some(x);
+    }
+
     match curr {
         Grapheme::A => {
             // Check for "ate" pattern (a-t-e at end) → "eyt"
@@ -107,7 +112,7 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
                 }
             }
             None
-        },
+        }
 
         Grapheme::E => {
             // remove trailing 'e'
@@ -133,7 +138,7 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
                     }
                 }
             }
-            
+
             // Regular i + vowel patterns
             match next {
                 Some(Grapheme::A) => Some((vec![Phoneme::I, Phoneme::Y, Phoneme::A], 2)),
@@ -155,7 +160,7 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
                     }
                 }
             }
-            
+
             match next {
                 Some(vowel) if vowel.is_vowel() => {
                     // o + vowel -> oy + vowel (unless next is also a vowel)
@@ -207,6 +212,11 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phon
         None
     };
     let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
+
+    // remove duplicates
+    if let Some(x) = sensitive_duplicates(curr, next, graphemes, index) {
+        return Some(x);
+    }
 
     match curr {
         Grapheme::C => match next {
@@ -325,6 +335,23 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phonem
         // Th and Sh are handled in free_replacement
         _ => None,
     }
+}
+
+fn sensitive_duplicates(
+    curr: Grapheme,
+    next: Option<Grapheme>,
+    graphemes: &[Grapheme],
+    index: usize,
+) -> Option<(Vec<Phoneme>, usize)> {
+    if let Some(next_grapheme) = next {
+        if curr == next_grapheme && !matches!(curr, Grapheme::Passthrough(_) | Grapheme::Space | Grapheme::Other) {
+            if let Some((phonemes, _)) = free_replacement(graphemes, index) {
+                return Some((phonemes, 2));
+            }
+        }
+    }
+
+    None
 }
 
 /// Convert a single letter to its Filipino phonetic alphabet name
