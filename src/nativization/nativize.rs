@@ -1,4 +1,5 @@
-use crate::nativization::error::printe;
+use crate::consts::NativizationConfig;
+use crate::nativization::error::NativizationError;
 use crate::nativization::replacement::{
     free_replacement, letter_to_phonetic, sensitive_replacement,
 };
@@ -6,81 +7,226 @@ use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
 use crate::tokenization::tokenize::tokenize;
 
-/// Nativize an entire word or phrase
-pub fn nativize_word(input: &str) -> Vec<Phoneme> {
-    nativize(input, None, None)
+/// Builder for nativization with customizable configuration
+///
+/// The `Nativizer` provides a flexible interface for converting English text
+/// to Filipino phonetic representation. It supports customization through
+/// configuration options.
+///
+/// # Examples
+///
+/// ```
+/// use tagabaybay::nativization::nativize::Nativizer;
+/// use tagabaybay::tokenization::phoneme::phonemes_to_string;
+///
+/// let nativizer = Nativizer::new();
+/// let result = nativizer.nativize("chocolate").unwrap();
+/// assert_eq!(phonemes_to_string(&result), "tsokoleyt");
+/// ```
+///
+/// With custom configuration:
+///
+/// ```
+/// use tagabaybay::nativization::nativize::Nativizer;
+///
+/// let nativizer = Nativizer::new()
+///     .allow_sh_sound(true)
+///     .allow_z_sound(true);
+/// ```
+pub struct Nativizer {
+    config: NativizationConfig,
 }
 
-/// Nativize a list of words or phrase
-pub fn nativize_word_set(word_list: &[&str], dataset_name: &str) -> Vec<Vec<Phoneme>> {
-    let mut res: Vec<Vec<Phoneme>> = Vec::new();
-
-    for (i, word) in word_list.iter().enumerate() {
-        res.push(nativize(&word, Some(i), Some(dataset_name)));
+impl Nativizer {
+    /// Create a new Nativizer with default configuration
+    pub fn new() -> Self {
+        Self {
+            config: NativizationConfig::default(),
+        }
     }
 
-    res
-}
+    /// Create a Nativizer with a custom configuration
+    pub fn with_config(config: NativizationConfig) -> Self {
+        Self { config }
+    }
 
-/// The Nativization Algorithm
-fn nativize(word: &str, word_number: Option<usize>, dataset_name: Option<&str>) -> Vec<Phoneme> {
-    let mut res: Vec<Phoneme> = Vec::new();
-    let graphemes = tokenize(&word);
+    /// Enable panic on error
+    pub fn panic_at_error(mut self, value: bool) -> Self {
+        self.config.panic_at_error = value;
+        self
+    }
 
-    let mut i = 0;
-    while i < graphemes.len() {
-        let curr = &graphemes[i];
+    /// Enable 'sh' sound
+    pub fn allow_sh_sound(mut self, value: bool) -> Self {
+        self.config.allow_sh_sound = value;
+        self
+    }
 
-        // Handle abbreviations and single letters (spelled out phonetically)
-        if curr.is_uppercase() {
-            let prev = if i > 0 { Some(&graphemes[i - 1]) } else { None };
-            let after_separator = prev.is_none()
-                || matches!(
-                    prev,
-                    Some(Grapheme::Space) | Some(Grapheme::Passthrough('-'))
-                );
+    /// Enable 'z' sound
+    pub fn allow_z_sound(mut self, value: bool) -> Self {
+        self.config.allow_z_sound = value;
+        self
+    }
 
-            if after_separator {
-                let start = i;
-                while i < graphemes.len() && graphemes[i].is_uppercase() {
-                    i += 1;
-                }
-                let end = i;
-                let next = graphemes.get(i);
-                let before_separator = next.is_none()
-                    || matches!(
-                        next,
-                        Some(Grapheme::Space) | Some(Grapheme::Passthrough('-'))
-                    );
+    /// Nativize an entire word or phrase
+    ///
+    /// Converts English text to Filipino phonetic representation.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - The English text to nativize
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(Vec<Phoneme>)` on success, or `Err(NativizationError)` if
+    /// nativization fails and `panic_at_error` is enabled.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tagabaybay::nativization::nativize::Nativizer;
+    ///
+    /// let nativizer = Nativizer::new();
+    /// let result = nativizer.nativize("hello").unwrap();
+    /// ```
+    pub fn nativize(&self, input: &str) -> Result<Vec<Phoneme>, NativizationError> {
+        self.nativize_internal(input, None, None)
+    }
 
-                if (end - start >= 2) || before_separator {
-                    let abbr_segment = &graphemes[start..end];
-                    res.extend(nativize_abbreviation(abbr_segment));
+    /// Nativize a list of words or phrases
+    ///
+    /// Processes multiple words in batch, providing detailed error information
+    /// including the word number and dataset name.
+    ///
+    /// # Arguments
+    ///
+    /// * `word_list` - Slice of words to nativize
+    /// * `dataset_name` - Name of the dataset for error reporting
+    ///
+    /// # Returns
+    ///
+    /// Returns a vector of results, one for each input word.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tagabaybay::nativization::nativize::Nativizer;
+    ///
+    /// let nativizer = Nativizer::new();
+    /// let words = vec!["hello", "world"];
+    /// let results = nativizer.nativize_batch(&words, "test_dataset");
+    /// ```
+    pub fn nativize_batch(
+        &self,
+        word_list: &[&str],
+        dataset_name: &str,
+    ) -> Vec<Result<Vec<Phoneme>, NativizationError>> {
+        word_list
+            .iter()
+            .enumerate()
+            .map(|(i, word)| self.nativize_internal(word, Some(i), Some(dataset_name)))
+            .collect()
+    }
+
+    /// Internal nativization implementation
+    fn nativize_internal(
+        &self,
+        word: &str,
+        word_number: Option<usize>,
+        dataset_name: Option<&str>,
+    ) -> Result<Vec<Phoneme>, NativizationError> {
+        let mut res: Vec<Phoneme> = Vec::new();
+        let graphemes = tokenize(word);
+
+        let mut i = 0;
+        while i < graphemes.len() {
+            let curr = &graphemes[i];
+
+            // Handle abbreviations and single letters (spelled out phonetically)
+            if curr.is_uppercase() {
+                if let Some((abbr_phonemes, consumed)) =
+                    detect_and_process_abbreviation(&graphemes, i)
+                {
+                    res.extend(abbr_phonemes);
+                    i += consumed;
                     continue;
-                } else {
-                    i = start;
                 }
             }
-        }
 
-        // Try context-sensitive replacement first
-        if let Some((sens_res, consumed)) = sensitive_replacement(&graphemes, i) {
-            res.extend(sens_res);
-            i += consumed;
-        } else {
-            // Fall back to context-free replacement
-            if let Some((free_res, consumed)) = free_replacement(&graphemes, i) {
-                res.extend(free_res);
+            // Try context-sensitive replacement first
+            if let Some((sens_res, consumed)) = sensitive_replacement(&graphemes, i, &self.config) {
+                res.extend(sens_res);
                 i += consumed;
             } else {
-                printe(&graphemes, i, word_number, dataset_name);
-                i += 1;
+                // Fall back to context-free replacement
+                if let Some((free_res, consumed)) = free_replacement(&graphemes, i, &self.config) {
+                    res.extend(free_res);
+                    i += consumed;
+                } else {
+                    let error =
+                        NativizationError::new(graphemes.clone(), i, word_number, dataset_name);
+                    error.print_error(self.config.panic_at_error);
+                    if self.config.panic_at_error {
+                        return Err(error);
+                    }
+                    i += 1;
+                }
             }
         }
+
+        Ok(res)
+    }
+}
+
+impl Default for Nativizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Detect and process abbreviations
+/// Returns (phonemes, graphemes_consumed) or None if not an abbreviation
+fn detect_and_process_abbreviation(
+    graphemes: &[Grapheme],
+    start_idx: usize,
+) -> Option<(Vec<Phoneme>, usize)> {
+    let prev = if start_idx > 0 {
+        Some(&graphemes[start_idx - 1])
+    } else {
+        None
+    };
+
+    let after_separator = prev.is_none()
+        || matches!(
+            prev,
+            Some(Grapheme::Space) | Some(Grapheme::Passthrough('-'))
+        );
+
+    if !after_separator {
+        return None;
     }
 
-    // Apply post-processing patterns
-    res
+    // Find the end of the uppercase sequence
+    let mut end = start_idx;
+    while end < graphemes.len() && graphemes[end].is_uppercase() {
+        end += 1;
+    }
+
+    let next = graphemes.get(end);
+    let before_separator = next.is_none()
+        || matches!(
+            next,
+            Some(Grapheme::Space) | Some(Grapheme::Passthrough('-'))
+        );
+
+    // Check if this is an abbreviation (2+ letters or single letter before separator)
+    if (end - start_idx >= 2) || before_separator {
+        let abbr_segment = &graphemes[start_idx..end];
+        let phonemes = nativize_abbreviation(abbr_segment);
+        Some((phonemes, end - start_idx))
+    } else {
+        None
+    }
 }
 
 /// Convert an abbreviation to Filipino phonetic transcription

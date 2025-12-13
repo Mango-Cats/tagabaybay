@@ -1,5 +1,13 @@
 /// Represents an input grapheme from English orthography
-/// These are patterns we recognize when tokenizing English text
+///
+/// A grapheme is a unit of written language. This enum captures the patterns
+/// we recognize when tokenizing English text, including:
+/// - Single letters (a, b, c, ...)
+/// - Bigraphs (ph, ch, th, sh, ...)
+/// - Uppercase variants (for abbreviation detection)
+/// - Special characters (spaces, punctuation, etc.)
+///
+/// Each variant can be converted back to its string form using `as_str()`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Grapheme {
     // Bigraphs (English spelling patterns)
@@ -247,6 +255,7 @@ impl Grapheme {
         )
     }
 
+    /// Check if this grapheme represents a bigraph
     pub fn is_bigraph(&self) -> bool {
         matches!(
             self,
@@ -373,13 +382,25 @@ impl Grapheme {
 }
 
 /// Match a 3-character string to a trigraph
-pub fn match_trigraph(s: &str) -> Option<Grapheme> {
-    match s.to_lowercase().as_str() {
-        _ => None,
-    }
-}
+// pub fn match_trigraph(s: &str) -> Option<Grapheme> {
+//     match s.to_lowercase().as_str() {
+//         _ => None,
+//     }
+// }
 
-/// Match a 2-character string to a bigraph
+/// Match a 2-character string to a bigraph grapheme
+///
+/// Recognizes common English bigraphs (two-letter combinations that represent
+/// a single sound or pattern).
+///
+/// # Arguments
+///
+/// * `s` - A 2-character string to match (case-insensitive)
+///
+/// # Returns
+///
+/// Returns `Some(Grapheme)` if the string matches a known bigraph.
+/// Returns `None` if no match is found.
 pub fn match_bigraph(s: &str) -> Option<Grapheme> {
     match s.to_lowercase().as_str() {
         "ph" => Some(Grapheme::BigraphPh),

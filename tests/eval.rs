@@ -3,7 +3,7 @@
 use chrono::Local;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
-use tagabaybay::nativization::nativize::nativize_word;
+use tagabaybay::nativization::nativize::Nativizer;
 use tagabaybay::tokenization::phoneme::phonemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
@@ -25,6 +25,7 @@ struct TestResult {
 struct EvalReport {
     total: usize,
     passed: usize,
+    #[allow(dead_code)]
     failed: usize,
     accuracy: f64,
     failures: Vec<TestResult>,
@@ -33,6 +34,7 @@ struct EvalReport {
 fn evaluate_csv(path: &str) -> EvalReport {
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
+    let nativizer = Nativizer::new();
 
     let mut results: Vec<TestResult> = Vec::new();
 
@@ -49,7 +51,10 @@ fn evaluate_csv(path: &str) -> EvalReport {
 
         let input = parts[0].trim();
         let expected = parts[1].trim();
-        let actual = phonemes_to_string(&nativize_word(input));
+        let actual = nativizer
+            .nativize(input)
+            .map(|phonemes| phonemes_to_string(&phonemes))
+            .unwrap_or_default();
 
         results.push(TestResult {
             input: input.to_string(),
@@ -139,7 +144,8 @@ fn write_report(name: &str, report: &EvalReport, timestamp: &str) -> String {
     content.push_str(&format!("├── Accuracy        {:.2}%\n", report.accuracy));
     content.push_str(&format!(
         "└── Accept@{:<3}      {}\n",
-        ACCEPT, report.accuracy > ACCEPT
+        ACCEPT,
+        report.accuracy > ACCEPT
     ));
 
     if !report.failures.is_empty() {

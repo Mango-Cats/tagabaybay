@@ -1,32 +1,35 @@
 /// Represents a Filipino phoneme (output sound unit)
-/// These are the sounds in native Filipino phonology
+///
+/// A phoneme is a unit of sound. This enum captures the sounds in native and
+/// modern Filipino phonology, including:
+/// - Vowels (a, e, i, o, u)
+/// - Consonants (native: p, b, t, d, k, g, m, n, ng, ny, h, s, l, r, w, y)
+/// - Modern consonants (f, z)
+/// - Affricates (ts, dy)
+/// - Special characters (spaces, punctuation)
+///
+/// Each variant can be converted to Filipino orthography using `as_str()`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phoneme {
     // Affricates [AFF]
-    AFFTs, // /ts/     - e.g., (CH/TS)ocolate
-    AFFDy, // /dʒ/     - e.g., (J/DY)eep
-
-    // Dipthongs [DIP]
-    DIPAw,
-    DIPAy,
-    DIPiw,
-    DIPuy,
+    AFFTs, // /ts/  - e.g., (CH/TS)ocolate
+    AFFDy, // /dʒ/  - e.g., (J/DY)eep
 
     // Vowels Sounds; Monophthongs
-    A, // /a/      - e.g., Apoy
-    E, // /ɛ/      - e.g., Elepante
-    I, // /i/      - e.g., Isip
-    O, // /o/      - e.g., Okey
-    U, // /u/      - e.g., Ulan
+    A, // /a/       - e.g., Apoy
+    E, // /ɛ/       - e.g., Elepante
+    I, // /i/       - e.g., Isip
+    O, // /o/       - e.g., Okey
+    U, // /u/       - e.g., Ulan
 
     // Native consonants sounds
     // Stops
-    P, // /p/      - e.g., isiP
-    B, // /b/      - e.g., gaBay
-    T, // /t/      - e.g., Tula
-    D, // /d/      - e.g., lakaD
-    K, // /k/      - e.g., Kanta
-    G, // /g/      - e.g., puGot
+    P, // /p/       - e.g., isiP
+    B, // /b/       - e.g., gaBay
+    T, // /t/       - e.g., Tula
+    D, // /d/       - e.g., lakaD
+    K, // /k/       - e.g., Kanta
+    G, // /g/       - e.g., puGot
 
     // Nasals
     M,  // /m/      - e.g., alaM
@@ -35,18 +38,18 @@ pub enum Phoneme {
     Ny, // /ɲ/      - e.g., niÑo
 
     // Fricatives
-    H, // /h/      - e.g., aHoy
-    S, // /s/      - e.g., iSip
+    H, // /h/       - e.g., aHoy
+    S, // /s/       - e.g., iSip
 
     // Approximants
-    L, // /l/      - e.g., aLam
-    R, // /ɾ/      - e.g., duRa
-    W, // /w/      - e.g., Walis
-    Y, // /j/      - e.g., Yap or Juan
+    L, // /l/       - e.g., aLam
+    R, // /ɾ/       - e.g., duRa
+    W, // /w/       - e.g., Walis
+    Y, // /j/       - e.g., Yap or Juan
 
     // Modern consonants sounds
-    F, // /f/      - e.g., Filipino
-    Z, // /z/      - e.g., Zig-Zag
+    F, // /f/       - e.g., Filipino
+    Z, // /z/       - e.g., Zig-Zag
 
     // Whitespace
     Space,
@@ -65,12 +68,6 @@ impl Phoneme {
             // Affricates [AFF]
             Phoneme::AFFTs => "ts".to_string(),
             Phoneme::AFFDy => "dy".to_string(),
-
-            // Dipthongs [DIP]
-            Phoneme::DIPAw => "aw".to_string(),
-            Phoneme::DIPAy => "ay".to_string(),
-            Phoneme::DIPiw => "iw".to_string(),
-            Phoneme::DIPuy => "uy".to_string(),
 
             // Vowel Sounds
             Phoneme::A => "a".to_string(),
@@ -137,13 +134,23 @@ impl Phoneme {
     }
 }
 
+/// Convert a Vec<Phoneme> to a String
+///
+/// Converts a sequence of phonemes into their Filipino orthographic representation.
+///
+/// # Arguments
+///
+/// * `phonemes` - Slice of phonemes to convert
+///
+/// # Returns
+///
+/// Returns the string representation in Filipino orthography.
+pub fn phonemes_to_string(phonemes: &[Phoneme]) -> String {
+    phonemes.iter().map(|p| p.to_string()).collect()
+}
+
 impl std::fmt::Display for Phoneme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }
-}
-
-/// Convert a Vec<Phoneme> to a String
-pub fn phonemes_to_string(phonemes: &[Phoneme]) -> String {
-    phonemes.iter().map(|p| p.to_string()).collect()
 }
