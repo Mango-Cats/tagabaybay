@@ -1,3 +1,3 @@
-pub mod replacement;
-pub mod nativize;
 pub mod error;
+pub mod nativize;
+pub mod replacement;
