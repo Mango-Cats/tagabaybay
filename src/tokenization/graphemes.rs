@@ -1,15 +1,17 @@
+use crate::tokenization::graphemes;
+
 /// Represents an input grapheme from English orthography
 /// These are patterns we recognize when tokenizing English text
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Grapheme {
     // Bigraphs (English spelling patterns)
-    Ph,
-    Ps,
-    Ch,
-    Th,
-    Sh,
-    Ee,
-    Oo,
+    BigraphPh,
+    BigraphPs,
+    BigraphCh,
+    BigraphTh,
+    BigraphSh,
+    BigraphEe,
+    BigraphOo,
 
     // Vowels
     A,
@@ -87,13 +89,13 @@ impl Grapheme {
     pub fn as_str(&self) -> String {
         match self {
             // Bigraphs
-            Grapheme::Ph => "ph".to_string(),
-            Grapheme::Ps => "ps".to_string(),
-            Grapheme::Ch => "ch".to_string(),
-            Grapheme::Th => "th".to_string(),
-            Grapheme::Sh => "sh".to_string(),
-            Grapheme::Ee => "ee".to_string(),
-            Grapheme::Oo => "oo".to_string(),
+            Grapheme::BigraphPh => "ph".to_string(),
+            Grapheme::BigraphPs => "ps".to_string(),
+            Grapheme::BigraphCh => "ch".to_string(),
+            Grapheme::BigraphTh => "th".to_string(),
+            Grapheme::BigraphSh => "sh".to_string(),
+            Grapheme::BigraphEe => "ee".to_string(),
+            Grapheme::BigraphOo => "oo".to_string(),
 
             // Vowels
             Grapheme::A => "a".to_string(),
@@ -167,25 +169,6 @@ impl Grapheme {
         }
     }
 
-    /// Check if this grapheme represents a vowel sound
-    pub fn is_vowel(&self) -> bool {
-        matches!(
-            self,
-            Grapheme::A
-                | Grapheme::E
-                | Grapheme::I
-                | Grapheme::O
-                | Grapheme::U
-                | Grapheme::UpperA
-                | Grapheme::UpperE
-                | Grapheme::UpperI
-                | Grapheme::UpperO
-                | Grapheme::UpperU
-                | Grapheme::Ee
-                | Grapheme::Oo
-        )
-    }
-
     /// Check if this grapheme is an uppercase letter
     pub fn is_uppercase(&self) -> bool {
         matches!(
@@ -250,6 +233,33 @@ impl Grapheme {
             Grapheme::UpperZ => Grapheme::Z,
             _ => *self,
         }
+    }
+
+    /// Check if this grapheme represents a vowel sound
+    pub fn is_vowel(&self) -> bool {
+        matches!(
+            self.to_lowercase(),
+            Grapheme::A
+                | Grapheme::E
+                | Grapheme::I
+                | Grapheme::O
+                | Grapheme::U
+                | Grapheme::BigraphEe
+                | Grapheme::BigraphOo
+        )
+    }
+
+    pub fn is_bigraph(&self) -> bool {
+        matches!(
+            self,
+            Grapheme::BigraphPh
+                | Grapheme::BigraphPs
+                | Grapheme::BigraphCh
+                | Grapheme::BigraphTh
+                | Grapheme::BigraphSh
+                | Grapheme::BigraphEe
+                | Grapheme::BigraphOo
+        )
     }
 
     /// Check if this grapheme represents a consonant sound
@@ -345,12 +355,12 @@ pub fn match_trigraph(s: &str) -> Option<Grapheme> {
 /// Match a 2-character string to a bigraph
 pub fn match_bigraph(s: &str) -> Option<Grapheme> {
     match s.to_lowercase().as_str() {
-        "ph" => Some(Grapheme::Ph),
-        "ch" => Some(Grapheme::Ch),
-        "th" => Some(Grapheme::Th),
-        "sh" => Some(Grapheme::Sh),
-        "ee" => Some(Grapheme::Ee),
-        "oo" => Some(Grapheme::Oo),
+        "ph" => Some(Grapheme::BigraphPh),
+        "ch" => Some(Grapheme::BigraphCh),
+        "th" => Some(Grapheme::BigraphTh),
+        "sh" => Some(Grapheme::BigraphSh),
+        "ee" => Some(Grapheme::BigraphEe),
+        "oo" => Some(Grapheme::BigraphOo),
         _ => None,
     }
 }

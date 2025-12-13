@@ -1,5 +1,6 @@
 use std::vec;
 
+use crate::nativization::error::printe;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::{Phoneme, phonemes_to_string};
 
@@ -8,15 +9,15 @@ use regex::Regex;
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
     let g = graphemes[index].to_lowercase();
-    
+
     match g {
         // Bigraph replacements
-        Grapheme::Ph => Some(vec![Phoneme::F]),
-        Grapheme::Ps => Some(vec![Phoneme::S]),
-        Grapheme::Th => Some(vec![Phoneme::T]),
-        Grapheme::Sh => Some(vec![Phoneme::S]),
-        Grapheme::Ee => Some(vec![Phoneme::I]),
-        Grapheme::Oo => Some(vec![Phoneme::U]),
+        Grapheme::BigraphPh => Some(vec![Phoneme::F]),
+        Grapheme::BigraphPs => Some(vec![Phoneme::S]),
+        Grapheme::BigraphTh => Some(vec![Phoneme::T]),
+        Grapheme::BigraphSh => Some(vec![Phoneme::S]),
+        Grapheme::BigraphEe => Some(vec![Phoneme::I]),
+        Grapheme::BigraphOo => Some(vec![Phoneme::U]),
 
         // Vowels
         Grapheme::A => Some(vec![Phoneme::A]),
@@ -54,11 +55,11 @@ pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phon
         Grapheme::Passthrough(c) => Some(vec![Phoneme::Passthrough(c)]),
 
         // Context-sensitive letters (handled in sensitive_replacement)
-        Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::Ch => None,
+        Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::BigraphCh => None,
 
         // Other characters (pass through as-is)
         Grapheme::Other => Some(vec![Phoneme::Other]),
-        
+
         // Uppercase variants should not reach here (normalized by to_lowercase)
         _ => None,
     }
@@ -69,15 +70,15 @@ pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phon
 pub fn sensitive_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
     let curr = graphemes[index].to_lowercase();
 
-    match curr {
-        // Vowels
-        Grapheme::A | Grapheme::E | Grapheme::I | Grapheme::O | Grapheme::U => {
-            sensitive_vowel(graphemes, index)
-        }
-        // Bigraphs
-        Grapheme::Ch | Grapheme::Th | Grapheme::Sh => sensitive_bigraph(graphemes, index),
-        // Consonants
-        _ => sensitive_consonant(graphemes, index),
+    if curr.is_vowel() {
+        sensitive_vowel(graphemes, index)
+    } else if curr.is_bigraph() {
+        sensitive_bigraph(graphemes, index)
+    } else if curr.is_consonant(){
+        sensitive_consonant(graphemes, index)
+    } else {
+        printe(graphemes, index, None, None);
+        None
     }
 }
 
@@ -276,7 +277,7 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme
     let curr = &graphemes[index];
 
     match curr {
-        Grapheme::Ch => {
+        Grapheme::BigraphCh => {
             Some(vec![Phoneme::AFFTs])
             // FIXME: doesn't handle "chasm"
         }
