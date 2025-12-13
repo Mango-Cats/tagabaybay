@@ -36,7 +36,7 @@ pub fn tokenize(input: &str) -> Vec<Grapheme> {
     result
 }
 
-/// Convert a Vec<Grapheme> back to a String
+/// Convert a `Vec<Grapheme>` back to a String
 ///
 /// Reconstructs the original string from a sequence of graphemes.
 ///

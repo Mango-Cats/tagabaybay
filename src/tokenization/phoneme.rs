@@ -134,7 +134,7 @@ impl Phoneme {
     }
 }
 
-/// Convert a Vec<Phoneme> to a String
+/// Convert a `Vec<Phoneme>` to a String
 ///
 /// Converts a sequence of phonemes into their Filipino orthographic representation.
 ///
