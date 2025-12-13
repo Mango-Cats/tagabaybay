@@ -146,7 +146,7 @@ fn write_report(name: &str, report: &EvalReport, timestamp: &str) -> String {
         content.push_str("\nFailures:\n");
         content.push_str(&format!(
             "  {}  {:<width_in$}  {:<width_act$}  {:<width_exp$}\n",
-            "~",
+            " ~ ",
             "INPUT",
             "ACTUAL",
             "EXPECTED",
