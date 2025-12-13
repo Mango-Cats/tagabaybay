@@ -96,7 +96,18 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
     let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
 
     match curr {
-        Grapheme::A => { None }
+        Grapheme::A => {
+            // Check for "ate" pattern (a-t-e at end) → "eyt"
+            if let Some(Grapheme::T) = next {
+                if let Some(e) = graphemes.get(index + 2).map(|g| g.to_lowercase()) {
+                    if e == Grapheme::E && index + 2 == graphemes.len() - 1 {
+                        // "ate" at end of word → "eyt"
+                        return Some((vec![Phoneme::E, Phoneme::Y, Phoneme::T], 3));
+                    }
+                }
+            }
+            None
+        },
 
         Grapheme::E => {
             // remove trailing 'e'
@@ -105,14 +116,24 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
                 return Some((vec![], 1));
             }
 
-            // ei -> i
+            // ei -> i (consume both e and i)
             match next {
-                Some(Grapheme::I) => Some((vec![Phoneme::I], 1)),
-                _ => None
+                Some(Grapheme::I) => Some((vec![Phoneme::I], 2)),
+                _ => None,
             }
         }
 
         Grapheme::I => {
+            // Check for "ide" pattern (i-d-e at end) → "ayd"
+            if let Some(Grapheme::D) = next {
+                if let Some(e) = graphemes.get(index + 2).map(|g| g.to_lowercase()) {
+                    if e == Grapheme::E && index + 2 == graphemes.len() - 1 {
+                        // "ide" at end of word → "ayd"
+                        return Some((vec![Phoneme::A, Phoneme::Y, Phoneme::D], 3));
+                    }
+                }
+            }
+            
             // Regular i + vowel patterns
             match next {
                 Some(Grapheme::A) => Some((vec![Phoneme::I, Phoneme::Y, Phoneme::A], 2)),
@@ -125,6 +146,16 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>
         }
 
         Grapheme::O => {
+            // Check for "one" pattern (o-n-e at end) → "own"
+            if let Some(Grapheme::N) = next {
+                if let Some(e) = graphemes.get(index + 2).map(|g| g.to_lowercase()) {
+                    if e == Grapheme::E && index + 2 == graphemes.len() - 1 {
+                        // "one" at end of word → "own"
+                        return Some((vec![Phoneme::O, Phoneme::W, Phoneme::N], 3));
+                    }
+                }
+            }
+            
             match next {
                 Some(vowel) if vowel.is_vowel() => {
                     // o + vowel -> oy + vowel (unless next is also a vowel)
@@ -206,8 +237,8 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phon
                 // 'y' not preceded by 'a' becomes 'i'
                 (Some(g), _) if g != Grapheme::A => Some((vec![Phoneme::I], 1)),
                 (None, _) => Some((vec![Phoneme::I], 1)), // 'y' at start becomes 'i'
-                // 'y' preceded by 'a' becomes 'ay'
-                (Some(Grapheme::A), _) => Some((vec![Phoneme::A, Phoneme::Y], 1)),
+                // 'y' preceded by 'a' - just emit 'y' (A already processed)
+                (Some(Grapheme::A), _) => Some((vec![Phoneme::Y], 1)),
                 _ => None,
             }
         }
@@ -227,24 +258,11 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phon
                 ],
                 2,
             )),
-
-            // ate -> eyt
-            (Some(Grapheme::A), Some(Grapheme::E)) => {
-                Some((vec![Phoneme::E, Phoneme::Y, Phoneme::T], 2))
-            }
             (_, _) => None,
         },
 
         Grapheme::D => match (prev, next) {
             (Some(Grapheme::I), Some(Grapheme::E)) => Some((vec![Phoneme::DIPAy, Phoneme::D], 1)),
-            (_, _) => None,
-        },
-
-        Grapheme::W => match (prev, next) {
-            (Some(Grapheme::O), Some(Grapheme::N)) => {
-                // "own" pattern - just emit W, N (O was already processed)
-                Some((vec![Phoneme::W, Phoneme::N], 2))
-            }
             (_, _) => None,
         },
 
@@ -278,13 +296,6 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phon
         // 'q' becomes 'k' (usually followed by 'u' which handles the 'w' sound)
         Grapheme::Q => Some((vec![Phoneme::K], 1)),
 
-        Grapheme::N => match (prev, next) {
-            (Some(Grapheme::O), Some(Grapheme::E)) => {
-                Some((vec![Phoneme::O, Phoneme::W, Phoneme::N], 3))
-            }
-            (_, _) => None,
-        },
-
         _ => None,
     }
 }
@@ -293,11 +304,22 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phon
 /// Returns (phonemes, graphemes_consumed)
 fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>, usize)> {
     let curr = &graphemes[index];
+    let prev = if index > 0 {
+        Some(graphemes[index - 1].to_lowercase())
+    } else {
+        None
+    };
+    let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
 
     match curr {
         Grapheme::BigraphCh => {
+            if let Some(next) = next {
+                if next.is_consonant() {
+                    return Some((vec![Phoneme::K], 1));
+                }
+            }
+
             Some((vec![Phoneme::AFFTs], 1))
-            // FIXME: doesn't handle "chasm"
         }
 
         // Th and Sh are handled in free_replacement
