@@ -1,19 +1,18 @@
 use std::vec;
 
-use crate::nativization::error::printe;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::{Phoneme, phonemes_to_string};
-use crate::tokenization::tokenize::tokenize;
 
 use regex::Regex;
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
-    match graphemes[index] {
+    let g = graphemes[index].to_lowercase();
+    
+    match g {
         // Bigraph replacements
         Grapheme::Ph => Some(vec![Phoneme::F]),
         Grapheme::Ps => Some(vec![Phoneme::S]),
-        // Ch
         Grapheme::Th => Some(vec![Phoneme::T]),
         Grapheme::Sh => Some(vec![Phoneme::S]),
         Grapheme::Ee => Some(vec![Phoneme::I]),
@@ -28,20 +27,15 @@ pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phon
 
         // Consonants
         Grapheme::B => Some(vec![Phoneme::B]),
-        // C
         Grapheme::D => Some(vec![Phoneme::D]),
         Grapheme::F => Some(vec![Phoneme::F]),
         Grapheme::G => Some(vec![Phoneme::G]),
         Grapheme::H => Some(vec![Phoneme::H]),
         Grapheme::K => Some(vec![Phoneme::K]),
-        // J
-        // FIXME: this should be a context sensitive rule
-        //         Grapheme::J => Some(vec![Phoneme::AFFDy]),
         Grapheme::L => Some(vec![Phoneme::L]),
         Grapheme::M => Some(vec![Phoneme::M]),
         Grapheme::N => Some(vec![Phoneme::N]),
         Grapheme::P => Some(vec![Phoneme::P]),
-        // Q
         Grapheme::R => Some(vec![Phoneme::R]),
         Grapheme::S => Some(vec![Phoneme::S]),
         Grapheme::T => Some(vec![Phoneme::T]),
@@ -60,18 +54,20 @@ pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phon
         Grapheme::Passthrough(c) => Some(vec![Phoneme::Passthrough(c)]),
 
         // Context-sensitive letters (handled in sensitive_replacement)
-        // see `sensitive_replacement()`
         Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::Ch => None,
 
         // Other characters (pass through as-is)
         Grapheme::Other => Some(vec![Phoneme::Other]),
+        
+        // Uppercase variants should not reach here (normalized by to_lowercase)
+        _ => None,
     }
 }
 
 /// Context-sensitive nativization (needs surrounding graphemes)
 /// Returns None if no context-sensitive rule applies (use free_replacement instead)
 pub fn sensitive_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
-    let curr = &graphemes[index];
+    let curr = graphemes[index].to_lowercase();
 
     match curr {
         // Vowels
@@ -87,13 +83,13 @@ pub fn sensitive_replacement(graphemes: &[Grapheme], index: usize) -> Option<Vec
 
 /// Vowel-specific context-sensitive rules
 fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
-    let curr = &graphemes[index];
+    let curr = graphemes[index].to_lowercase();
     let prev = if index > 0 {
-        Some(&graphemes[index - 1])
+        Some(graphemes[index - 1].to_lowercase())
     } else {
         None
     };
-    let next = graphemes.get(index + 1);
+    let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
 
     match curr {
         Grapheme::I => match next {
@@ -121,7 +117,7 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>>
             match next {
                 Some(vowel) if vowel.is_vowel() => {
                     // o + vowel -> oy + vowel (unless next is also a vowel)
-                    match graphemes.get(index + 2) {
+                    match graphemes.get(index + 2).map(|g| g.to_lowercase()) {
                         Some(v) if v.is_vowel() => None,
                         _ => Some(vec![
                             Phoneme::O,
@@ -171,13 +167,13 @@ fn sensitive_vowel(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>>
 
 /// Consonant-specific context-sensitive rules
 fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme>> {
-    let curr = &graphemes[index];
+    let curr = graphemes[index].to_lowercase();
     let prev = if index > 0 {
-        Some(&graphemes[index - 1])
+        Some(graphemes[index - 1].to_lowercase())
     } else {
         None
     };
-    let next = graphemes.get(index + 1);
+    let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
 
     match curr {
         Grapheme::C => match next {
@@ -206,7 +202,7 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phone
                 // 'y' before 'l' becomes 'i'
                 (_, Some(Grapheme::L)) => Some(vec![Phoneme::I]),
                 // 'y' not preceded by 'a' becomes 'i'
-                (Some(g), _) if *g != Grapheme::A => Some(vec![Phoneme::I]),
+                (Some(g), _) if g != Grapheme::A => Some(vec![Phoneme::I]),
                 (None, _) => Some(vec![Phoneme::I]), // 'y' at start becomes 'i'
                 // 'y' preceded by 'a' becomes 'ay'
                 (Some(Grapheme::A), _) => Some(vec![Phoneme::A, Phoneme::Y]),
@@ -248,7 +244,7 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phone
             match next {
                 Some(Grapheme::E | Grapheme::I | Grapheme::Y) => {
                     // Check if NOT followed by s/c/k
-                    match graphemes.get(index + 2) {
+                    match graphemes.get(index + 2).map(|g| g.to_lowercase()) {
                         Some(Grapheme::S | Grapheme::C | Grapheme::K) => None,
                         _ => Some(vec![
                             Phoneme::AFFDy,
@@ -264,6 +260,12 @@ fn sensitive_consonant(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phone
                 _ => None,
             }
         }
+
+        // 'j' always becomes 'dy' (affricate)
+        Grapheme::J => Some(vec![Phoneme::AFFDy]),
+
+        // 'q' becomes 'k' (usually followed by 'u' which handles the 'w' sound)
+        Grapheme::Q => Some(vec![Phoneme::K]),
 
         _ => None,
     }
@@ -285,42 +287,43 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<Vec<Phoneme
 }
 
 /// Convert a single letter to its Filipino phonetic alphabet name
-pub fn letter_to_phonetic(letter: char) -> Option<Vec<Phoneme>> {
-    match letter.to_ascii_uppercase() {
-        'A' => Some(vec![Phoneme::E, Phoneme::Y]),
-        'B' => Some(vec![Phoneme::B, Phoneme::I]),
-        'C' => Some(vec![Phoneme::S, Phoneme::I]),
-        'D' => Some(vec![Phoneme::D, Phoneme::I]),
-        'E' => Some(vec![Phoneme::I]),
-        'F' => Some(vec![Phoneme::F, Phoneme::F]),
-        'G' => Some(vec![Phoneme::D, Phoneme::Y, Phoneme::I]),
-        'H' => Some(vec![Phoneme::E, Phoneme::Y, Phoneme::AFFTs]),
-        'I' => Some(vec![Phoneme::A, Phoneme::Y]),
-        'J' => Some(vec![Phoneme::AFFDy, Phoneme::DIPAy]),
-        'K' => Some(vec![Phoneme::K, Phoneme::E, Phoneme::Y]),
-        'L' => Some(vec![Phoneme::E, Phoneme::L]),
-        'M' => Some(vec![Phoneme::E, Phoneme::M]),
-        'N' => Some(vec![Phoneme::E, Phoneme::N]),
-        'O' => Some(vec![Phoneme::O, Phoneme::W]),
-        'P' => Some(vec![Phoneme::P, Phoneme::I]),
-        'Q' => Some(vec![Phoneme::K, Phoneme::Y, Phoneme::U]),
-        'R' => Some(vec![Phoneme::A, Phoneme::R]),
-        'S' => Some(vec![Phoneme::E, Phoneme::S]),
-        'T' => Some(vec![Phoneme::T, Phoneme::I]),
-        'U' => Some(vec![Phoneme::Y, Phoneme::U]),
-        'V' => Some(vec![Phoneme::B, Phoneme::I]),
-        'W' => Some(vec![
+pub fn letter_to_phonetic(letter: Grapheme) -> Option<Vec<Phoneme>> {
+    let l = letter.to_lowercase();
+    match l {
+        Grapheme::A => Some(vec![Phoneme::E, Phoneme::Y]),
+        Grapheme::B => Some(vec![Phoneme::B, Phoneme::I]),
+        Grapheme::C => Some(vec![Phoneme::S, Phoneme::I]),
+        Grapheme::D => Some(vec![Phoneme::D, Phoneme::I]),
+        Grapheme::E => Some(vec![Phoneme::I]),
+        Grapheme::F => Some(vec![Phoneme::E, Phoneme::F]),
+        Grapheme::G => Some(vec![Phoneme::D, Phoneme::Y, Phoneme::I]),
+        Grapheme::H => Some(vec![Phoneme::E, Phoneme::Y, Phoneme::AFFTs]),
+        Grapheme::I => Some(vec![Phoneme::A, Phoneme::Y]),
+        Grapheme::J => Some(vec![Phoneme::AFFDy, Phoneme::E, Phoneme::Y]),
+        Grapheme::K => Some(vec![Phoneme::K, Phoneme::E, Phoneme::Y]),
+        Grapheme::L => Some(vec![Phoneme::E, Phoneme::L]),
+        Grapheme::M => Some(vec![Phoneme::E, Phoneme::M]),
+        Grapheme::N => Some(vec![Phoneme::E, Phoneme::N]),
+        Grapheme::O => Some(vec![Phoneme::O, Phoneme::W]),
+        Grapheme::P => Some(vec![Phoneme::P, Phoneme::I]),
+        Grapheme::Q => Some(vec![Phoneme::K, Phoneme::Y, Phoneme::U]),
+        Grapheme::R => Some(vec![Phoneme::A, Phoneme::R]),
+        Grapheme::S => Some(vec![Phoneme::E, Phoneme::S]),
+        Grapheme::T => Some(vec![Phoneme::T, Phoneme::I]),
+        Grapheme::U => Some(vec![Phoneme::Y, Phoneme::U]),
+        Grapheme::V => Some(vec![Phoneme::B, Phoneme::I]),
+        Grapheme::W => Some(vec![
             Phoneme::D,
-            Phoneme::O,
+            Phoneme::A,
             Phoneme::B,
             Phoneme::O,
             Phoneme::L,
             Phoneme::Y,
             Phoneme::U,
         ]),
-        'X' => Some(vec![Phoneme::E, Phoneme::K, Phoneme::S]),
-        'Y' => Some(vec![Phoneme::W, Phoneme::DIPAy]),
-        'Z' => Some(vec![Phoneme::S, Phoneme::I]),
+        Grapheme::X => Some(vec![Phoneme::E, Phoneme::K, Phoneme::S]),
+        Grapheme::Y => Some(vec![Phoneme::W, Phoneme::A, Phoneme::Y]),
+        Grapheme::Z => Some(vec![Phoneme::S, Phoneme::I]),
         _ => None,
     }
 }
