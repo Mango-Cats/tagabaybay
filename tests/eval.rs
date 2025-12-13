@@ -73,8 +73,8 @@ fn evaluate_csv(path: &str) -> EvalReport {
 }
 
 fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
-    let actual_chars: Vec<char> = actual.chars().collect();
-    let expected_chars: Vec<char> = expected.chars().collect();
+    let actual_chars: Vec<char> = actual.to_lowercase().chars().collect();
+    let expected_chars: Vec<char> = expected.to_lowercase().chars().collect();
     let max_len = actual_chars.len().max(expected_chars.len());
 
     let mut highlighted_actual = String::new();
