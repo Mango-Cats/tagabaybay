@@ -31,7 +31,7 @@ pub enum Grapheme {
     M,
     N,
     P,
-    Q, 
+    Q,
     R,
     S,
     T,
@@ -44,58 +44,70 @@ pub enum Grapheme {
     // Spanish
     Enye,
 
-    // Non-alphabetic or unknown
+    // Whitespace
+    Space,
+
+    // ASCII non-alphanumeric passthrough (digits, punctuation, etc.)
+    Passthrough(char),
+
+    // Non-ASCII or unknown
     Other,
 }
 
 impl Grapheme {
     /// Convert the grapheme back to its original string representation
-    pub fn as_str(&self) -> &'static str {
+    pub fn as_str(&self) -> String {
         match self {
             // Bigraphs
-            Grapheme::Ph => "ph",
-            Grapheme::Ps => "ps",
-            Grapheme::Ch => "ch",
-            Grapheme::Th => "th",
-            Grapheme::Sh => "sh",
-            Grapheme::Ee => "ee",
-            Grapheme::Oo => "oo",
+            Grapheme::Ph => "ph".to_string(),
+            Grapheme::Ps => "ps".to_string(),
+            Grapheme::Ch => "ch".to_string(),
+            Grapheme::Th => "th".to_string(),
+            Grapheme::Sh => "sh".to_string(),
+            Grapheme::Ee => "ee".to_string(),
+            Grapheme::Oo => "oo".to_string(),
 
             // Vowels
-            Grapheme::A => "a",
-            Grapheme::E => "e",
-            Grapheme::I => "i",
-            Grapheme::O => "o",
-            Grapheme::U => "u",
+            Grapheme::A => "a".to_string(),
+            Grapheme::E => "e".to_string(),
+            Grapheme::I => "i".to_string(),
+            Grapheme::O => "o".to_string(),
+            Grapheme::U => "u".to_string(),
 
             // Consonants
-            Grapheme::B => "b",
-            Grapheme::C => "c",
-            Grapheme::D => "d",
-            Grapheme::F => "f",
-            Grapheme::G => "g",
-            Grapheme::H => "h",
-            Grapheme::J => "j",
-            Grapheme::K => "k",
-            Grapheme::L => "l",
-            Grapheme::M => "m",
-            Grapheme::N => "n",
-            Grapheme::P => "p",
-            Grapheme::Q => "q",
-            Grapheme::R => "r",
-            Grapheme::S => "s",
-            Grapheme::T => "t",
-            Grapheme::V => "v",
-            Grapheme::W => "w",
-            Grapheme::X => "x",
-            Grapheme::Y => "y",
-            Grapheme::Z => "z",
+            Grapheme::B => "b".to_string(),
+            Grapheme::C => "c".to_string(),
+            Grapheme::D => "d".to_string(),
+            Grapheme::F => "f".to_string(),
+            Grapheme::G => "g".to_string(),
+            Grapheme::H => "h".to_string(),
+            Grapheme::J => "j".to_string(),
+            Grapheme::K => "k".to_string(),
+            Grapheme::L => "l".to_string(),
+            Grapheme::M => "m".to_string(),
+            Grapheme::N => "n".to_string(),
+            Grapheme::P => "p".to_string(),
+            Grapheme::Q => "q".to_string(),
+            Grapheme::R => "r".to_string(),
+            Grapheme::S => "s".to_string(),
+            Grapheme::T => "t".to_string(),
+            Grapheme::V => "v".to_string(),
+            Grapheme::W => "w".to_string(),
+            Grapheme::X => "x".to_string(),
+            Grapheme::Y => "y".to_string(),
+            Grapheme::Z => "z".to_string(),
 
             // Spanish
-            Grapheme::Enye => "ñ",
+            Grapheme::Enye => "ñ".to_string(),
+
+            // Whitespace
+            Grapheme::Space => " ".to_string(),
+
+            // ASCII passthrough
+            Grapheme::Passthrough(c) => c.to_string(),
 
             // Other
-            Grapheme::Other => "#",
+            Grapheme::Other => "#".to_string(),
         }
     }
 
@@ -154,7 +166,13 @@ impl Grapheme {
             // Spanish
             'ñ' => Grapheme::Enye,
 
-            // Other
+            // Whitespace
+            ' ' => Grapheme::Space,
+
+            // ASCII non-alphanumeric passthrough
+            c if c.is_ascii() && !c.is_ascii_alphabetic() => Grapheme::Passthrough(c),
+
+            // Non-ASCII or unknown
             _ => Grapheme::Other,
         }
     }
