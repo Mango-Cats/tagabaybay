@@ -4,7 +4,7 @@
 pub enum Grapheme {
     // Bigraphs (English spelling patterns)
     Ph,
-    Qu,
+    Ps,
     Ch,
     Th,
     Sh,
@@ -31,7 +31,7 @@ pub enum Grapheme {
     M,
     N,
     P,
-    //Q, // Q doesn't exist on its own
+    Q, 
     R,
     S,
     T,
@@ -40,6 +40,9 @@ pub enum Grapheme {
     X,
     Y,
     Z,
+
+    // Spanish
+    Enye,
 
     // Non-alphabetic or unknown
     Other,
@@ -51,7 +54,7 @@ impl Grapheme {
         match self {
             // Bigraphs
             Grapheme::Ph => "ph",
-            Grapheme::Qu => "qu",
+            Grapheme::Ps => "ps",
             Grapheme::Ch => "ch",
             Grapheme::Th => "th",
             Grapheme::Sh => "sh",
@@ -78,6 +81,7 @@ impl Grapheme {
             Grapheme::M => "m",
             Grapheme::N => "n",
             Grapheme::P => "p",
+            Grapheme::Q => "q",
             Grapheme::R => "r",
             Grapheme::S => "s",
             Grapheme::T => "t",
@@ -86,6 +90,9 @@ impl Grapheme {
             Grapheme::X => "x",
             Grapheme::Y => "y",
             Grapheme::Z => "z",
+
+            // Spanish
+            Grapheme::Enye => "ñ",
 
             // Other
             Grapheme::Other => "#",
@@ -134,6 +141,7 @@ impl Grapheme {
             'm' => Grapheme::M,
             'n' => Grapheme::N,
             'p' => Grapheme::P,
+            'q' => Grapheme::Q,
             'r' => Grapheme::R,
             's' => Grapheme::S,
             't' => Grapheme::T,
@@ -142,6 +150,9 @@ impl Grapheme {
             'x' => Grapheme::X,
             'y' => Grapheme::Y,
             'z' => Grapheme::Z,
+
+            // Spanish
+            'ñ' => Grapheme::Enye,
 
             // Other
             _ => Grapheme::Other,
@@ -160,7 +171,6 @@ pub fn match_trigraph(s: &str) -> Option<Grapheme> {
 pub fn match_bigraph(s: &str) -> Option<Grapheme> {
     match s.to_lowercase().as_str() {
         "ph" => Some(Grapheme::Ph),
-        "qu" => Some(Grapheme::Qu),
         "ch" => Some(Grapheme::Ch),
         "th" => Some(Grapheme::Th),
         "sh" => Some(Grapheme::Sh),

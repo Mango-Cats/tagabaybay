@@ -2,11 +2,17 @@
 /// These are the sounds in native Filipino phonology
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phoneme {
-    // 2-Phonemes
-    Ts, // /ts/     - e.g., (CH/TS)ocolate
-    Dy, // /dʒ/     - e.g., (J/DY)eep
+    // Affricates [AFF]
+    AFFTs, // /ts/     - e.g., (CH/TS)ocolate
+    AFFDy, // /dʒ/     - e.g., (J/DY)eep
 
-    // Vowels Sounds
+    // Dipthongs [DIP]
+    DIPAw,
+    DIPAy,
+    DIPiw,
+    DIPuy,
+
+    // Vowels Sounds; Monophthongs
     A, // /a/      - e.g., Apoy
     E, // /ɛ/      - e.g., Elepante
     I, // /i/      - e.g., Isip
@@ -14,22 +20,29 @@ pub enum Phoneme {
     U, // /u/      - e.g., Ulan
 
     // Native consonants sounds
-    B,  // /b/      - e.g., gaBay
-    D,  // /d/      - e.g., lakaD
-    G,  // /g/      - e.g., puGot
-    H,  // /h/      - e.g., aHoy
-    K,  // /k/      - e.g., Kanta
-    L,  // /l/      - e.g., aLam
+    // Stops
+    P, // /p/      - e.g., isiP
+    B, // /b/      - e.g., gaBay
+    T, // /t/      - e.g., Tula
+    D, // /d/      - e.g., lakaD
+    K, // /k/      - e.g., Kanta
+    G, // /g/      - e.g., puGot
+
+    // Nasals
     M,  // /m/      - e.g., alaM
     N,  // /n/      - e.g., siNturon
-    Ny, // /ɲ/      - e.g., niÑo
     Ng, // /ŋ/      - e.g., NGiti
-    P,  // /p/      - e.g., isiP
-    R,  // /ɾ/      - e.g., duRa
-    S,  // /s/      - e.g., iSip
-    T,  // /t/      - e.g., Tula
-    W,  // /w/      - e.g., Walis
-    Y,  // /j/      - e.g., Yap or Juan
+    Ny, // /ɲ/      - e.g., niÑo
+
+    // Fricatives
+    H, // /h/      - e.g., aHoy
+    S, // /s/      - e.g., iSip
+
+    // Approximants
+    L, // /l/      - e.g., aLam
+    R, // /ɾ/      - e.g., duRa
+    W, // /w/      - e.g., Walis
+    Y, // /j/      - e.g., Yap or Juan
 
     // Modern consonants sounds
     F, // /f/      - e.g., Filipino
@@ -42,9 +55,15 @@ impl Phoneme {
     /// Convert the phoneme to its Filipino orthographic representation
     pub fn as_str(&self) -> &'static str {
         match self {
-            // 2-Phonemes
-            Phoneme::Ts => "ts",
-            Phoneme::Dy => "dy",
+            // Affricates [AFF]
+            Phoneme::AFFTs => "ts",
+            Phoneme::AFFDy => "dy",
+
+            // Dipthongs [DIP]
+            Phoneme::DIPAw => "aw",
+            Phoneme::DIPAy => "ay",
+            Phoneme::DIPiw => "iw",
+            Phoneme::DIPuy => "uy",
 
             // Vowel Sounds
             Phoneme::A => "a",
@@ -54,20 +73,27 @@ impl Phoneme {
             Phoneme::U => "u",
 
             // Native consonants sounds
+            // Stops
+            Phoneme::P => "p",
             Phoneme::B => "b",
+            Phoneme::T => "t",
             Phoneme::D => "d",
-            Phoneme::G => "g",
-            Phoneme::H => "h",
             Phoneme::K => "k",
-            Phoneme::L => "l",
+            Phoneme::G => "g",
+
+            // Nasals
             Phoneme::M => "m",
             Phoneme::N => "n",
-            Phoneme::Ny => "ny",
             Phoneme::Ng => "ng",
-            Phoneme::P => "p",
-            Phoneme::R => "r",
+            Phoneme::Ny => "ny",
+
+            // Frivatives
+            Phoneme::H => "h",
             Phoneme::S => "s",
-            Phoneme::T => "t",
+
+            // Approximants
+            Phoneme::L => "l",
+            Phoneme::R => "r",
             Phoneme::W => "w",
             Phoneme::Y => "y",
 
