@@ -21,7 +21,7 @@ pub fn printe(
 
     println!("    |");
     println!("    |\t{}", grapheme_vec.iter().map(|f| f.as_str()).collect::<String>());
-    println!("    |\t{}^ error at token {err_loc}", " ".repeat(err_loc-1));
+    println!("    |\t{}^ error at token {err_loc}", " ".repeat(err_loc.saturating_sub(1)));
     println!("    |");
 
     if PANIC_AT_ERROR {
