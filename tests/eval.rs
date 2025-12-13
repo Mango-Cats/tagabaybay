@@ -138,8 +138,8 @@ fn write_report(name: &str, report: &EvalReport, timestamp: &str) -> String {
     ));
     content.push_str(&format!("├── Accuracy        {:.2}%\n", report.accuracy));
     content.push_str(&format!(
-        "└── Accept?         {}\n",
-        report.accuracy > ACCEPT
+        "└── Accept@{:<3}      {}\n",
+        ACCEPT, report.accuracy > ACCEPT
     ));
 
     if !report.failures.is_empty() {
