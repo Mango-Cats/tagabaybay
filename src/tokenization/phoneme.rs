@@ -46,6 +46,7 @@ pub enum Phoneme {
 
     // Modern consonants sounds
     F, // /f/      - e.g., Filipino
+    Z, // /z/      - e.g., Zig-Zag
 
     // Whitespace
     Space,
@@ -105,6 +106,7 @@ impl Phoneme {
 
             // Modern consonant sounds
             Phoneme::F => "f".to_string(),
+            Phoneme::Z => "z".to_string(),
 
             // Whitespace
             Phoneme::Space => " ".to_string(),

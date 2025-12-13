@@ -1,5 +1,6 @@
 use std::vec;
 
+use crate::consts;
 use crate::nativization::error::printe;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::{Phoneme, phonemes_to_string};
@@ -14,7 +15,13 @@ pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Pho
         Grapheme::BigraphPh => Some((vec![Phoneme::F], 1)),
         Grapheme::BigraphPs => Some((vec![Phoneme::S], 1)),
         Grapheme::BigraphTh => Some((vec![Phoneme::T], 1)),
-        Grapheme::BigraphSh => Some((vec![Phoneme::S], 1)),
+        Grapheme::BigraphSh => {
+            if consts::ALLOW_SH_SOUND {
+                Some((vec![Phoneme::S, Phoneme::H], 2))
+            } else {
+                Some((vec![Phoneme::S], 1))
+            }
+        },
         Grapheme::BigraphEe => Some((vec![Phoneme::I], 1)),
         Grapheme::BigraphOo => Some((vec![Phoneme::U], 1)),
 
@@ -42,7 +49,13 @@ pub fn free_replacement(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Pho
         Grapheme::V => Some((vec![Phoneme::B], 1)),
         Grapheme::W => Some((vec![Phoneme::W], 1)),
         Grapheme::Y => Some((vec![Phoneme::Y], 1)),
-        Grapheme::Z => Some((vec![Phoneme::S], 1)),
+        Grapheme::Z => {
+            if consts::ALLOW_Z_SOUND {
+                Some((vec![Phoneme::Z], 1))
+            } else {
+                Some((vec![Phoneme::S], 1))
+            }
+        },
 
         // Spanish
         Grapheme::Enye => Some((vec![Phoneme::Ny], 1)),
