@@ -13,7 +13,6 @@ A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
 | Nathaniel Oco   |                                                    |
 
 **Correspondence:** Z. Ganituen via zr.<last name; no vowels>@gmail.com.
-Authorship is based on contribution.
 
 ## The Project
 
