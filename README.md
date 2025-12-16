@@ -22,7 +22,7 @@ This section discusses the project in depth.
 
 Working in NLP in the Philippine context is challenging due to
 the multilingual nature of Filipinos and their frequent tendency to 
-code-switch and borrowing. Code-switching can occur through direct
+code-switch and borrow. Code-switching can occur through direct
 translation, for example:
 
 ```
