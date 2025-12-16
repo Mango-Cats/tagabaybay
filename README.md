@@ -1,11 +1,6 @@
-# TagaBaybay
+# ᜆᜄᜊᜌ᜔ᜊᜌ᜔ / TagaBaybay 
 
 A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
-
-> This project was initially a final course project by Clarence, Zhean,
-> Roan, and Clive for Nathaniel's Natural Language Processing class
-> at De La Salle University. You may visit the original project in the
-> `legacy/` directory
 
 ## The Team
 
@@ -73,6 +68,28 @@ on surrounding graphemes or symbols to determine the appropriate phoneme output.
 ### Implementation
 
 The Algorithm is implemented in the Rust programming language.
+
+### Evaluation
+
+The Algorithm is compared against gold standards.
+
+See the [`gold/`](gold/) directory and its corresponding [`README`](gold/README.md)
+for details.
+
+### Legacy
+
+This project was initially a final course project by Clarence, Zhean, Roan, and
+Clive for Nathaniel's Natural Language Processing class at De La Salle University.
+
+See the [`legacy/`](legacy/) directory and its corresponding [`README`](legacy/README)
+for details.
+
+## License
+
+TagaBaybay is (as of December 15, 2025) is a private project, but it is distributed
+under the terms of Apache License Version 2.0.
+
+See [LICENSE](LICENSE) for details.
 
 ## Bibliography
 
