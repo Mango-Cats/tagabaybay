@@ -2,23 +2,24 @@
 
 A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
 
-## The Team
+## Project Team
 
-| Author          | GitHub                                             |
-| ---             | ---                                                |
-| Clarence Ang    | [@ClarenceAng](https://github.com/ClarenceAng)     |
-| Zhean Ganituen* | [@zrygan](https://github.com/zrygan)               |
-| Roan Campo      | [@ImaginaryLogs](https://github.com/ImaginaryLogs) |
-| Clive Ang       | [@EvilConundrum](https://github.com/EvilConundrum) |
-| Nathaniel Oco   |                                                    |
+**Project Lead**: Zhean Robby Ganituen △◇
+**Faculty Supervisor**: Nathaniel Oco △◇
+**Project Members**:
+- Clarance Ivan Ang △
+- Roan Cedric Campo △
+- Justin Ethan Ching ◇
+- Erin Gabrielle Chua ◇
+- Jaztn Jacob Jimenez ◇
+- Clive Jarel Ang △
 
-**Correspondence:** Z. Ganituen via zr.<last name; no vowels>@gmail.com.
+\***Correspondence:** `zr.gntn AT gmail DOT com`
+△ Part of the legacy project.
+◇ Part of the current project.
 
-## The Project
 
-This section discusses the project in depth.
-
-### Motivation
+## Motivation
 
 Working in NLP in the Philippine context is challenging due to
 the multilingual nature of Filipinos and their frequent tendency to 
@@ -47,7 +48,7 @@ Although there are linguistic descriptions and rules for phonetic nativization
 nativizations of English loanwords. This gap limits Taglish language processing,
 downstream NLP tasks, and broader computational work involving Philippine languages. 
 
-### Algorithm
+## Algorithm
 
 Our approach treats the process of phonetic nativization as a mapping, specifically
 a rule-based procedural rewrite system. For an input word $w$ in the English language
@@ -89,6 +90,17 @@ TagaBaybay is (as of December 15, 2025) is a private project, but it is distribu
 under the terms of Apache License Version 2.0.
 
 See [LICENSE](LICENSE) for details.
+
+## Citation
+
+If you use this software in your research, consider citing our work.
+
+BibTeX:
+```bib
+...
+```
+
+Also see [`CITATION.cff`](/CITATION.cff).
 
 ## Bibliography
 

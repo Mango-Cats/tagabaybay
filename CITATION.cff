@@ -1,0 +1,46 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: TagaBaybay
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Ganituen
+    family-names: Zhean Robby
+    email: zr.gntn@gmail.com
+    affiliation: De La Salle University
+    orcid: 'https://orcid.org/0009-0002-3266-5384'
+  - given-names: Ang
+    family-names: Clarence Ivan
+    affiliation: De La Salle University
+  - given-names: Campo
+    family-names: Roan Cedric
+    affiliation: De La Salle University
+  - given-names: Ching
+    family-names: Justin Ethan
+    affiliation: De La Salle University
+  - given-names: Erin Gabrielle
+    family-names: Chua
+    affiliation: De La Salle University
+  - given-names: Jimenez
+    family-names: Jaztin Jacob
+    affiliation: De La Salle University
+  - given-names: Ang
+    family-names: Clive Jarel
+    affiliation: De La Salle University
+  - given-names: Oco
+    family-names: Nathaniel
+    affiliation: De La Salle University
+repository-code: 'https://github.com/Mango-Cats/tagabaybay/'
+abstract: >-
+  A phonetic nativization algorithm for Filipino loanwords.
+  Written in Rust.
+keywords:
+  - Rust
+  - Context-Free Grammars
+  - Context-Sensitive Grammars
+  - Formal Languages
+license: Apache-2.0
