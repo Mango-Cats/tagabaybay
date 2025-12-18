@@ -96,8 +96,13 @@ See [LICENSE](LICENSE) for details.
 If you use this software in your research, consider citing our work.
 
 BibTeX:
-```bib
-...
+```bibtex
+@software{Zhean_Robby_TagaBaybay,
+    author = {Zhean Robby, Ganituen and Clarence Ivan, Ang and Roan Cedric, Campo and Justin Ethan, Ching and Chua, Erin Gabrielle and Jaztin Jacob, Jimenez and Clive Jarel, Ang and Nathaniel, Oco},
+    license = {Apache-2.0},
+    title = {{TagaBaybay}},
+    url = {https://github.com/Mango-Cats/tagabaybay/}
+}
 ```
 
 Also see [`CITATION.cff`](/CITATION.cff).
