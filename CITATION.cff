@@ -8,31 +8,31 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Ganituen
-    family-names: Zhean Robby
+  - given-names: Zhean Robby
+    family-names: Ganituen
     email: zr.gntn@gmail.com
     affiliation: De La Salle University
     orcid: 'https://orcid.org/0009-0002-3266-5384'
-  - given-names: Ang
-    family-names: Clarence Ivan
+  - given-names: Clarence Ivan
+    family-names: Ang
     affiliation: De La Salle University
-  - given-names: Campo
-    family-names: Roan Cedric
+  - given-names: Roan Cedric
+    family-names: Campo
     affiliation: De La Salle University
-  - given-names: Ching
-    family-names: Justin Ethan
+  - given-names: Justin Ethan
+    family-names: Ching
     affiliation: De La Salle University
-  - given-names: Erin Gabrielle
-    family-names: Chua
+  - given-names: Chua
+    family-names: Erin Gabrielle
     affiliation: De La Salle University
-  - given-names: Jimenez
-    family-names: Jaztin Jacob
+  - given-names: Jaztin Jacob
+    family-names: Jimenez
     affiliation: De La Salle University
-  - given-names: Ang
-    family-names: Clive Jarel
+  - given-names: Clive Jarel
+    family-names: Ang
     affiliation: De La Salle University
-  - given-names: Oco
-    family-names: Nathaniel
+  - given-names: Nathaniel
+    family-names: Oco
     affiliation: De La Salle University
 repository-code: 'https://github.com/Mango-Cats/tagabaybay/'
 abstract: >-
