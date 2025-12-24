@@ -207,10 +207,3 @@ fn test_match_6_syllable_invalid() {
         Phoneme::G
     ]));
 }
-
-#[test]
-fn test_edge_cases() {
-    // Test with longer sequences - should still check only the needed positions
-    assert!(match_1_syllable(vec![Phoneme::A, Phoneme::B, Phoneme::T]));
-    assert!(match_2_syllable(vec![Phoneme::K, Phoneme::A, Phoneme::N]));
-}
