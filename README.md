@@ -97,8 +97,8 @@ If you use this software in your research, consider citing our work.
 
 BibTeX:
 ```bibtex
-@software{Zhean_Robby_TagaBaybay,
-    author = {Zhean Robby, Ganituen and Clarence Ivan, Ang and Roan Cedric, Campo and Justin Ethan, Ching and Chua, Erin Gabrielle and Jaztin Jacob, Jimenez and Clive Jarel, Ang and Nathaniel, Oco},
+@software{Ganituen_TagaBaybay,
+    author = {Ganituen, Zhean Robby and Ang, Clarence Ivan and Campo, Roan Cedric and Ching, Justin Ethan and Erin Gabrielle, Chua and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Oco, Nathaniel},
     license = {Apache-2.0},
     title = {{TagaBaybay}},
     url = {https://github.com/Mango-Cats/tagabaybay/}
