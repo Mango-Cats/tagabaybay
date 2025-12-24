@@ -1,12 +1,8 @@
-//! Syllable pattern helpers for phoneme sequences.
+//! Syllabification layer for Filipino.
 //!
-//! These functions operate on `Vec<Phoneme>` and check whether the
-//! sequence matches a consonant/vowel pattern such as `kp`, `kkp`, or
-//! `kkpkkk`, where `k` stands for a consonant and `p` (patinig) stands
-//! for a vowel.
-//!
-//! The helpers are building blocks for higher-level syllabification and
-//! are intended to be simple, predicate-style checks.
+//! These functions perform the post-nativization validation layer.
+//! This checks whether the phonetic nativization follows the
+//! syllabification rules of Filipino.
 
 use crate::tokenization::phoneme::Phoneme;
 
@@ -219,14 +215,14 @@ pub fn match_1_syllable(string: Vec<Phoneme>) -> bool {
     string.len() == 1 && string.get(0).is_some_and(|x| x.is_vowel())
 }
 
-/// Validate that a phoneme sequence can be segmented into valid Tagalog syllable patterns.
+/// Validate that a phoneme sequence can be segmented into valid Filipino syllable patterns.
 ///
 /// This function attempts to parse the entire phoneme sequence by greedily matching
 /// the longest possible syllable pattern at each position. It tries patterns from
 /// 6 phonemes down to 1 phoneme.
 ///
 /// **Note**: This greedy approach may fail to find valid segmentations in some cases.
-/// For guaranteed correctness, use [`validate_tagalog_syllables_dp`] instead.
+/// For guaranteed correctness, use [`validate_filipino_syllables_dp`] instead.
 ///
 /// # Arguments
 ///
@@ -236,7 +232,7 @@ pub fn match_1_syllable(string: Vec<Phoneme>) -> bool {
 ///
 /// Returns `true` if the entire sequence can be segmented into valid syllable patterns
 /// using a greedy approach, `false` otherwise.
-pub fn validate_tagalog_syllables_greedy(nativized: Vec<Phoneme>) -> bool {
+pub fn validate_filipino_syllables_greedy(nativized: Vec<Phoneme>) -> bool {
     let mut i = 0;
 
     while i < nativized.len() {
@@ -272,7 +268,7 @@ pub fn validate_tagalog_syllables_greedy(nativized: Vec<Phoneme>) -> bool {
     true
 }
 
-/// Validate that a phoneme sequence can be segmented into valid Tagalog syllable patterns.
+/// Validate that a phoneme sequence can be segmented into valid Filipino syllable patterns.
 ///
 /// This function uses dynamic programming to determine if the entire phoneme sequence
 /// can be segmented into valid syllable patterns. It builds up solutions for prefixes
@@ -294,7 +290,7 @@ pub fn validate_tagalog_syllables_greedy(nativized: Vec<Phoneme>) -> bool {
 ///
 /// Returns `true` if the entire sequence can be segmented into valid syllable patterns,
 /// `false` otherwise.
-pub fn validate_tagalog_syllables_dp(nativized: Vec<Phoneme>) -> bool {
+pub fn validate_filipino_syllables_dp(nativized: Vec<Phoneme>) -> bool {
     let n = nativized.len();
     if n == 0 {
         return true;

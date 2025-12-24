@@ -1,4 +1,4 @@
-use tagabaybay::syllabification::syllables::*;
+use tagabaybay::syllabification::filipino_layer::*;
 use tagabaybay::tokenization::phoneme::Phoneme;
 
 #[test]
