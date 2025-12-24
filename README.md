@@ -4,8 +4,8 @@ A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
 
 ## Project Team
 
-**Project Lead**: Zhean Robby Ganituen △◇
-**Faculty Supervisor**: Nathaniel Oco △◇
+**Project Lead**: Zhean Robby Ganituen △◇ <br>
+**Faculty Supervisor**: Nathaniel Oco △◇ <br>
 **Project Members**:
 - Clarance Ivan Ang △
 - Roan Cedric Campo △
@@ -14,8 +14,8 @@ A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
 - Jaztn Jacob Jimenez ◇
 - Clive Jarel Ang △
 
-\***Correspondence:** `zr.gntn AT gmail DOT com`
-△ Part of the legacy project.
+\***Correspondence:** `zr.gntn AT gmail DOT com` <br>
+△ Part of the legacy project. <br>
 ◇ Part of the current project.
 
 
