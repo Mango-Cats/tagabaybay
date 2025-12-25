@@ -152,7 +152,8 @@ impl Nativizer {
                     continue;
                 }
             }
-
+            
+                // FIXME: issue probably here for fix: parsing, look-ahead/behind, and iterators
             // Try context-sensitive replacement first
             if let Some((sens_res, consumed)) = sensitive_replacement(&graphemes, i, &self.config) {
                 res.extend(sens_res);
