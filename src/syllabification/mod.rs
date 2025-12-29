@@ -1,2 +1,2 @@
-pub mod filipino_layer;
-pub mod english_layer;
+pub mod filipino_syllable_patterns;
+pub mod knuth_liang;
