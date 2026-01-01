@@ -98,7 +98,7 @@ pub fn free_replacement(
         Grapheme::BigraphTh => Some((vec![Phoneme::T], 1)),
         Grapheme::BigraphSh => {
             if config.allow_sh_sound {
-                Some((vec![Phoneme::S, Phoneme::H], 2))
+                Some((vec![Phoneme::S, Phoneme::H], 2)) // TODO: ask why this returns 2 instead of 1. though doesn't seem like allow_sh_sound is enabled anywhere anyway
             } else {
                 Some((vec![Phoneme::S], 1))
             }
@@ -403,6 +403,7 @@ fn sensitive_consonant(
         Grapheme::T => handle_consonant_t(&ctx),
         Grapheme::D => handle_consonant_d(&ctx),
         Grapheme::G => handle_consonant_g(&ctx),
+        Grapheme::S => handle_consonant_s(&ctx),
         Grapheme::J => Some((vec![Phoneme::AFFDy], 1)),
         Grapheme::Q => Some((vec![Phoneme::K], 1)),
         _ => None,
@@ -421,7 +422,7 @@ fn sensitive_consonant(
 fn handle_consonant_c(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match ctx.next() {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y) => Some((vec![Phoneme::S], 1)),
+        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => Some((vec![Phoneme::S], 1)),
         // default: 'k'
         _ => Some((vec![Phoneme::K], 1)),
     }
@@ -528,7 +529,7 @@ fn handle_consonant_d(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match ctx.next() {
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y) => {
+        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => {
             // Check if NOT followed by s/c/k
             match ctx.lookahead(2) {
                 Some(Grapheme::S | Grapheme::C | Grapheme::K) => None,
@@ -544,6 +545,28 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
                     ],
                     2,
                 )),
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Handle 's' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+
+fn handle_consonant_s(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+    match (ctx.prev(), ctx.next()) {
+        (Some(Grapheme::BigraphEe | Grapheme::BigraphOo), Some(Grapheme::E)) => {
+            match ctx.lookahead(2) {
+                Some(Grapheme::B | Grapheme::D) => Some((vec![Phoneme::S], 2)),
+                _ => None,
             }
         }
         _ => None,
