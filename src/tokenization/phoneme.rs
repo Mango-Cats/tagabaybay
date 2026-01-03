@@ -9,7 +9,7 @@
 /// - Special characters (spaces, punctuation)
 ///
 /// Each variant can be converted to Filipino orthography using `as_str()`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Phoneme {
     // Affricates [AFF]
     AFFTs, // /ts/  - e.g., (CH/TS)ocolate
@@ -55,7 +55,7 @@ pub enum Phoneme {
     Space,
 
     // ASCII non-alphanumeric passthrough (digits, punctuation, etc.)
-    Passthrough(char),
+    Passthrough(String),
 
     // Non-ASCII or unknown
     Other,
@@ -66,54 +66,55 @@ impl Phoneme {
     pub fn as_str(&self) -> String {
         match self {
             // Affricates [AFF]
-            Phoneme::AFFTs => "ts".to_string(),
-            Phoneme::AFFDy => "dy".to_string(),
+            Phoneme::AFFTs => "ts",
+            Phoneme::AFFDy => "dy",
 
             // Vowel Sounds
-            Phoneme::A => "a".to_string(),
-            Phoneme::E => "e".to_string(),
-            Phoneme::I => "i".to_string(),
-            Phoneme::O => "o".to_string(),
-            Phoneme::U => "u".to_string(),
+            Phoneme::A => "a",
+            Phoneme::E => "e",
+            Phoneme::I => "i",
+            Phoneme::O => "o",
+            Phoneme::U => "u",
 
             // Native consonants sounds
             // Stops
-            Phoneme::P => "p".to_string(),
-            Phoneme::B => "b".to_string(),
-            Phoneme::T => "t".to_string(),
-            Phoneme::D => "d".to_string(),
-            Phoneme::K => "k".to_string(),
-            Phoneme::G => "g".to_string(),
+            Phoneme::P => "p",
+            Phoneme::B => "b",
+            Phoneme::T => "t",
+            Phoneme::D => "d",
+            Phoneme::K => "k",
+            Phoneme::G => "g",
 
             // Nasals
-            Phoneme::M => "m".to_string(),
-            Phoneme::N => "n".to_string(),
-            Phoneme::Ng => "ng".to_string(),
-            Phoneme::Ny => "ny".to_string(),
+            Phoneme::M => "m",
+            Phoneme::N => "n",
+            Phoneme::Ng => "ng",
+            Phoneme::Ny => "ny",
 
             // Frivatives
-            Phoneme::H => "h".to_string(),
-            Phoneme::S => "s".to_string(),
+            Phoneme::H => "h",
+            Phoneme::S => "s",
 
             // Approximants
-            Phoneme::L => "l".to_string(),
-            Phoneme::R => "r".to_string(),
-            Phoneme::W => "w".to_string(),
-            Phoneme::Y => "y".to_string(),
+            Phoneme::L => "l",
+            Phoneme::R => "r",
+            Phoneme::W => "w",
+            Phoneme::Y => "y",
 
             // Modern consonant sounds
-            Phoneme::F => "f".to_string(),
-            Phoneme::Z => "z".to_string(),
+            Phoneme::F => "f",
+            Phoneme::Z => "z",
 
             // Whitespace
-            Phoneme::Space => " ".to_string(),
+            Phoneme::Space => " ",
 
             // ASCII passthrough
-            Phoneme::Passthrough(c) => c.to_string(),
+            Phoneme::Passthrough(c) => c,
 
             // Other
-            Phoneme::Other => "#".to_string(),
+            Phoneme::Other => "#",
         }
+        .to_string()
     }
 
     /// Check if this phoneme is a vowel

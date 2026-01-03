@@ -145,7 +145,7 @@ pub fn free_replacement(
         Grapheme::Space => Some((vec![Phoneme::Space], 1)),
 
         // ASCII passthrough (digits, punctuation, etc.)
-        Grapheme::Passthrough(c) => Some((vec![Phoneme::Passthrough(c)], 1)),
+        Grapheme::Passthrough(c) => Some((vec![Phoneme::Passthrough(c.to_string())], 1)),
 
         // Context-sensitive letters (handled in sensitive_replacement)
         Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::BigraphCh => None,
@@ -422,7 +422,9 @@ fn sensitive_consonant(
 fn handle_consonant_c(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match ctx.next() {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => Some((vec![Phoneme::S], 1)),
+        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => {
+            Some((vec![Phoneme::S], 1))
+        }
         // default: 'k'
         _ => Some((vec![Phoneme::K], 1)),
     }
