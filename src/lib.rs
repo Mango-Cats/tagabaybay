@@ -30,5 +30,5 @@
 
 pub mod consts;
 pub mod nativization;
-pub mod tokenization;
 pub mod syllabification;
+pub mod tokenization;
