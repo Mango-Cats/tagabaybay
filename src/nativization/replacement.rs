@@ -168,14 +168,15 @@ pub fn sensitive_replacement(
     index: usize,
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
-    let curr = graphemes[index].to_lowercase();
+    let ctx = Context::new(graphemes, index);
+    let curr = ctx.current();
 
     if curr.is_vowel() {
-        sensitive_vowel(graphemes, index, config)
+        sensitive_vowel(&ctx, config)
     } else if curr.is_bigraph() {
-        sensitive_bigraph(graphemes, index)
+        sensitive_bigraph(&ctx)
     } else if curr.is_consonant() {
-        sensitive_consonant(graphemes, index, config)
+        sensitive_consonant(&ctx, config)
     } else {
         let error = NativizationError::new(graphemes.to_vec(), index, None, None);
 
@@ -188,28 +189,20 @@ pub fn sensitive_replacement(
 ///
 /// # Arguments
 ///
-/// * `graphemes` - The full sequence of graphemes
-/// * `index` - Current position in the sequence
+/// * `ctx` - Context containing the grapheme sequence and current position
 /// * `config` - Nativization configuration
 ///
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a rule matches, where `consumed` is the number
 /// of graphemes processed. Returns `None` if no context-sensitive rule applies.
-fn sensitive_vowel(
-    graphemes: &[Grapheme],
-    index: usize,
-    config: &NativizationConfig,
-) -> Option<(Vec<Phoneme>, usize)> {
-    let ctx = Context::new(graphemes, index);
-    let curr = &ctx.current();
-
+fn sensitive_vowel(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<Phoneme>, usize)> {
     // remove duplicates
-    if let Some(x) = sensitive_duplicates(curr, ctx.next(), graphemes, index, config) {
+    if let Some(x) = sensitive_duplicates(ctx, config) {
         return Some(x);
     }
 
-    match curr {
+    match &ctx.current() {
         Grapheme::A => handle_vowel_a(&ctx),
         Grapheme::E => handle_vowel_e(&ctx),
         Grapheme::I => handle_vowel_i(&ctx),
@@ -365,8 +358,7 @@ fn handle_vowel_u(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `graphemes` - The full sequence of graphemes
-/// * `index` - Current position in the sequence
+/// * `ctx` - Context containing the grapheme sequence and current position
 /// * `config` - Nativization configuration
 ///
 /// # Returns
@@ -374,15 +366,13 @@ fn handle_vowel_u(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// Returns `Some((phonemes, consumed))` if a rule matches, where `consumed` is the number
 /// of graphemes processed. Returns `None` if no context-sensitive rule applies.
 fn sensitive_consonant(
-    graphemes: &[Grapheme],
-    index: usize,
+    ctx: &Context,
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
-    let ctx = Context::new(graphemes, index);
-    let curr = &ctx.current();
+    let curr = ctx.current();
 
     // remove duplicates
-    if let Some(x) = sensitive_duplicates(curr, ctx.next(), graphemes, index, config) {
+    if let Some(x) = sensitive_duplicates(ctx, config) {
         return Some(x);
     }
 
@@ -568,15 +558,14 @@ fn handle_consonant_s(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `graphemes` - The full sequence of graphemes
-/// * `index` - Current position in the sequence
+/// * `ctx` - Context containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a rule matches, `None` otherwise.
-fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phoneme>, usize)> {
-    let curr = &graphemes[index];
-    let next = graphemes.get(index + 1).map(|g| g.to_lowercase());
+fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+    let curr = ctx.current();
+    let next = ctx.next();
 
     match curr {
         Grapheme::BigraphCh => {
@@ -600,10 +589,7 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phonem
 ///
 /// # Arguments
 ///
-/// * `curr` - Current grapheme
-/// * `next` - Next grapheme (if any)
-/// * `graphemes` - The full sequence of graphemes
-/// * `index` - Current position in the sequence
+/// * `ctx` - Context containing the grapheme sequence and current position
 /// * `config` - Nativization configuration
 ///
 /// # Returns
@@ -611,20 +597,20 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phonem
 /// Returns `Some((phonemes, 2))` if a duplicate is found (consuming 2 graphemes),
 /// `None` otherwise.
 fn sensitive_duplicates(
-    curr: &Grapheme,
-    next: Option<Grapheme>,
-    graphemes: &[Grapheme],
-    index: usize,
+    ctx: &Context,
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
-    if let Some(next_grapheme) = next {
-        if *curr == next_grapheme
-            && !matches!(
+    let curr = ctx.current();
+    if let Some(next) = ctx.next() {
+        if next == curr
+        // some symbol overload here: !matches!() is `NOT`matches!()
+        // matches!() returns type bool.
+        && !matches!(
                 curr,
                 Grapheme::Passthrough(_) | Grapheme::Space | Grapheme::Other
             )
         {
-            if let Some((phonemes, _)) = free_replacement(graphemes, index, config) {
+            if let Some((phonemes, _)) = free_replacement(ctx.graphemes, ctx.index, config) {
                 return Some((phonemes, 2));
             }
         }
