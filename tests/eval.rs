@@ -1,4 +1,9 @@
 // to run: cargo test --test eval
+//
+// then, this will put test files in
+//      `target/tests/report/`
+// the file naming convention is as follows
+//      `<YY><MM><DD>_<HH><MM>_<GOLD_STANDARD>`
 
 use chrono::Local;
 use std::fs::{self, File};
