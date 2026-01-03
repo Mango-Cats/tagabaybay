@@ -19,27 +19,27 @@ impl<'a> Context<'a> {
     }
 
     /// Get the current grapheme (lowercased)
-    pub fn current(&self) -> Grapheme {
-        self.graphemes[self.index].to_lowercase()
+    pub fn current(&self) -> &Grapheme {
+        &self.graphemes[self.index]
     }
 
     /// Get the previous grapheme (lowercased)
-    pub fn prev(&self) -> Option<Grapheme> {
+    pub fn prev(&self) -> Option<&Grapheme> {
         if self.index > 0 {
-            Some(self.graphemes[self.index - 1].to_lowercase())
+            Some(&self.graphemes[self.index - 1])
         } else {
             None
         }
     }
 
     /// Get the next grapheme (lowercased)
-    pub fn next(&self) -> Option<Grapheme> {
-        self.graphemes.get(self.index + 1).map(|g| g.to_lowercase())
+    pub fn next(&self) -> Option<&Grapheme> {
+        self.graphemes.get(self.index + 1)
     }
 
     /// Look ahead n positions
-    pub fn lookahead(&self, n: usize) -> Option<Grapheme> {
-        self.graphemes.get(self.index + n).map(|g| g.to_lowercase())
+    pub fn lookahead(&self, n: usize) -> Option<&Grapheme> {
+        self.graphemes.get(self.index + n)
     }
 
     /// Check if we're at the start of the input
@@ -465,7 +465,7 @@ fn handle_consonant_y(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
         // 'y' before 's' or 'l' becomes 'i'
         (_, Some(Grapheme::S | Grapheme::L)) => Some((vec![Phoneme::I], 1)),
         // 'y' not preceded by 'a' becomes 'i'
-        (Some(g), _) if g != Grapheme::A => Some((vec![Phoneme::I], 1)),
+        (Some(g), _) if *g != Grapheme::A => Some((vec![Phoneme::I], 1)),
         (None, _) => Some((vec![Phoneme::I], 1)), // 'y' at start becomes 'i'
         // 'y' preceded by 'a' - just emit 'y' (A already processed)
         (Some(Grapheme::A), _) => Some((vec![Phoneme::Y], 1)),
@@ -622,8 +622,8 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phonem
 /// Returns `Some((phonemes, 2))` if a duplicate is found (consuming 2 graphemes),
 /// `None` otherwise.
 fn sensitive_duplicates(
-    curr: Grapheme,
-    next: Option<Grapheme>,
+    curr: &Grapheme,
+    next: Option<&Grapheme>,
     graphemes: &[Grapheme],
     index: usize,
     config: &NativizationConfig,

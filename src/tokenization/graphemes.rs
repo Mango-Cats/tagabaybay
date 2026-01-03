@@ -8,7 +8,7 @@
 /// - Special characters (spaces, punctuation, etc.)
 ///
 /// Each variant can be converted back to its string form using `as_str()`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Grapheme {
     // Bigraphs (English spelling patterns)
     BigraphPh,
@@ -84,7 +84,7 @@ pub enum Grapheme {
     Space,
 
     // ASCII non-alphanumeric passthrough (digits, punctuation, etc.)
-    Passthrough(char),
+    Passthrough(String),
 
     // Non-ASCII or unknown
     Other,
@@ -237,7 +237,7 @@ impl Grapheme {
             Grapheme::UpperX => Grapheme::X,
             Grapheme::UpperY => Grapheme::Y,
             Grapheme::UpperZ => Grapheme::Z,
-            _ => *self,
+            _ => self.clone(),
         }
     }
 
@@ -373,7 +373,7 @@ impl Grapheme {
             ' ' => Grapheme::Space,
 
             // ASCII non-alphanumeric passthrough
-            c if c.is_ascii() && !c.is_ascii_alphabetic() => Grapheme::Passthrough(c),
+            c if c.is_ascii() && !c.is_ascii_alphabetic() => Grapheme::Passthrough(c.to_string()),
 
             // Non-ASCII or unknown
             _ => Grapheme::Other,

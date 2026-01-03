@@ -152,8 +152,8 @@ impl Nativizer {
                     continue;
                 }
             }
-            
-                // FIXME: issue probably here for fix: parsing, look-ahead/behind, and iterators
+
+            // FIXME: issue probably here for fix: parsing, look-ahead/behind, and iterators
             // Try context-sensitive replacement first
             if let Some((sens_res, consumed)) = sensitive_replacement(&graphemes, i, &self.config) {
                 res.extend(sens_res);
@@ -197,11 +197,12 @@ fn detect_and_process_abbreviation(
         None
     };
 
-    let after_separator = prev.is_none()
-        || matches!(
-            prev,
-            Some(Grapheme::Space) | Some(Grapheme::Passthrough('-'))
-        );
+    let after_separator = match prev {
+        None => true,
+        Some(Grapheme::Space) => true,
+        Some(Grapheme::Passthrough(s)) if s == "-" => true,
+        _ => false,
+    };
 
     if !after_separator {
         return None;
@@ -214,20 +215,21 @@ fn detect_and_process_abbreviation(
     }
 
     let next = graphemes.get(end);
-    let before_separator = next.is_none()
-        || matches!(
-            next,
-            Some(Grapheme::Space) | Some(Grapheme::Passthrough('-'))
-        );
+    let before_separator = match next {
+        None => true,
+        Some(Grapheme::Space) => true,
+        Some(Grapheme::Passthrough(s)) if s == "-" => true,
+        _ => false,
+    };
 
     // Check if this is an abbreviation (2+ letters or single letter before separator)
     if (end - start_idx >= 2) || before_separator {
         let abbr_segment = &graphemes[start_idx..end];
         let phonemes = nativize_abbreviation(abbr_segment);
-        Some((phonemes, end - start_idx))
-    } else {
-        None
+        return Some((phonemes, end - start_idx));
     }
+
+    None
 }
 
 /// Convert an abbreviation to Filipino phonetic transcription
@@ -235,7 +237,7 @@ fn detect_and_process_abbreviation(
 fn nativize_abbreviation(abbr: &[Grapheme]) -> Vec<Phoneme> {
     let mut result: Vec<Phoneme> = Vec::new();
     for (i, grapheme) in abbr.iter().enumerate() {
-        if let Some(phonemes) = letter_to_phonetic(*grapheme) {
+        if let Some(phonemes) = letter_to_phonetic(grapheme.clone()) {
             // Add space before each letter except the first
             if i > 0 {
                 result.push(Phoneme::Space);
