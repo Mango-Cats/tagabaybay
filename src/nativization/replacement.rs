@@ -98,7 +98,7 @@ pub fn free_replacement(
         Grapheme::BigraphTh => Some((vec![Phoneme::T], 1)),
         Grapheme::BigraphSh => {
             if config.allow_sh_sound {
-                Some((vec![Phoneme::S, Phoneme::H], 2)) // TODO: ask why this returns 2 instead of 1. though doesn't seem like allow_sh_sound is enabled anywhere anyway
+                Some((vec![Phoneme::S, Phoneme::H], 1))
             } else {
                 Some((vec![Phoneme::S], 1))
             }
