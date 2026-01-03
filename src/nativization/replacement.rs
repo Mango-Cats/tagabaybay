@@ -13,58 +13,45 @@ pub struct Context<'a> {
 }
 
 impl<'a> Context<'a> {
-    /// Create a new context
+    /// Create a new context at a given index
     pub fn new(graphemes: &'a [Grapheme], index: usize) -> Self {
         Self { graphemes, index }
     }
 
-    /// Get the current grapheme (lowercased)
-    pub fn current(&self) -> &Grapheme {
-        &self.graphemes[self.index]
+    /// Return the current grapheme, normalized to lowercase
+    pub fn current(&self) -> Grapheme {
+        self.graphemes[self.index].to_lowercase()
     }
 
-    /// Get the previous grapheme (lowercased)
-    pub fn prev(&self) -> Option<&Grapheme> {
+    /// Return the previous grapheme, lowercase if it exists
+    pub fn prev(&self) -> Option<Grapheme> {
         if self.index > 0 {
-            Some(&self.graphemes[self.index - 1])
+            Some(self.graphemes[self.index - 1].to_lowercase())
         } else {
             None
         }
     }
 
-    /// Get the next grapheme (lowercased)
-    pub fn next(&self) -> Option<&Grapheme> {
-        self.graphemes.get(self.index + 1)
+    /// Return the next grapheme, lowercase if it exists
+    pub fn next(&self) -> Option<Grapheme> {
+        self.graphemes.get(self.index + 1).map(|g| g.to_lowercase())
     }
 
-    /// Look ahead n positions
-    pub fn lookahead(&self, n: usize) -> Option<&Grapheme> {
-        self.graphemes.get(self.index + n)
+    /// Look ahead n positions, lowercase if exists
+    pub fn lookahead(&self, n: usize) -> Option<Grapheme> {
+        self.graphemes.get(self.index + n).map(|g| g.to_lowercase())
     }
 
-    /// Check if we're at the start of the input
     pub fn at_start(&self) -> bool {
         self.index == 0
     }
 
-    /// Check if we're at the end of the input
     pub fn at_end(&self) -> bool {
-        self.index == self.graphemes.len() - 1
+        self.index >= self.graphemes.len() - 1
     }
 
-    /// Check if next position is at the end
-    pub fn next_is_end(&self) -> bool {
-        self.index + 1 == self.graphemes.len() - 1
-    }
-
-    /// Get the position/index
     pub fn position(&self) -> usize {
         self.index
-    }
-
-    /// Get all graphemes
-    pub fn graphemes(&self) -> &[Grapheme] {
-        self.graphemes
     }
 }
 
@@ -99,6 +86,8 @@ pub fn free_replacement(
         Grapheme::BigraphSh => {
             if config.allow_sh_sound {
                 Some((vec![Phoneme::S, Phoneme::H], 1))
+                // TODO: we might change this to the line below:
+                // Some((vec![Phoneme:SH]), 1)
             } else {
                 Some((vec![Phoneme::S], 1))
             }
@@ -189,6 +178,7 @@ pub fn sensitive_replacement(
         sensitive_consonant(graphemes, index, config)
     } else {
         let error = NativizationError::new(graphemes.to_vec(), index, None, None);
+
         error.print_error(false);
         None
     }
@@ -212,7 +202,7 @@ fn sensitive_vowel(
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
     let ctx = Context::new(graphemes, index);
-    let curr = ctx.current();
+    let curr = &ctx.current();
 
     // remove duplicates
     if let Some(x) = sensitive_duplicates(curr, ctx.next(), graphemes, index, config) {
@@ -242,7 +232,7 @@ fn handle_vowel_a(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     // Check for "ate" pattern (a-t-e at end) → "eyt"
     if let Some(Grapheme::T) = ctx.next() {
         if let Some(Grapheme::E) = ctx.lookahead(2) {
-            if ctx.position() + 2 == ctx.graphemes().len() - 1 {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
                 return Some((vec![Phoneme::E, Phoneme::Y, Phoneme::T], 3));
             }
         }
@@ -285,7 +275,7 @@ fn handle_vowel_i(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     // Check for "ide" pattern (i-d-e at end) → "ayd"
     if let Some(Grapheme::D) = ctx.next() {
         if let Some(Grapheme::E) = ctx.lookahead(2) {
-            if ctx.position() + 2 == ctx.graphemes().len() - 1 {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
                 return Some((vec![Phoneme::A, Phoneme::Y, Phoneme::D], 3));
             }
         }
@@ -314,7 +304,7 @@ fn handle_vowel_o(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     // Check for "one" pattern (o-n-e at end) → "own"
     if let Some(Grapheme::N) = ctx.next() {
         if let Some(Grapheme::E) = ctx.lookahead(2) {
-            if ctx.position() + 2 == ctx.graphemes().len() - 1 {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
                 return Some((vec![Phoneme::O, Phoneme::W, Phoneme::N], 3));
             }
         }
@@ -389,7 +379,7 @@ fn sensitive_consonant(
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
     let ctx = Context::new(graphemes, index);
-    let curr = ctx.current();
+    let curr = &ctx.current();
 
     // remove duplicates
     if let Some(x) = sensitive_duplicates(curr, ctx.next(), graphemes, index, config) {
@@ -420,7 +410,7 @@ fn sensitive_consonant(
 ///
 /// Returns `Some((phonemes, consumed))` with the appropriate conversion.
 fn handle_consonant_c(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
-    match ctx.next() {
+    match ctx.lookahead(1) {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
         Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => {
             Some((vec![Phoneme::S], 1))
@@ -465,7 +455,7 @@ fn handle_consonant_y(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
         // 'y' before 's' or 'l' becomes 'i'
         (_, Some(Grapheme::S | Grapheme::L)) => Some((vec![Phoneme::I], 1)),
         // 'y' not preceded by 'a' becomes 'i'
-        (Some(g), _) if *g != Grapheme::A => Some((vec![Phoneme::I], 1)),
+        (Some(g), _) if g != Grapheme::A => Some((vec![Phoneme::I], 1)),
         (None, _) => Some((vec![Phoneme::I], 1)), // 'y' at start becomes 'i'
         // 'y' preceded by 'a' - just emit 'y' (A already processed)
         (Some(Grapheme::A), _) => Some((vec![Phoneme::Y], 1)),
@@ -541,7 +531,7 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
                         match ctx.next() {
                             Some(Grapheme::E) => Phoneme::E,
                             Some(Grapheme::I) => Phoneme::I,
-                            Some(Grapheme::Y) => Phoneme::Y,
+                            Some(Grapheme::Y) => Phoneme::I,
                             _ => Phoneme::Other,
                         },
                     ],
@@ -562,7 +552,6 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-
 fn handle_consonant_s(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         (Some(Grapheme::BigraphEe | Grapheme::BigraphOo), Some(Grapheme::E)) => {
@@ -623,13 +612,13 @@ fn sensitive_bigraph(graphemes: &[Grapheme], index: usize) -> Option<(Vec<Phonem
 /// `None` otherwise.
 fn sensitive_duplicates(
     curr: &Grapheme,
-    next: Option<&Grapheme>,
+    next: Option<Grapheme>,
     graphemes: &[Grapheme],
     index: usize,
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
     if let Some(next_grapheme) = next {
-        if curr == next_grapheme
+        if *curr == next_grapheme
             && !matches!(
                 curr,
                 Grapheme::Passthrough(_) | Grapheme::Space | Grapheme::Other

@@ -35,7 +35,7 @@ impl NativizationError {
     }
 
     /// Print the error with context (for debugging)
-    pub fn print_error(&self, panic: bool) {
+    pub fn print_error(&self, go_panic: bool) {
         println!("error: the word nativization is invalid or impossible");
         match &self.dataset_name {
             Some(s) => match self.word_number {
@@ -54,7 +54,7 @@ impl NativizationError {
         );
         println!("    |");
 
-        if panic {
+        if go_panic {
             panic!("Nativization error")
         }
     }
