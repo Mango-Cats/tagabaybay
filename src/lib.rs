@@ -1,5 +1,4 @@
 //! # Tagabaybay: English to Filipino Phonetic Nativization
-//!
 //! Tagabaybay is a  for converting English text to Filipino phonetic representation.
 //! It handles various English orthographic patterns and converts them to their Filipino
 //! phonetic equivalents according to Filipino phonology.
