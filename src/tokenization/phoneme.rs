@@ -11,9 +11,12 @@
 /// Each variant can be converted to Filipino orthography using `as_str()`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Phoneme {
-    // Affricates [AFF]
-    AFFTs, // /ts/  - e.g., (CH/TS)ocolate
-    AFFDy, // /dʒ/  - e.g., (J/DY)eep
+    // Affricates
+    TS, // /ts/  - e.g., (CH/TS)ocolate
+    DY, // /dʒ/  - e.g., (J/DY)eep
+
+    // Fricatives
+    SH, // /ʃ/   - e.g., (SH/Siy)aron
 
     // Vowels Sounds; Monophthongs
     A, // /a/       - e.g., Apoy
@@ -65,9 +68,12 @@ impl Phoneme {
     /// Convert the phoneme to its Filipino orthographic representation
     pub fn as_str(&self) -> String {
         match self {
-            // Affricates [AFF]
-            Phoneme::AFFTs => "ts",
-            Phoneme::AFFDy => "dy",
+            // Affricates
+            Phoneme::TS => "ts",
+            Phoneme::DY => "dy",
+
+            // Fricatives
+            Phoneme::SH => "sh",
 
             // Vowel Sounds
             Phoneme::A => "a",
