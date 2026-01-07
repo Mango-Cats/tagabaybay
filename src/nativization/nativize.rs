@@ -140,14 +140,19 @@ impl Nativizer {
 
         // Get IPA representation or return a wrapped error
         let ipa = phonemize(word).ok_or_else(|| {
-            TagabaybayErrors::Phonetization(PhonetizationError::new(
-                word.to_string(),
-                word_number,
-                dataset_name,
-            ))
+            let error = PhonetizationError::new(word.to_string(), word_number, dataset_name);
+
+            error.print_error();
+            if self.config.panic_at_error {
+                panic!("Phonetization failed: {:?}", error);
+            }
+
+            TagabaybayErrors::Phonetization(error)
         })?;
 
-        let mut ctx = Context::new(&toks, 0);
+        dbg!(&ipa);
+
+        let mut ctx = Context::new(&toks, 0, &ipa);
 
         while !ctx.at_end() {
             let curr = ctx.current();
@@ -162,13 +167,7 @@ impl Nativizer {
             }
 
             // Handle vowels (special case)
-            if curr.is_vowel() {
-                // if let Some((vowel_res, consumed)) = handle_vowel(&ctx, &self.config) {
-                //     res.extend(vowel_res);
-                //     ctx.index += consumed;
-                //     continue;
-                // }
-            }
+            if curr.is_vowel() {}
 
             // Context-sensitive replacement
             if let Some((sens_res, consumed)) = sensitive_replacement(&ctx, &self.config) {
@@ -191,8 +190,7 @@ impl Nativizer {
                 word_number,
                 dataset_name,
             );
-            error.print_error(self.config.panic_at_error);
-
+            error.print_error();
             if self.config.panic_at_error {
                 return Err(TagabaybayErrors::Nativization(error));
             }
