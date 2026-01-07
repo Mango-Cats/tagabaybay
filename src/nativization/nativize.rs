@@ -150,8 +150,6 @@ impl Nativizer {
             TagabaybayErrors::Phonetization(error)
         })?;
 
-        dbg!(&ipa);
-
         let mut ctx = Context::new(&toks, 0, &ipa);
 
         while !ctx.at_end() {
