@@ -18,7 +18,7 @@ const GOLD_STANDARDS: [&str; GOLD_COUNT] =
 
 const ACCEPT: f64 = 70.;
 
-const REPORT_DIR: &str = "target/tests/report";
+const REPORT_DIR: &str = ".tests/report";
 
 struct TestResult {
     input: String,
