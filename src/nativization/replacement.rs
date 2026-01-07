@@ -384,7 +384,7 @@ fn sensitive_consonant(
         Grapheme::D => handle_consonant_d(&ctx),
         Grapheme::G => handle_consonant_g(&ctx),
         Grapheme::S => handle_consonant_s(&ctx),
-        Grapheme::J => Some((vec![Phoneme::AFFDy], 1)),
+        Grapheme::J => Some((vec![Phoneme::DY], 1)),
         Grapheme::Q => Some((vec![Phoneme::K], 1)),
         _ => None,
     }
@@ -517,7 +517,7 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
                 Some(Grapheme::S | Grapheme::C | Grapheme::K) => None,
                 _ => Some((
                     vec![
-                        Phoneme::AFFDy,
+                        Phoneme::DY,
                         match ctx.next() {
                             Some(Grapheme::E) => Phoneme::E,
                             Some(Grapheme::I) => Phoneme::I,
@@ -575,7 +575,7 @@ fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
                 }
             }
 
-            Some((vec![Phoneme::AFFTs], 1))
+            Some((vec![Phoneme::TS], 1))
         }
 
         // Th and Sh are handled in free_replacement
@@ -641,9 +641,9 @@ pub fn letter_to_phonetic(letter: Grapheme) -> Option<Vec<Phoneme>> {
         Grapheme::E => Some(vec![Phoneme::I]),
         Grapheme::F => Some(vec![Phoneme::E, Phoneme::F]),
         Grapheme::G => Some(vec![Phoneme::D, Phoneme::Y, Phoneme::I]),
-        Grapheme::H => Some(vec![Phoneme::E, Phoneme::Y, Phoneme::AFFTs]),
+        Grapheme::H => Some(vec![Phoneme::E, Phoneme::Y, Phoneme::TS]),
         Grapheme::I => Some(vec![Phoneme::A, Phoneme::Y]),
-        Grapheme::J => Some(vec![Phoneme::AFFDy, Phoneme::E, Phoneme::Y]),
+        Grapheme::J => Some(vec![Phoneme::DY, Phoneme::E, Phoneme::Y]),
         Grapheme::K => Some(vec![Phoneme::K, Phoneme::E, Phoneme::Y]),
         Grapheme::L => Some(vec![Phoneme::E, Phoneme::L]),
         Grapheme::M => Some(vec![Phoneme::E, Phoneme::M]),
