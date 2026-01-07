@@ -1,3 +1,4 @@
+use crate::nativization::error::PhonetizationError;
 use once_cell::sync::Lazy;
 use phonetisaurus_g2p::PhonetisaurusModel;
 
@@ -19,18 +20,18 @@ static MODEL: Lazy<PhonetisaurusModel> = Lazy::new(|| {
 ///
 /// # Returns
 ///
-/// Returns `Some(String)` if a phonetic transcription is possible.
+/// Returns `Some(String)` if a phonetic transcription is possible,
+/// the phonetic transcription is separated per syllable. The syllable
+/// boundary is given by `$`.
 /// Returns `None` otherwise.
-pub fn phonemize(word: &str) -> Option<String> {
-    if let Ok(result) = MODEL.phonemize_word(word.to_lowercase().as_str()) {
-        Some(
-            result
-                .phonemes
-                .chars()
-                .map(|c| if c.is_alphabetic() { c } else { ' ' })
-                .collect(),
-        )
-    } else {
-        None
-    }
+pub fn phonemize(word: &str) -> Result<String, PhonetizationError> {
+    let result = MODEL
+        .phonemize_word(&word.to_lowercase())
+        .map_err(|_| PhonetizationError::new(word.to_string(), None, None))?;
+
+    Ok(result
+        .phonemes
+        .chars()
+        .map(|c| if c.is_alphabetic() { c } else { '$' })
+        .collect())
 }

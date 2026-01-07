@@ -1,21 +1,56 @@
+use crate::consts::NativizationConfig;
+use crate::g2p::phonemize;
+use crate::nativization::error::{PhonetizationError, TagabaybayErrors};
 use crate::tokenization::graphemes::Grapheme;
+use crate::tokenization::tokenize::tokenize;
 
 /// Helper struct for accessing grapheme context during pattern matching
-#[derive(Debug, Clone, Copy)]
-pub struct Context<'a> {
-    pub graphemes: &'a [Grapheme],
+#[derive(Debug, Clone)]
+pub struct Context {
+    pub graphemes: Vec<Grapheme>,
+    pub ipa: Vec<Grapheme>,
     pub index: usize,
-    pub ipa: &'a str,
 }
 
-impl<'a> Context<'a> {
-    /// Create a new context at a given index
-    pub fn new(graphemes: &'a [Grapheme], index: usize, ipa: &'a str) -> Self {
+impl Context {
+    /// Create a new context with each parameter
+    pub fn new(graphemes: &[Grapheme], index: usize, ipa: &[Grapheme]) -> Self {
         Self {
-            graphemes,
+            graphemes: graphemes.to_vec(),
             index,
-            ipa,
+            ipa: ipa.to_vec(),
         }
+    }
+
+    /// Create a new context from a word
+    pub fn from_word(
+        word: &str,
+        word_number: Option<usize>,
+        dataset_name: Option<&str>,
+        config: &NativizationConfig,
+    ) -> Result<Self, TagabaybayErrors> {
+        let graphemes = tokenize(word);
+
+        let ipa_string = phonemize(word).map_err(|mut err| {
+            err.word_number = word_number;
+            err.dataset_name = dataset_name.map(str::to_string);
+
+            err.print_error();
+
+            if config.panic_at_error {
+                panic!("Phonetization failed: {:?}", err);
+            }
+
+            TagabaybayErrors::Phonetization(err)
+        })?;
+
+        let ipa = tokenize(&ipa_string.to_ascii_lowercase());
+
+        Ok(Self {
+            graphemes,
+            index: 0,
+            ipa,
+        })
     }
 
     /// Return the current grapheme, normalized to lowercase

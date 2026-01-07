@@ -135,23 +135,13 @@ impl Nativizer {
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
+        config: &NativizationConfig,
     ) -> Result<Vec<Phoneme>, TagabaybayErrors> {
-        let mut res: Vec<Phoneme> = Vec::new();
-        let toks = tokenize(word);
-
-        // Get IPA representation or return a wrapped error
-        let ipa = phonemize(word).ok_or_else(|| {
-            let error = PhonetizationError::new(word.to_string(), word_number, dataset_name);
-
-            error.print_error();
-            if self.config.panic_at_error {
-                panic!("Phonetization failed: {:?}", error);
-            }
-
-            TagabaybayErrors::Phonetization(error)
-        })?;
-
-        let mut ctx = Context::new(&toks, 0, &ipa);
+        let mut result: Vec<Phoneme> = Vec::new();
+        let mut ctx = match Context::from_word(word, word_number, dataset_name, config) {
+            Ok(ctx) => ctx,
+            Err(e) => return Err(e),
+        };
 
         while !ctx.at_end() {
             let curr = ctx.current();
@@ -159,7 +149,7 @@ impl Nativizer {
             // Handle abbreviations and single letters (spelled out phonetically)
             if curr.is_uppercase() {
                 if let Some((abbr_phonemes, consumed)) = detect_and_process_abbreviation(&ctx) {
-                    res.extend(abbr_phonemes);
+                    result.extend(abbr_phonemes);
                     ctx.index += consumed;
                     continue;
                 }
@@ -170,14 +160,14 @@ impl Nativizer {
 
             // Context-sensitive replacement
             if let Some((sens_res, consumed)) = sensitive_replacement(&ctx, &self.config) {
-                res.extend(sens_res);
+                result.extend(sens_res);
                 ctx.index += consumed;
                 continue;
             }
 
             // Context-free replacement (fallback)
             if let Some((free_res, consumed)) = free_replacement(&ctx, &self.config) {
-                res.push(free_res);
+                result.push(free_res);
                 ctx.index += consumed;
                 continue;
             }
@@ -194,11 +184,10 @@ impl Nativizer {
                 return Err(TagabaybayErrors::Nativization(error));
             }
 
-            // Skip current grapheme to avoid infinite loop
             ctx.index += 1;
         }
 
-        Ok(res)
+        Ok(result)
     }
 }
 
