@@ -9,12 +9,17 @@ use crate::tokenization::phoneme::Phoneme;
 pub struct Context<'a> {
     pub graphemes: &'a [Grapheme],
     pub index: usize,
+    pub ipa: &'a str,
 }
 
 impl<'a> Context<'a> {
     /// Create a new context at a given index
-    pub fn new(graphemes: &'a [Grapheme], index: usize) -> Self {
-        Self { graphemes, index }
+    pub fn new(graphemes: &'a [Grapheme], index: usize, ipa: &'a str) -> Self {
+        Self {
+            graphemes,
+            index,
+            ipa,
+        }
     }
 
     /// Return the current grapheme, normalized to lowercase
@@ -193,7 +198,7 @@ fn sensitive_consonant(
     let curr = ctx.current();
 
     // remove duplicates
-    if let Some(x) = sensitive_duplicates(ctx, config) {
+    if let Some(x) = handle_duplicates(ctx, config) {
         return Some(x);
     }
 
@@ -417,10 +422,7 @@ fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 ///
 /// Returns `Some((phonemes, 2))` if a duplicate is found (consuming 2 graphemes),
 /// `None` otherwise.
-fn sensitive_duplicates(
-    ctx: &Context,
-    config: &NativizationConfig,
-) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_duplicates(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<Phoneme>, usize)> {
     let curr = ctx.current();
     if let Some(next) = ctx.next() {
         if next == curr
