@@ -1,4 +1,9 @@
 // to run: cargo test --test eval
+//
+// then, this will put test files in
+//      `target/tests/report/`
+// the file naming convention is as follows
+//      `<YY><MM><DD>_<HH><MM>_<GOLD_STANDARD>`
 
 use chrono::Local;
 use std::fs::{self, File};
@@ -13,7 +18,7 @@ const GOLD_STANDARDS: [&str; GOLD_COUNT] =
 
 const ACCEPT: f64 = 70.;
 
-const REPORT_DIR: &str = "target/tests/report";
+const REPORT_DIR: &str = ".tests/report";
 
 struct TestResult {
     input: String,

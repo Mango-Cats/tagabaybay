@@ -28,6 +28,7 @@
 //! - `consts`: Configuration constants and types
 
 pub mod consts;
+pub mod g2p;
 pub mod nativization;
 pub mod syllabification;
 pub mod tokenization;
