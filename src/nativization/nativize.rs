@@ -1,8 +1,9 @@
 use crate::consts::NativizationConfig;
 use crate::g2p::phonemize;
+use crate::nativization::context::Context;
 use crate::nativization::error::{NativizationError, PhonetizationError, TagabaybayErrors};
 use crate::nativization::replacement::{
-    Context, free_replacement, letter_to_phonetic, sensitive_replacement,
+    free_replacement, letter_to_phonetic, sensitive_replacement,
 };
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;

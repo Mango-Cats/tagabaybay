@@ -1,5 +1,5 @@
 use crate::consts::NativizationConfig;
-use crate::nativization::replacement::Context;
+use crate::nativization::context::Context;
 use crate::tokenization::{graphemes::Grapheme, phoneme::Phoneme};
 
 pub fn handle_vowel(ctx: &Context) {
