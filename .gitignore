@@ -1,5 +1,10 @@
+# Rust files
 /target
-.dev/
-.vscode/
 
-main.rs
+# Developer files
+.*/
+.todo
+
+
+# Legacy Code
+legacy/
