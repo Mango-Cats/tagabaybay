@@ -23,9 +23,13 @@ static MODEL: Lazy<PhonetisaurusModel> = Lazy::new(|| {
 /// Returns `None` otherwise.
 pub fn phonemize(word: &str) -> Option<String> {
     if let Ok(result) = MODEL.phonemize_word(word.to_lowercase().as_str()) {
-        // POTENTIAL_ISSUE: word might have multiple syllables and might be syllabified
-        // so the output could be a bit fucky wucky.
-        return Some(result.phonemes);
+        Some(
+            result
+                .phonemes
+                .chars()
+                .map(|c| if c.is_alphabetic() { c } else { ' ' })
+                .collect(),
+        )
     } else {
         None
     }
