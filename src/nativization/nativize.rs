@@ -1,5 +1,6 @@
 use crate::consts::NativizationConfig;
-use crate::nativization::error::NativizationError;
+use crate::g2p::phonemize;
+use crate::nativization::error::{NativizationError, PhonetizationError, TagabaybayErrors};
 use crate::nativization::replacement::{
     Context, free_replacement, letter_to_phonetic, sensitive_replacement,
 };
@@ -89,7 +90,7 @@ impl Nativizer {
     /// let nativizer = Nativizer::new();
     /// let result = nativizer.nativize("hello").unwrap();
     /// ```
-    pub fn nativize(&self, input: &str) -> Result<Vec<Phoneme>, NativizationError> {
+    pub fn nativize(&self, input: &str) -> Result<Vec<Phoneme>, TagabaybayErrors> {
         self.nativize_internal(input, None, None)
     }
 
@@ -120,7 +121,7 @@ impl Nativizer {
         &self,
         word_list: &[&str],
         dataset_name: &str,
-    ) -> Vec<Result<Vec<Phoneme>, NativizationError>> {
+    ) -> Vec<Result<Vec<Phoneme>, TagabaybayErrors>> {
         word_list
             .iter()
             .enumerate()
@@ -128,15 +129,24 @@ impl Nativizer {
             .collect()
     }
 
-    /// Internal nativization implementation
     fn nativize_internal(
         &self,
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
-    ) -> Result<Vec<Phoneme>, NativizationError> {
+    ) -> Result<Vec<Phoneme>, TagabaybayErrors> {
         let mut res: Vec<Phoneme> = Vec::new();
         let toks = tokenize(word);
+
+        // Get IPA representation or return a wrapped error
+        let ipa = phonemize(word).ok_or_else(|| {
+            TagabaybayErrors::Phonetization(PhonetizationError::new(
+                word.to_string(),
+                word_number,
+                dataset_name,
+            ))
+        })?;
+
         let mut ctx = Context::new(&toks, 0);
 
         while !ctx.at_end() {
@@ -151,26 +161,30 @@ impl Nativizer {
                 }
             }
 
+            // Handle vowels (special case)
             if curr.is_vowel() {
-                todo!()
+                // if let Some((vowel_res, consumed)) = handle_vowel(&ctx, &self.config) {
+                //     res.extend(vowel_res);
+                //     ctx.index += consumed;
+                //     continue;
+                // }
             }
 
-            // Try context-sensitive replacement
+            // Context-sensitive replacement
             if let Some((sens_res, consumed)) = sensitive_replacement(&ctx, &self.config) {
                 res.extend(sens_res);
                 ctx.index += consumed;
-
                 continue;
             }
 
-            // Fall back to context-free replacement
+            // Context-free replacement (fallback)
             if let Some((free_res, consumed)) = free_replacement(&ctx, &self.config) {
                 res.push(free_res);
                 ctx.index += consumed;
-
                 continue;
             }
 
+            // Could not process current grapheme -> handle error
             let error = NativizationError::new(
                 ctx.graphemes.to_vec(),
                 ctx.index,
@@ -178,9 +192,13 @@ impl Nativizer {
                 dataset_name,
             );
             error.print_error(self.config.panic_at_error);
+
             if self.config.panic_at_error {
-                return Err(error);
+                return Err(TagabaybayErrors::Nativization(error));
             }
+
+            // Skip current grapheme to avoid infinite loop
+            ctx.index += 1;
         }
 
         Ok(res)

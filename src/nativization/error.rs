@@ -1,6 +1,41 @@
 use crate::tokenization::graphemes::Grapheme;
 use std::fmt;
 
+pub enum TagabaybayErrors {
+    Nativization(NativizationError),
+    Phonetization(PhonetizationError),
+}
+
+/// Error type for phonetization failures
+#[derive(Debug, Clone)]
+pub struct PhonetizationError {
+    /// The original input text
+    pub input: String,
+    /// Word number in the dataset (if processing a batch)
+    pub word_number: Option<usize>,
+    /// Name of the dataset (if processing a batch)
+    pub dataset_name: Option<String>,
+}
+
+impl PhonetizationError {
+    /// Create a new nativization error
+    pub fn new(input: String, word_number: Option<usize>, dataset_name: Option<&str>) -> Self {
+        Self {
+            input,
+            word_number,
+            dataset_name: dataset_name.map(String::from),
+        }
+    }
+
+    /// Print the error with context (for debugging)
+    pub fn print_error(&self, go_panic: bool) {
+        println!("error: the word phonetization is impossible; ensure it is lowercased");
+
+        if go_panic {
+            panic!("Nativization error")
+        }
+    }
+}
 /// Error type for nativization failures
 #[derive(Debug, Clone)]
 pub struct NativizationError {
@@ -69,5 +104,3 @@ impl fmt::Display for NativizationError {
         )
     }
 }
-
-impl std::error::Error for NativizationError {}
