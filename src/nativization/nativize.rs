@@ -161,7 +161,7 @@ impl Nativizer {
             } else {
                 // Fall back to context-free replacement
                 if let Some((free_res, consumed)) = free_replacement(&graphemes, i, &self.config) {
-                    res.push(free_res[0].clone());
+                    res.push(free_res);
                     i += consumed;
                 } else {
                     let error =

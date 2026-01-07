@@ -218,6 +218,7 @@ fn sensitive_vowel(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<Ph
             to_phonemize.push_str(char.to_string().as_str());
         }
     }
+    phonemize(todo!());
 
     None
 }
