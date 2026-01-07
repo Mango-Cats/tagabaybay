@@ -29,12 +29,8 @@ impl PhonetizationError {
     }
 
     /// Print the error with context (for debugging)
-    pub fn print_error(&self, go_panic: bool) {
+    pub fn print_error(&self) {
         println!("error: the word phonetization is impossible; ensure it is lowercased");
-
-        if go_panic {
-            panic!("Nativization error")
-        }
     }
 }
 /// Error type for nativization failures
@@ -71,7 +67,7 @@ impl NativizationError {
     }
 
     /// Print the error with context (for debugging)
-    pub fn print_error(&self, go_panic: bool) {
+    pub fn print_error(&self) {
         println!("error: the word nativization is invalid or impossible");
         match &self.dataset_name {
             Some(s) => match self.word_number {
@@ -89,10 +85,6 @@ impl NativizationError {
             self.position
         );
         println!("    |");
-
-        if go_panic {
-            panic!("Nativization error")
-        }
     }
 }
 
