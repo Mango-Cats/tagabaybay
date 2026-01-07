@@ -1,16 +1,14 @@
 use std::vec;
 
 use crate::consts::NativizationConfig;
-use crate::g2p::phonemize;
-use crate::nativization::error::NativizationError;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
 
 /// Helper struct for accessing grapheme context during pattern matching
 #[derive(Debug, Clone, Copy)]
 pub struct Context<'a> {
-    graphemes: &'a [Grapheme],
-    index: usize,
+    pub graphemes: &'a [Grapheme],
+    pub index: usize,
 }
 
 impl<'a> Context<'a> {
@@ -59,13 +57,17 @@ impl<'a> Context<'a> {
     pub fn position(&self) -> usize {
         self.index
     }
+
+    /// Retuns the length of the graphemes
+    pub fn len(&self) -> usize {
+        self.graphemes.len()
+    }
 }
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 ///
 /// Handles straightforward grapheme-to-phoneme conversions that don't require
-/// context analysis. Examples include vowels (a→a, e→e), consonants (b→b, k→k),
-/// and bigraphs (ph→f, th→t).
+/// context analysis.
 ///
 /// # Arguments
 ///
@@ -77,12 +79,8 @@ impl<'a> Context<'a> {
 ///
 /// Returns `Some((phonemes, consumed))` if a context-free rule matches, where
 /// `consumed` is typically 1. Returns `None` for context-sensitive letters.
-pub fn free_replacement(
-    graphemes: &[Grapheme],
-    index: usize,
-    config: &NativizationConfig,
-) -> Option<(Phoneme, usize)> {
-    let g = graphemes[index].to_lowercase();
+pub fn free_replacement(ctx: &Context, config: &NativizationConfig) -> Option<(Phoneme, usize)> {
+    let g = ctx.current().to_lowercase();
 
     match g {
         // Bigraph replacements (bigraphs count as 1 grapheme)
@@ -98,13 +96,6 @@ pub fn free_replacement(
         }
         Grapheme::BigraphEe => Some((Phoneme::I, 1)),
         Grapheme::BigraphOo => Some((Phoneme::U, 1)),
-
-        // Vowels
-        Grapheme::A => Some((Phoneme::A, 1)),
-        Grapheme::E => Some((Phoneme::E, 1)),
-        Grapheme::I => Some((Phoneme::I, 1)),
-        Grapheme::O => Some((Phoneme::O, 1)),
-        Grapheme::U => Some((Phoneme::U, 1)),
 
         // Consonants
         Grapheme::B => Some((Phoneme::B, 1)),
@@ -154,7 +145,7 @@ pub fn free_replacement(
 /// Context-sensitive nativization (needs surrounding graphemes)
 ///
 /// Handles grapheme-to-phoneme conversions that depend on surrounding context.
-/// This includes soft c (cent→sent), vowel patterns (ate→eyt), and position-dependent
+/// This includes soft c (cent→sent) and position-dependent
 /// transformations (x at start→s, otherwise→ks).
 ///
 /// # Arguments
@@ -168,59 +159,18 @@ pub fn free_replacement(
 /// Returns `Some((phonemes, consumed))` if a context-sensitive rule matches.
 /// Returns `None` if no rule applies (will print error).
 pub fn sensitive_replacement(
-    graphemes: &[Grapheme],
-    index: usize,
+    ctx: &Context,
     config: &NativizationConfig,
 ) -> Option<(Vec<Phoneme>, usize)> {
-    let ctx = Context::new(graphemes, index);
     let curr = ctx.current();
 
-    if curr.is_vowel() {
-        sensitive_vowel(&ctx, config)
-    } else if curr.is_bigraph() {
+    if curr.is_bigraph() {
         sensitive_bigraph(&ctx)
     } else if curr.is_consonant() {
         sensitive_consonant(&ctx, config)
     } else {
-        let error = NativizationError::new(graphemes.to_vec(), index, None, None);
-
-        error.print_error(false);
         None
     }
-}
-
-/// Vowel-specific context-sensitive rules
-///
-/// # Arguments
-///
-/// * `ctx` - Context containing the grapheme sequence and current position
-/// * `config` - Nativization configuration
-///
-/// # Returns
-///
-/// Returns `Some((phonemes, consumed))` if a rule matches, where `consumed` is the number
-/// of graphemes processed. Returns `None` if no context-sensitive rule applies.
-fn sensitive_vowel(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<Phoneme>, usize)> {
-    // remove duplicates
-    if let Some(x) = sensitive_duplicates(ctx, config) {
-        return Some(x);
-    }
-
-    // if its not a duplicate removal, we perform the G2P
-    // Q: what is the context of the phonetization?
-    //      for now, lets say (-2..-1) curr (1..2)
-    let mut to_phonemize = String::new();
-    for index in [-2, -1, 0, 1, 2] {
-        if index == 0 {
-            to_phonemize.push_str(ctx.current().to_string().as_str())
-        }
-        if let Some(char) = ctx.lookahead(index) {
-            to_phonemize.push_str(char.to_string().as_str());
-        }
-    }
-    phonemize(todo!());
-
-    None
 }
 
 /// Consonant-specific context-sensitive rules
@@ -481,7 +431,7 @@ fn sensitive_duplicates(
                 Grapheme::Passthrough(_) | Grapheme::Space | Grapheme::Other
             )
         {
-            if let Some((phonemes, _)) = free_replacement(ctx.graphemes, ctx.index, config) {
+            if let Some((phonemes, _)) = free_replacement(ctx, config) {
                 return Some((Vec::from(vec![phonemes]), 2));
             }
         }

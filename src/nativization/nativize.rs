@@ -1,7 +1,7 @@
 use crate::consts::NativizationConfig;
 use crate::nativization::error::NativizationError;
 use crate::nativization::replacement::{
-    free_replacement, letter_to_phonetic, sensitive_replacement,
+    Context, free_replacement, letter_to_phonetic, sensitive_replacement,
 };
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
@@ -136,42 +136,50 @@ impl Nativizer {
         dataset_name: Option<&str>,
     ) -> Result<Vec<Phoneme>, NativizationError> {
         let mut res: Vec<Phoneme> = Vec::new();
-        let graphemes = tokenize(word);
+        let toks = tokenize(word);
+        let mut ctx = Context::new(&toks, 0);
 
-        let mut i = 0;
-        while i < graphemes.len() {
-            let curr = &graphemes[i];
+        while !ctx.at_end() {
+            let curr = ctx.current();
 
             // Handle abbreviations and single letters (spelled out phonetically)
             if curr.is_uppercase() {
-                if let Some((abbr_phonemes, consumed)) =
-                    detect_and_process_abbreviation(&graphemes, i)
-                {
+                if let Some((abbr_phonemes, consumed)) = detect_and_process_abbreviation(&ctx) {
                     res.extend(abbr_phonemes);
-                    i += consumed;
+                    ctx.index += consumed;
                     continue;
                 }
             }
 
-            // FIXME: issue probably here for fix: parsing, look-ahead/behind, and iterators
-            // Try context-sensitive replacement first
-            if let Some((sens_res, consumed)) = sensitive_replacement(&graphemes, i, &self.config) {
+            if curr.is_vowel() {
+                todo!()
+            }
+
+            // Try context-sensitive replacement
+            if let Some((sens_res, consumed)) = sensitive_replacement(&ctx, &self.config) {
                 res.extend(sens_res);
-                i += consumed;
-            } else {
-                // Fall back to context-free replacement
-                if let Some((free_res, consumed)) = free_replacement(&graphemes, i, &self.config) {
-                    res.push(free_res);
-                    i += consumed;
-                } else {
-                    let error =
-                        NativizationError::new(graphemes.clone(), i, word_number, dataset_name);
-                    error.print_error(self.config.panic_at_error);
-                    if self.config.panic_at_error {
-                        return Err(error);
-                    }
-                    i += 1;
-                }
+                ctx.index += consumed;
+
+                continue;
+            }
+
+            // Fall back to context-free replacement
+            if let Some((free_res, consumed)) = free_replacement(&ctx, &self.config) {
+                res.push(free_res);
+                ctx.index += consumed;
+
+                continue;
+            }
+
+            let error = NativizationError::new(
+                ctx.graphemes.to_vec(),
+                ctx.index,
+                word_number,
+                dataset_name,
+            );
+            error.print_error(self.config.panic_at_error);
+            if self.config.panic_at_error {
+                return Err(error);
             }
         }
 
@@ -187,15 +195,8 @@ impl Default for Nativizer {
 
 /// Detect and process abbreviations
 /// Returns (phonemes, graphemes_consumed) or None if not an abbreviation
-fn detect_and_process_abbreviation(
-    graphemes: &[Grapheme],
-    start_idx: usize,
-) -> Option<(Vec<Phoneme>, usize)> {
-    let prev = if start_idx > 0 {
-        Some(&graphemes[start_idx - 1])
-    } else {
-        None
-    };
+fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+    let prev = ctx.prev();
 
     let after_separator = match prev {
         None => true,
@@ -209,12 +210,12 @@ fn detect_and_process_abbreviation(
     }
 
     // Find the end of the uppercase sequence
-    let mut end = start_idx;
-    while end < graphemes.len() && graphemes[end].is_uppercase() {
+    let mut end = ctx.index;
+    while end < ctx.len() && ctx.graphemes[end].is_uppercase() {
         end += 1;
     }
 
-    let next = graphemes.get(end);
+    let next = ctx.graphemes.get(end);
     let before_separator = match next {
         None => true,
         Some(Grapheme::Space) => true,
@@ -223,10 +224,10 @@ fn detect_and_process_abbreviation(
     };
 
     // Check if this is an abbreviation (2+ letters or single letter before separator)
-    if (end - start_idx >= 2) || before_separator {
-        let abbr_segment = &graphemes[start_idx..end];
+    if (end - ctx.index >= 2) || before_separator {
+        let abbr_segment = ctx.graphemes[(ctx.index)..end].to_vec();
         let phonemes = nativize_abbreviation(abbr_segment);
-        return Some((phonemes, end - start_idx));
+        return Some((phonemes, end - ctx.index));
     }
 
     None
@@ -234,7 +235,7 @@ fn detect_and_process_abbreviation(
 
 /// Convert an abbreviation to Filipino phonetic transcription
 /// E.g., "XR" -> "eks ar", "IV" -> "ay bi"
-fn nativize_abbreviation(abbr: &[Grapheme]) -> Vec<Phoneme> {
+fn nativize_abbreviation(abbr: Vec<Grapheme>) -> Vec<Phoneme> {
     let mut result: Vec<Phoneme> = Vec::new();
     for (i, grapheme) in abbr.iter().enumerate() {
         if let Some(phonemes) = letter_to_phonetic(grapheme.clone()) {
