@@ -248,8 +248,16 @@ fn handle_vowel_e(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
         return Some((vec![], 1));
     }
 
-    // ei -> i (consume both e and i)
+    // TODO: words like seal, deal, and areal all end in "eal". seal and deal should be "sil". areal should be "(something)rial"
+    if let Some(Grapheme::A) = ctx.next() {
+        if let Some(Grapheme::L) = ctx.lookahead(2) {if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((vec![Phoneme::I, Phoneme::A, Phoneme::L], 3));
+            }
+        }
+    }
+
     match ctx.next() {
+        Some(Grapheme::A) => Some((vec![Phoneme::I], 2)),
         Some(Grapheme::I) => Some((vec![Phoneme::I], 2)),
         _ => None,
     }
@@ -295,36 +303,29 @@ fn handle_vowel_i(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_o(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     // Check for "one" pattern (o-n-e at end) → "own"
-    if let Some(Grapheme::N) = ctx.next() {
-        if let Some(Grapheme::E) = ctx.lookahead(2) {
-            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-                return Some((vec![Phoneme::O, Phoneme::W, Phoneme::N], 3));
+
+    if ctx.position() != 0 {
+        if let Some(Grapheme::N) = ctx.next() {
+            if let Some(Grapheme::E) = ctx.lookahead(2) {
+                if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                    return Some((vec![Phoneme::O, Phoneme::W, Phoneme::N], 3));
+                }
             }
+        }
+
+    }
+
+    if ctx.position() == 0 {
+        if let Some(Grapheme::U) = ctx.next() {
+            return Some((vec![Phoneme::A, Phoneme::W], 2));
         }
     }
 
     match ctx.next() {
-        Some(vowel) if vowel.is_vowel() => {
-            // o + vowel -> oy + vowel (unless next is also a vowel)
-            match ctx.lookahead(2) {
-                Some(v) if v.is_vowel() => None,
-                _ => Some((
-                    vec![
-                        Phoneme::O,
-                        Phoneme::Y,
-                        match vowel {
-                            Grapheme::A => Phoneme::A,
-                            Grapheme::E => Phoneme::E,
-                            Grapheme::I => Phoneme::I,
-                            Grapheme::O => Phoneme::O,
-                            Grapheme::U => Phoneme::U,
-                            _ => Phoneme::Other,
-                        },
-                    ],
-                    2,
-                )),
-            }
-        }
+        Some(Grapheme::A) => Some((vec![Phoneme::O, Phoneme::W], 2)),
+        Some(Grapheme::E) if ctx.position() + 2 == ctx.graphemes.len() - 1 => Some((vec![Phoneme::O, Phoneme::W], 2)),
+        Some(Grapheme::I) => Some((vec![Phoneme::O, Phoneme::Y], 2)),
+        Some(Grapheme::U) => Some((vec![Phoneme::U], 2)),
         _ => None,
     }
 }
