@@ -81,7 +81,7 @@ impl NativizationError {
         println!("    |\t{}", self.input);
         println!(
             "    |\t{}^ error at token {}",
-            " ".repeat(self.position.saturating_sub(1)),
+            " ".repeat(self.position),
             self.position
         );
         println!("    |");
