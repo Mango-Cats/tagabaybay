@@ -1,13 +1,11 @@
 use crate::consts::NativizationConfig;
-use crate::g2p::phonemize;
 use crate::nativization::context::Context;
-use crate::nativization::error::{NativizationError, PhonetizationError, TagabaybayErrors};
+use crate::nativization::error::{NativizationError, TagabaybayErrors};
 use crate::nativization::replacement::{
     free_replacement, letter_to_phonetic, sensitive_replacement,
 };
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
-use crate::tokenization::tokenize::tokenize;
 
 /// Builder for nativization with customizable configuration
 ///
@@ -91,8 +89,12 @@ impl Nativizer {
     /// let nativizer = Nativizer::new();
     /// let result = nativizer.nativize("hello").unwrap();
     /// ```
-    pub fn nativize(&self, input: &str) -> Result<Vec<Phoneme>, TagabaybayErrors> {
-        self.nativize_internal(input, None, None)
+    pub fn nativize(
+        &self,
+        input: &str,
+        config: &NativizationConfig,
+    ) -> Result<Vec<Phoneme>, TagabaybayErrors> {
+        self.nativize_internal(input, None, None, config)
     }
 
     /// Nativize a list of words or phrases
@@ -122,11 +124,12 @@ impl Nativizer {
         &self,
         word_list: &[&str],
         dataset_name: &str,
+        config: &NativizationConfig,
     ) -> Vec<Result<Vec<Phoneme>, TagabaybayErrors>> {
         word_list
             .iter()
             .enumerate()
-            .map(|(i, word)| self.nativize_internal(word, Some(i), Some(dataset_name)))
+            .map(|(i, word)| self.nativize_internal(word, Some(i), Some(dataset_name), config))
             .collect()
     }
 

@@ -8,6 +8,7 @@
 use chrono::Local;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
+use tagabaybay::consts::NativizationConfig;
 use tagabaybay::nativization::nativize::Nativizer;
 use tagabaybay::tokenization::phoneme::phonemes_to_string;
 
@@ -40,6 +41,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
     let nativizer = Nativizer::new();
+    let config = NativizationConfig::new();
 
     let mut results: Vec<TestResult> = Vec::new();
 
@@ -57,7 +59,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
         let input = parts[0].trim();
         let expected = parts[1].trim();
         let actual = nativizer
-            .nativize(input)
+            .nativize(input, &config)
             .map(|phonemes| phonemes_to_string(&phonemes))
             .unwrap_or_default();
 

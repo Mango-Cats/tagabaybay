@@ -1,6 +1,6 @@
 use crate::consts::NativizationConfig;
 use crate::g2p::phonemize;
-use crate::nativization::error::{PhonetizationError, TagabaybayErrors};
+use crate::nativization::error::TagabaybayErrors;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::tokenize::tokenize;
 
