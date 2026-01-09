@@ -4,6 +4,7 @@ use super::context::Context;
 use crate::consts::NativizationConfig;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
+use crate::tokenization::tokenize::detokenize;
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 ///
@@ -377,6 +378,21 @@ pub fn handle_vowel(
         Grapheme::U => handle_arpa_u(arpabet, idx),
         _ => None
     }
+
+    // match letter {
+    //     Grapheme::ArpaAA | Grapheme::ArpaAO =>  Some((vec![Phoneme::O], 1)),
+    //     Grapheme::ArpaAE | Grapheme::ArpaAH => Some((vec![Phoneme::A], 1)),
+    //     Grapheme::ArpaAW => Some((vec![Phoneme::A, Phoneme::W], 1)),
+    //     Grapheme::ArpaAY => Some((vec![Phoneme::A, Phoneme::Y], 1)),
+    //     Grapheme::ArpaEH => Some((vec![Phoneme::E], 1)),
+    //     Grapheme::ArpaER => Some((vec![Phoneme::E, Phoneme::R], 1)),
+    //     Grapheme::ArpaEY => Some((vec![Phoneme::E, Phoneme::Y], 1)),
+    //     Grapheme::ArpaIH | Grapheme::ArpaIY => Some((vec![Phoneme::I], 1)),
+    //     Grapheme::ArpaOW => Some((vec![Phoneme::O], 1)),
+    //     Grapheme::ArpaOY => Some((vec![Phoneme::O, Phoneme::Y], 1)),
+    //     Grapheme::ArpaUH | Grapheme::ArpaUW => Some((vec![Phoneme::U], 1)),
+    //     _ => None
+    // }
 }
 
 /// Handle 'A' ARPAbet patterns
