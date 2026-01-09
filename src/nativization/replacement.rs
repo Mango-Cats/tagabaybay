@@ -345,6 +345,168 @@ fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     }
 }
 
+/// Handles G2P vowel replacement
+/// Based on the current index of an english word, get the corresponding
+/// bigram matching the index in the ARPAbet(ipa) string, then add rules to 
+/// nativize
+/// 
+/// Issue: Doesn't properly output vowels, could be with my logic here or
+/// how im accessing it through nativize.rs
+/// 
+/// # Arguments
+/// 
+/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `arpabet` - Contains the grapheme vector for the ARPAbet
+/// 
+/// # Returns
+/// 
+/// Returns `Some((phonemes, consumed))`
+pub fn handle_vowel(
+    ctx: &Context,
+    arpabet: &Vec<Grapheme>,
+) -> Option<(Vec<Phoneme>, usize)> {
+    let curr = ctx.current();
+    let idx = ctx.index;
+    let letter = arpabet.get(idx)?.to_lowercase();
+
+    match letter {
+        Grapheme::A => handle_arpa_a(arpabet, idx),
+        Grapheme::E => handle_arpa_e(arpabet, idx),
+        Grapheme::I => handle_arpa_i(arpabet, idx),
+        Grapheme::O => handle_arpa_o(arpabet, idx),
+        Grapheme::U => handle_arpa_u(arpabet, idx),
+        _ => None
+    }
+}
+
+/// Handle 'A' ARPAbet patterns
+/// (AA, AE, AH, AO, AW, AY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_a(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::E | Grapheme::H) = next {
+        return Some((vec![Phoneme::A], 1))
+    }
+
+    if let Some(Grapheme::O | Grapheme::A) = next {
+        return Some((vec![Phoneme::O], 1))
+    }
+
+    if let Some(Grapheme::W) = next {
+        return Some((vec![Phoneme::A, Phoneme::W], 1))
+    }
+
+    if let Some(Grapheme::Y) = next {
+        return Some((vec![Phoneme::A, Phoneme::Y], 1))
+    }
+
+    None
+}
+
+/// Handle 'E' ARPAbet patterns
+/// (EH, ER, EY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_e(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::H) = next {
+        return Some((vec![Phoneme::E], 1))
+    }
+
+    if let Some(Grapheme::R) = next {
+        return Some((vec![Phoneme::E, Phoneme::R], 1))
+    }
+
+    if let Some(Grapheme::Y) = next {
+        return Some((vec![Phoneme::E, Phoneme::Y], 1))
+    }
+
+    None
+}
+
+/// Handle 'I' ARPAbet patterns
+/// (IH, IY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_i(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::H | Grapheme::Y) = next {
+        return Some((vec![Phoneme::I], 1))
+    }
+
+    None
+}
+
+/// Handle 'O' ARPAbet patterns
+/// (OW, OY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_o(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::W) = next {
+        return Some((vec![Phoneme::O], 1))
+    }
+
+    if let Some(Grapheme::Y) = next {
+        return Some((vec![Phoneme::O, Phoneme::Y], 1))
+    }
+
+    None
+}
+
+/// Handle 'U' ARPAbet patterns
+/// (UH, UW)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_u(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::H | Grapheme::W) = next {
+        return Some((vec![Phoneme::U], 1))
+    }
+
+    // if let Some(Grapheme::W) = next {
+    //     return Some((vec![Phoneme::Y, Phoneme::U], 1))
+    // }
+
+    None
+}
+
 /// Handle duplicate graphemes
 ///
 /// Collapses repeated letters into single phonemes.
