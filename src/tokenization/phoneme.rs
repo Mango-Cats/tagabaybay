@@ -10,7 +10,7 @@
 ///
 /// Each variant can be converted to Filipino orthography using `as_str()`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Phoneme {
+pub enum FilipinoGrapheme {
     // Affricates
     TS, // /ts/  - e.g., (CH/TS)ocolate
     DY, // /dʒ/  - e.g., (J/DY)eep
@@ -64,61 +64,61 @@ pub enum Phoneme {
     Other,
 }
 
-impl Phoneme {
+impl FilipinoGrapheme {
     /// Convert the phoneme to its Filipino orthographic representation
     pub fn as_str(&self) -> String {
         match self {
             // Affricates
-            Phoneme::TS => "ts",
-            Phoneme::DY => "dy",
+            FilipinoGrapheme::TS => "ts",
+            FilipinoGrapheme::DY => "dy",
 
             // Fricatives
-            Phoneme::SH => "sh",
+            FilipinoGrapheme::SH => "sh",
 
             // Vowel Sounds
-            Phoneme::A => "a",
-            Phoneme::E => "e",
-            Phoneme::I => "i",
-            Phoneme::O => "o",
-            Phoneme::U => "u",
+            FilipinoGrapheme::A => "a",
+            FilipinoGrapheme::E => "e",
+            FilipinoGrapheme::I => "i",
+            FilipinoGrapheme::O => "o",
+            FilipinoGrapheme::U => "u",
 
             // Native consonants sounds
             // Stops
-            Phoneme::P => "p",
-            Phoneme::B => "b",
-            Phoneme::T => "t",
-            Phoneme::D => "d",
-            Phoneme::K => "k",
-            Phoneme::G => "g",
+            FilipinoGrapheme::P => "p",
+            FilipinoGrapheme::B => "b",
+            FilipinoGrapheme::T => "t",
+            FilipinoGrapheme::D => "d",
+            FilipinoGrapheme::K => "k",
+            FilipinoGrapheme::G => "g",
 
             // Nasals
-            Phoneme::M => "m",
-            Phoneme::N => "n",
-            Phoneme::Ng => "ng",
-            Phoneme::Ny => "ny",
+            FilipinoGrapheme::M => "m",
+            FilipinoGrapheme::N => "n",
+            FilipinoGrapheme::Ng => "ng",
+            FilipinoGrapheme::Ny => "ny",
 
             // Frivatives
-            Phoneme::H => "h",
-            Phoneme::S => "s",
+            FilipinoGrapheme::H => "h",
+            FilipinoGrapheme::S => "s",
 
             // Approximants
-            Phoneme::L => "l",
-            Phoneme::R => "r",
-            Phoneme::W => "w",
-            Phoneme::Y => "y",
+            FilipinoGrapheme::L => "l",
+            FilipinoGrapheme::R => "r",
+            FilipinoGrapheme::W => "w",
+            FilipinoGrapheme::Y => "y",
 
             // Modern consonant sounds
-            Phoneme::F => "f",
-            Phoneme::Z => "z",
+            FilipinoGrapheme::F => "f",
+            FilipinoGrapheme::Z => "z",
 
             // Whitespace
-            Phoneme::Space => " ",
+            FilipinoGrapheme::Space => " ",
 
             // ASCII passthrough
-            Phoneme::Passthrough(c) => c,
+            FilipinoGrapheme::Passthrough(c) => c,
 
             // Other
-            Phoneme::Other => "#",
+            FilipinoGrapheme::Other => "#",
         }
         .to_string()
     }
@@ -127,7 +127,11 @@ impl Phoneme {
     pub fn is_vowel(&self) -> bool {
         matches!(
             self,
-            Phoneme::A | Phoneme::E | Phoneme::I | Phoneme::O | Phoneme::U
+            FilipinoGrapheme::A
+                | FilipinoGrapheme::E
+                | FilipinoGrapheme::I
+                | FilipinoGrapheme::O
+                | FilipinoGrapheme::U
         )
     }
 
@@ -136,12 +140,14 @@ impl Phoneme {
         !self.is_vowel()
             && !matches!(
                 self,
-                Phoneme::Other | Phoneme::Space | Phoneme::Passthrough(_)
+                FilipinoGrapheme::Other
+                    | FilipinoGrapheme::Space
+                    | FilipinoGrapheme::Passthrough(_)
             )
     }
 }
 
-/// Convert a `Vec<Phoneme>` to a String
+/// Convert a `Vec<FilipinoGrapheme>` to a String
 ///
 /// Converts a sequence of phonemes into their Filipino orthographic representation.
 ///
@@ -152,11 +158,11 @@ impl Phoneme {
 /// # Returns
 ///
 /// Returns the string representation in Filipino orthography.
-pub fn phonemes_to_string(phonemes: &[Phoneme]) -> String {
+pub fn phonemes_to_string(phonemes: &[FilipinoGrapheme]) -> String {
     phonemes.iter().map(|p| p.to_string()).collect()
 }
 
-impl std::fmt::Display for Phoneme {
+impl std::fmt::Display for FilipinoGrapheme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }

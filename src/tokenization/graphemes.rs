@@ -9,7 +9,7 @@
 ///
 /// Each variant can be converted back to its string form using `as_str()`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Grapheme {
+pub enum EnglishGrapheme {
     // Bigraphs (English spelling patterns)
     PH,
     PS,
@@ -107,105 +107,105 @@ pub enum Grapheme {
     Other,
 }
 
-impl Grapheme {
+impl EnglishGrapheme {
     /// Convert the grapheme back to its original string representation
     pub fn as_str(&self) -> String {
         match self {
             // Bigraphs
-            Grapheme::PH => "ph".to_string(),
-            Grapheme::PS => "ps".to_string(),
-            Grapheme::CH => "ch".to_string(),
-            Grapheme::TH => "th".to_string(),
-            Grapheme::SH => "sh".to_string(),
-            Grapheme::EE => "ee".to_string(),
-            Grapheme::OO => "oo".to_string(),
+            EnglishGrapheme::PH => "ph".to_string(),
+            EnglishGrapheme::PS => "ps".to_string(),
+            EnglishGrapheme::CH => "ch".to_string(),
+            EnglishGrapheme::TH => "th".to_string(),
+            EnglishGrapheme::SH => "sh".to_string(),
+            EnglishGrapheme::EE => "ee".to_string(),
+            EnglishGrapheme::OO => "oo".to_string(),
 
             //ArpaBet
-            Grapheme::ArpaAA => "aa".to_string(),
-            Grapheme::ArpaAE => "ae".to_string(),
-            Grapheme::ArpaAH => "ah".to_string(),
-            Grapheme::ArpaAO => "ao".to_string(),
-            Grapheme::ArpaAW => "aw".to_string(),
-            Grapheme::ArpaAY => "ay".to_string(),
-            Grapheme::ArpaEH => "eh".to_string(),
-            Grapheme::ArpaER => "er".to_string(),
-            Grapheme::ArpaEY => "ey".to_string(),
-            Grapheme::ArpaIH => "ih".to_string(),
-            Grapheme::ArpaIY => "iy".to_string(),
-            Grapheme::ArpaOW => "ow".to_string(),
-            Grapheme::ArpaOY => "oy".to_string(),
-            Grapheme::ArpaUH => "uh".to_string(),
-            Grapheme::ArpaUW => "uw".to_string(),
+            EnglishGrapheme::ArpaAA => "aa".to_string(),
+            EnglishGrapheme::ArpaAE => "ae".to_string(),
+            EnglishGrapheme::ArpaAH => "ah".to_string(),
+            EnglishGrapheme::ArpaAO => "ao".to_string(),
+            EnglishGrapheme::ArpaAW => "aw".to_string(),
+            EnglishGrapheme::ArpaAY => "ay".to_string(),
+            EnglishGrapheme::ArpaEH => "eh".to_string(),
+            EnglishGrapheme::ArpaER => "er".to_string(),
+            EnglishGrapheme::ArpaEY => "ey".to_string(),
+            EnglishGrapheme::ArpaIH => "ih".to_string(),
+            EnglishGrapheme::ArpaIY => "iy".to_string(),
+            EnglishGrapheme::ArpaOW => "ow".to_string(),
+            EnglishGrapheme::ArpaOY => "oy".to_string(),
+            EnglishGrapheme::ArpaUH => "uh".to_string(),
+            EnglishGrapheme::ArpaUW => "uw".to_string(),
 
             // Vowels
-            Grapheme::A => "a".to_string(),
-            Grapheme::E => "e".to_string(),
-            Grapheme::I => "i".to_string(),
-            Grapheme::O => "o".to_string(),
-            Grapheme::U => "u".to_string(),
+            EnglishGrapheme::A => "a".to_string(),
+            EnglishGrapheme::E => "e".to_string(),
+            EnglishGrapheme::I => "i".to_string(),
+            EnglishGrapheme::O => "o".to_string(),
+            EnglishGrapheme::U => "u".to_string(),
 
             // Consonants
-            Grapheme::B => "b".to_string(),
-            Grapheme::C => "c".to_string(),
-            Grapheme::D => "d".to_string(),
-            Grapheme::F => "f".to_string(),
-            Grapheme::G => "g".to_string(),
-            Grapheme::H => "h".to_string(),
-            Grapheme::J => "j".to_string(),
-            Grapheme::K => "k".to_string(),
-            Grapheme::L => "l".to_string(),
-            Grapheme::M => "m".to_string(),
-            Grapheme::N => "n".to_string(),
-            Grapheme::P => "p".to_string(),
-            Grapheme::Q => "q".to_string(),
-            Grapheme::R => "r".to_string(),
-            Grapheme::S => "s".to_string(),
-            Grapheme::T => "t".to_string(),
-            Grapheme::V => "v".to_string(),
-            Grapheme::W => "w".to_string(),
-            Grapheme::X => "x".to_string(),
-            Grapheme::Y => "y".to_string(),
-            Grapheme::Z => "z".to_string(),
+            EnglishGrapheme::B => "b".to_string(),
+            EnglishGrapheme::C => "c".to_string(),
+            EnglishGrapheme::D => "d".to_string(),
+            EnglishGrapheme::F => "f".to_string(),
+            EnglishGrapheme::G => "g".to_string(),
+            EnglishGrapheme::H => "h".to_string(),
+            EnglishGrapheme::J => "j".to_string(),
+            EnglishGrapheme::K => "k".to_string(),
+            EnglishGrapheme::L => "l".to_string(),
+            EnglishGrapheme::M => "m".to_string(),
+            EnglishGrapheme::N => "n".to_string(),
+            EnglishGrapheme::P => "p".to_string(),
+            EnglishGrapheme::Q => "q".to_string(),
+            EnglishGrapheme::R => "r".to_string(),
+            EnglishGrapheme::S => "s".to_string(),
+            EnglishGrapheme::T => "t".to_string(),
+            EnglishGrapheme::V => "v".to_string(),
+            EnglishGrapheme::W => "w".to_string(),
+            EnglishGrapheme::X => "x".to_string(),
+            EnglishGrapheme::Y => "y".to_string(),
+            EnglishGrapheme::Z => "z".to_string(),
 
             // Uppercase
-            Grapheme::UpperA => "A".to_string(),
-            Grapheme::UpperB => "B".to_string(),
-            Grapheme::UpperC => "C".to_string(),
-            Grapheme::UpperD => "D".to_string(),
-            Grapheme::UpperE => "E".to_string(),
-            Grapheme::UpperF => "F".to_string(),
-            Grapheme::UpperG => "G".to_string(),
-            Grapheme::UpperH => "H".to_string(),
-            Grapheme::UpperI => "I".to_string(),
-            Grapheme::UpperJ => "J".to_string(),
-            Grapheme::UpperK => "K".to_string(),
-            Grapheme::UpperL => "L".to_string(),
-            Grapheme::UpperM => "M".to_string(),
-            Grapheme::UpperN => "N".to_string(),
-            Grapheme::UpperO => "O".to_string(),
-            Grapheme::UpperP => "P".to_string(),
-            Grapheme::UpperQ => "Q".to_string(),
-            Grapheme::UpperR => "R".to_string(),
-            Grapheme::UpperS => "S".to_string(),
-            Grapheme::UpperT => "T".to_string(),
-            Grapheme::UpperU => "U".to_string(),
-            Grapheme::UpperV => "V".to_string(),
-            Grapheme::UpperW => "W".to_string(),
-            Grapheme::UpperX => "X".to_string(),
-            Grapheme::UpperY => "Y".to_string(),
-            Grapheme::UpperZ => "Z".to_string(),
+            EnglishGrapheme::UpperA => "A".to_string(),
+            EnglishGrapheme::UpperB => "B".to_string(),
+            EnglishGrapheme::UpperC => "C".to_string(),
+            EnglishGrapheme::UpperD => "D".to_string(),
+            EnglishGrapheme::UpperE => "E".to_string(),
+            EnglishGrapheme::UpperF => "F".to_string(),
+            EnglishGrapheme::UpperG => "G".to_string(),
+            EnglishGrapheme::UpperH => "H".to_string(),
+            EnglishGrapheme::UpperI => "I".to_string(),
+            EnglishGrapheme::UpperJ => "J".to_string(),
+            EnglishGrapheme::UpperK => "K".to_string(),
+            EnglishGrapheme::UpperL => "L".to_string(),
+            EnglishGrapheme::UpperM => "M".to_string(),
+            EnglishGrapheme::UpperN => "N".to_string(),
+            EnglishGrapheme::UpperO => "O".to_string(),
+            EnglishGrapheme::UpperP => "P".to_string(),
+            EnglishGrapheme::UpperQ => "Q".to_string(),
+            EnglishGrapheme::UpperR => "R".to_string(),
+            EnglishGrapheme::UpperS => "S".to_string(),
+            EnglishGrapheme::UpperT => "T".to_string(),
+            EnglishGrapheme::UpperU => "U".to_string(),
+            EnglishGrapheme::UpperV => "V".to_string(),
+            EnglishGrapheme::UpperW => "W".to_string(),
+            EnglishGrapheme::UpperX => "X".to_string(),
+            EnglishGrapheme::UpperY => "Y".to_string(),
+            EnglishGrapheme::UpperZ => "Z".to_string(),
 
             // Spanish
-            Grapheme::Enye => "ñ".to_string(),
+            EnglishGrapheme::Enye => "ñ".to_string(),
 
             // Whitespace
-            Grapheme::Space => " ".to_string(),
+            EnglishGrapheme::Space => " ".to_string(),
 
             // ASCII passthrough
-            Grapheme::Passthrough(c) => c.to_string(),
+            EnglishGrapheme::Passthrough(c) => c.to_string(),
 
             // Other
-            Grapheme::Other => "#".to_string(),
+            EnglishGrapheme::Other => "#".to_string(),
         }
     }
 
@@ -213,64 +213,64 @@ impl Grapheme {
     pub fn is_uppercase(&self) -> bool {
         matches!(
             self,
-            Grapheme::UpperA
-                | Grapheme::UpperB
-                | Grapheme::UpperC
-                | Grapheme::UpperD
-                | Grapheme::UpperE
-                | Grapheme::UpperF
-                | Grapheme::UpperG
-                | Grapheme::UpperH
-                | Grapheme::UpperI
-                | Grapheme::UpperJ
-                | Grapheme::UpperK
-                | Grapheme::UpperL
-                | Grapheme::UpperM
-                | Grapheme::UpperN
-                | Grapheme::UpperO
-                | Grapheme::UpperP
-                | Grapheme::UpperQ
-                | Grapheme::UpperR
-                | Grapheme::UpperS
-                | Grapheme::UpperT
-                | Grapheme::UpperU
-                | Grapheme::UpperV
-                | Grapheme::UpperW
-                | Grapheme::UpperX
-                | Grapheme::UpperY
-                | Grapheme::UpperZ
+            EnglishGrapheme::UpperA
+                | EnglishGrapheme::UpperB
+                | EnglishGrapheme::UpperC
+                | EnglishGrapheme::UpperD
+                | EnglishGrapheme::UpperE
+                | EnglishGrapheme::UpperF
+                | EnglishGrapheme::UpperG
+                | EnglishGrapheme::UpperH
+                | EnglishGrapheme::UpperI
+                | EnglishGrapheme::UpperJ
+                | EnglishGrapheme::UpperK
+                | EnglishGrapheme::UpperL
+                | EnglishGrapheme::UpperM
+                | EnglishGrapheme::UpperN
+                | EnglishGrapheme::UpperO
+                | EnglishGrapheme::UpperP
+                | EnglishGrapheme::UpperQ
+                | EnglishGrapheme::UpperR
+                | EnglishGrapheme::UpperS
+                | EnglishGrapheme::UpperT
+                | EnglishGrapheme::UpperU
+                | EnglishGrapheme::UpperV
+                | EnglishGrapheme::UpperW
+                | EnglishGrapheme::UpperX
+                | EnglishGrapheme::UpperY
+                | EnglishGrapheme::UpperZ
         )
     }
 
     /// Convert uppercase grapheme to lowercase, returns self if already lowercase or not a letter
-    pub fn to_lowercase(&self) -> Grapheme {
+    pub fn to_lowercase(&self) -> EnglishGrapheme {
         match self {
-            Grapheme::UpperA => Grapheme::A,
-            Grapheme::UpperB => Grapheme::B,
-            Grapheme::UpperC => Grapheme::C,
-            Grapheme::UpperD => Grapheme::D,
-            Grapheme::UpperE => Grapheme::E,
-            Grapheme::UpperF => Grapheme::F,
-            Grapheme::UpperG => Grapheme::G,
-            Grapheme::UpperH => Grapheme::H,
-            Grapheme::UpperI => Grapheme::I,
-            Grapheme::UpperJ => Grapheme::J,
-            Grapheme::UpperK => Grapheme::K,
-            Grapheme::UpperL => Grapheme::L,
-            Grapheme::UpperM => Grapheme::M,
-            Grapheme::UpperN => Grapheme::N,
-            Grapheme::UpperO => Grapheme::O,
-            Grapheme::UpperP => Grapheme::P,
-            Grapheme::UpperQ => Grapheme::Q,
-            Grapheme::UpperR => Grapheme::R,
-            Grapheme::UpperS => Grapheme::S,
-            Grapheme::UpperT => Grapheme::T,
-            Grapheme::UpperU => Grapheme::U,
-            Grapheme::UpperV => Grapheme::V,
-            Grapheme::UpperW => Grapheme::W,
-            Grapheme::UpperX => Grapheme::X,
-            Grapheme::UpperY => Grapheme::Y,
-            Grapheme::UpperZ => Grapheme::Z,
+            EnglishGrapheme::UpperA => EnglishGrapheme::A,
+            EnglishGrapheme::UpperB => EnglishGrapheme::B,
+            EnglishGrapheme::UpperC => EnglishGrapheme::C,
+            EnglishGrapheme::UpperD => EnglishGrapheme::D,
+            EnglishGrapheme::UpperE => EnglishGrapheme::E,
+            EnglishGrapheme::UpperF => EnglishGrapheme::F,
+            EnglishGrapheme::UpperG => EnglishGrapheme::G,
+            EnglishGrapheme::UpperH => EnglishGrapheme::H,
+            EnglishGrapheme::UpperI => EnglishGrapheme::I,
+            EnglishGrapheme::UpperJ => EnglishGrapheme::J,
+            EnglishGrapheme::UpperK => EnglishGrapheme::K,
+            EnglishGrapheme::UpperL => EnglishGrapheme::L,
+            EnglishGrapheme::UpperM => EnglishGrapheme::M,
+            EnglishGrapheme::UpperN => EnglishGrapheme::N,
+            EnglishGrapheme::UpperO => EnglishGrapheme::O,
+            EnglishGrapheme::UpperP => EnglishGrapheme::P,
+            EnglishGrapheme::UpperQ => EnglishGrapheme::Q,
+            EnglishGrapheme::UpperR => EnglishGrapheme::R,
+            EnglishGrapheme::UpperS => EnglishGrapheme::S,
+            EnglishGrapheme::UpperT => EnglishGrapheme::T,
+            EnglishGrapheme::UpperU => EnglishGrapheme::U,
+            EnglishGrapheme::UpperV => EnglishGrapheme::V,
+            EnglishGrapheme::UpperW => EnglishGrapheme::W,
+            EnglishGrapheme::UpperX => EnglishGrapheme::X,
+            EnglishGrapheme::UpperY => EnglishGrapheme::Y,
+            EnglishGrapheme::UpperZ => EnglishGrapheme::Z,
             _ => self.clone(),
         }
     }
@@ -279,13 +279,13 @@ impl Grapheme {
     pub fn is_vowel(&self) -> bool {
         matches!(
             self.to_lowercase(),
-            Grapheme::A
-                | Grapheme::E
-                | Grapheme::I
-                | Grapheme::O
-                | Grapheme::U
-                | Grapheme::EE
-                | Grapheme::OO
+            EnglishGrapheme::A
+                | EnglishGrapheme::E
+                | EnglishGrapheme::I
+                | EnglishGrapheme::O
+                | EnglishGrapheme::U
+                | EnglishGrapheme::EE
+                | EnglishGrapheme::OO
         )
     }
 
@@ -293,13 +293,13 @@ impl Grapheme {
     pub fn is_bigraph(&self) -> bool {
         matches!(
             self,
-            Grapheme::PH
-                | Grapheme::PS
-                | Grapheme::CH
-                | Grapheme::TH
-                | Grapheme::SH
-                | Grapheme::EE
-                | Grapheme::OO
+            EnglishGrapheme::PH
+                | EnglishGrapheme::PS
+                | EnglishGrapheme::CH
+                | EnglishGrapheme::TH
+                | EnglishGrapheme::SH
+                | EnglishGrapheme::EE
+                | EnglishGrapheme::OO
         )
     }
 
@@ -307,116 +307,118 @@ impl Grapheme {
     pub fn is_consonant(&self) -> bool {
         matches!(
             self.to_lowercase(),
-            Grapheme::B
-                | Grapheme::C
-                | Grapheme::D
-                | Grapheme::F
-                | Grapheme::G
-                | Grapheme::H
-                | Grapheme::J
-                | Grapheme::K
-                | Grapheme::L
-                | Grapheme::M
-                | Grapheme::N
-                | Grapheme::P
-                | Grapheme::Q
-                | Grapheme::R
-                | Grapheme::S
-                | Grapheme::T
-                | Grapheme::V
-                | Grapheme::W
-                | Grapheme::X
-                | Grapheme::Y
-                | Grapheme::Z
-                | Grapheme::Enye
-                | Grapheme::PH
-                | Grapheme::PS
-                | Grapheme::CH
-                | Grapheme::TH
-                | Grapheme::SH
+            EnglishGrapheme::B
+                | EnglishGrapheme::C
+                | EnglishGrapheme::D
+                | EnglishGrapheme::F
+                | EnglishGrapheme::G
+                | EnglishGrapheme::H
+                | EnglishGrapheme::J
+                | EnglishGrapheme::K
+                | EnglishGrapheme::L
+                | EnglishGrapheme::M
+                | EnglishGrapheme::N
+                | EnglishGrapheme::P
+                | EnglishGrapheme::Q
+                | EnglishGrapheme::R
+                | EnglishGrapheme::S
+                | EnglishGrapheme::T
+                | EnglishGrapheme::V
+                | EnglishGrapheme::W
+                | EnglishGrapheme::X
+                | EnglishGrapheme::Y
+                | EnglishGrapheme::Z
+                | EnglishGrapheme::Enye
+                | EnglishGrapheme::PH
+                | EnglishGrapheme::PS
+                | EnglishGrapheme::CH
+                | EnglishGrapheme::TH
+                | EnglishGrapheme::SH
         )
     }
 
-    /// Create a Grapheme from a single character
-    pub fn from_char(c: char) -> Grapheme {
+    /// Create a EnglishGrapheme from a single character
+    pub fn from_char(c: char) -> EnglishGrapheme {
         match c {
             // Uppercase vowels
-            'A' => Grapheme::UpperA,
-            'E' => Grapheme::UpperE,
-            'I' => Grapheme::UpperI,
-            'O' => Grapheme::UpperO,
-            'U' => Grapheme::UpperU,
+            'A' => EnglishGrapheme::UpperA,
+            'E' => EnglishGrapheme::UpperE,
+            'I' => EnglishGrapheme::UpperI,
+            'O' => EnglishGrapheme::UpperO,
+            'U' => EnglishGrapheme::UpperU,
 
             // Uppercase consonants
-            'B' => Grapheme::UpperB,
-            'C' => Grapheme::UpperC,
-            'D' => Grapheme::UpperD,
-            'F' => Grapheme::UpperF,
-            'G' => Grapheme::UpperG,
-            'H' => Grapheme::UpperH,
-            'J' => Grapheme::UpperJ,
-            'K' => Grapheme::UpperK,
-            'L' => Grapheme::UpperL,
-            'M' => Grapheme::UpperM,
-            'N' => Grapheme::UpperN,
-            'P' => Grapheme::UpperP,
-            'Q' => Grapheme::UpperQ,
-            'R' => Grapheme::UpperR,
-            'S' => Grapheme::UpperS,
-            'T' => Grapheme::UpperT,
-            'V' => Grapheme::UpperV,
-            'W' => Grapheme::UpperW,
-            'X' => Grapheme::UpperX,
-            'Y' => Grapheme::UpperY,
-            'Z' => Grapheme::UpperZ,
+            'B' => EnglishGrapheme::UpperB,
+            'C' => EnglishGrapheme::UpperC,
+            'D' => EnglishGrapheme::UpperD,
+            'F' => EnglishGrapheme::UpperF,
+            'G' => EnglishGrapheme::UpperG,
+            'H' => EnglishGrapheme::UpperH,
+            'J' => EnglishGrapheme::UpperJ,
+            'K' => EnglishGrapheme::UpperK,
+            'L' => EnglishGrapheme::UpperL,
+            'M' => EnglishGrapheme::UpperM,
+            'N' => EnglishGrapheme::UpperN,
+            'P' => EnglishGrapheme::UpperP,
+            'Q' => EnglishGrapheme::UpperQ,
+            'R' => EnglishGrapheme::UpperR,
+            'S' => EnglishGrapheme::UpperS,
+            'T' => EnglishGrapheme::UpperT,
+            'V' => EnglishGrapheme::UpperV,
+            'W' => EnglishGrapheme::UpperW,
+            'X' => EnglishGrapheme::UpperX,
+            'Y' => EnglishGrapheme::UpperY,
+            'Z' => EnglishGrapheme::UpperZ,
 
             // Lowercase vowels
-            'a' => Grapheme::A,
-            'e' => Grapheme::E,
-            'i' => Grapheme::I,
-            'o' => Grapheme::O,
-            'u' => Grapheme::U,
+            'a' => EnglishGrapheme::A,
+            'e' => EnglishGrapheme::E,
+            'i' => EnglishGrapheme::I,
+            'o' => EnglishGrapheme::O,
+            'u' => EnglishGrapheme::U,
 
             // Lowercase consonants
-            'b' => Grapheme::B,
-            'c' => Grapheme::C,
-            'd' => Grapheme::D,
-            'f' => Grapheme::F,
-            'g' => Grapheme::G,
-            'h' => Grapheme::H,
-            'j' => Grapheme::J,
-            'k' => Grapheme::K,
-            'l' => Grapheme::L,
-            'm' => Grapheme::M,
-            'n' => Grapheme::N,
-            'p' => Grapheme::P,
-            'q' => Grapheme::Q,
-            'r' => Grapheme::R,
-            's' => Grapheme::S,
-            't' => Grapheme::T,
-            'v' => Grapheme::V,
-            'w' => Grapheme::W,
-            'x' => Grapheme::X,
-            'y' => Grapheme::Y,
-            'z' => Grapheme::Z,
+            'b' => EnglishGrapheme::B,
+            'c' => EnglishGrapheme::C,
+            'd' => EnglishGrapheme::D,
+            'f' => EnglishGrapheme::F,
+            'g' => EnglishGrapheme::G,
+            'h' => EnglishGrapheme::H,
+            'j' => EnglishGrapheme::J,
+            'k' => EnglishGrapheme::K,
+            'l' => EnglishGrapheme::L,
+            'm' => EnglishGrapheme::M,
+            'n' => EnglishGrapheme::N,
+            'p' => EnglishGrapheme::P,
+            'q' => EnglishGrapheme::Q,
+            'r' => EnglishGrapheme::R,
+            's' => EnglishGrapheme::S,
+            't' => EnglishGrapheme::T,
+            'v' => EnglishGrapheme::V,
+            'w' => EnglishGrapheme::W,
+            'x' => EnglishGrapheme::X,
+            'y' => EnglishGrapheme::Y,
+            'z' => EnglishGrapheme::Z,
 
             // Spanish
-            'ñ' | 'Ñ' => Grapheme::Enye,
+            'ñ' | 'Ñ' => EnglishGrapheme::Enye,
 
             // Whitespace
-            ' ' => Grapheme::Space,
+            ' ' => EnglishGrapheme::Space,
 
             // ASCII non-alphanumeric passthrough
-            c if c.is_ascii() && !c.is_ascii_alphabetic() => Grapheme::Passthrough(c.to_string()),
+            c if c.is_ascii() && !c.is_ascii_alphabetic() => {
+                EnglishGrapheme::Passthrough(c.to_string())
+            }
 
             // Non-ASCII or unknown
-            _ => Grapheme::Other,
+            _ => EnglishGrapheme::Other,
         }
     }
 }
 
 /// Match a 3-character string to a trigraph
-// pub fn match_trigraph(s: &str) -> Option<Grapheme> {
+// pub fn match_trigraph(s: &str) -> Option<EnglishGrapheme> {
 //     match s.to_lowercase().as_str() {
 //         _ => None,
 //     }
@@ -433,39 +435,39 @@ impl Grapheme {
 ///
 /// # Returns
 ///
-/// Returns `Some(Grapheme)` if the string matches a known bigraph.
+/// Returns `Some(EnglishGrapheme)` if the string matches a known bigraph.
 /// Returns `None` if no match is found.
-pub fn match_bigraph(s: &str) -> Option<Grapheme> {
+pub fn match_bigraph(s: &str) -> Option<EnglishGrapheme> {
     match s.to_lowercase().as_str() {
-        "ph" => Some(Grapheme::PH),
-        "ch" => Some(Grapheme::CH),
-        "th" => Some(Grapheme::TH),
-        "sh" => Some(Grapheme::SH),
-        "ee" => Some(Grapheme::EE),
-        "oo" => Some(Grapheme::OO),
+        "ph" => Some(EnglishGrapheme::PH),
+        "ch" => Some(EnglishGrapheme::CH),
+        "th" => Some(EnglishGrapheme::TH),
+        "sh" => Some(EnglishGrapheme::SH),
+        "ee" => Some(EnglishGrapheme::EE),
+        "oo" => Some(EnglishGrapheme::OO),
 
         //ARPAbet
-        "aa" => Some(Grapheme::ArpaAA),
-        "ae" => Some(Grapheme::ArpaAE),
-        "ah" => Some(Grapheme::ArpaAH),
-        "ao" => Some(Grapheme::ArpaAO),
-        "aw" => Some(Grapheme::ArpaAW),
-        "ay" => Some(Grapheme::ArpaAY),
-        "eh" => Some(Grapheme::ArpaEH),
-        "er" => Some(Grapheme::ArpaER),
-        "ey" => Some(Grapheme::ArpaEY),
-        "ih" => Some(Grapheme::ArpaIH),
-        "iy" => Some(Grapheme::ArpaIY),
-        "ow" => Some(Grapheme::ArpaOW),
-        "oy" => Some(Grapheme::ArpaOY),
-        "uh" => Some(Grapheme::ArpaUH),
-        "uw" => Some(Grapheme::ArpaUW),
+        "aa" => Some(EnglishGrapheme::ArpaAA),
+        "ae" => Some(EnglishGrapheme::ArpaAE),
+        "ah" => Some(EnglishGrapheme::ArpaAH),
+        "ao" => Some(EnglishGrapheme::ArpaAO),
+        "aw" => Some(EnglishGrapheme::ArpaAW),
+        "ay" => Some(EnglishGrapheme::ArpaAY),
+        "eh" => Some(EnglishGrapheme::ArpaEH),
+        "er" => Some(EnglishGrapheme::ArpaER),
+        "ey" => Some(EnglishGrapheme::ArpaEY),
+        "ih" => Some(EnglishGrapheme::ArpaIH),
+        "iy" => Some(EnglishGrapheme::ArpaIY),
+        "ow" => Some(EnglishGrapheme::ArpaOW),
+        "oy" => Some(EnglishGrapheme::ArpaOY),
+        "uh" => Some(EnglishGrapheme::ArpaUH),
+        "uw" => Some(EnglishGrapheme::ArpaUW),
 
         _ => None,
     }
 }
 
-impl std::fmt::Display for Grapheme {
+impl std::fmt::Display for EnglishGrapheme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }

@@ -4,7 +4,7 @@
 //! This checks whether the phonetic nativization follows the
 //! syllabification rules of Filipino.
 
-use crate::tokenization::phoneme::Phoneme;
+use crate::tokenization::phoneme::FilipinoGrapheme;
 
 /// Check if a 6-phoneme sequence matches a `kkpkkk` pattern.
 ///
@@ -25,7 +25,7 @@ use crate::tokenization::phoneme::Phoneme;
 ///
 /// Returns `true` if all positions match the expected consonant/vowel
 /// types; otherwise returns `false`.
-pub fn match_6_syllable(string: Vec<Phoneme>) -> bool {
+pub fn match_6_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     if string.len() != 6 {
         return false;
     }
@@ -63,7 +63,7 @@ pub fn match_6_syllable(string: Vec<Phoneme>) -> bool {
 /// # Returns
 ///
 /// Returns `true` if the sequence matches the `kkpkk` pattern, `false` otherwise.
-pub fn match_5_syllable(string: Vec<Phoneme>) -> bool {
+pub fn match_5_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     if string.len() != 5 {
         return false;
     }
@@ -101,7 +101,7 @@ pub fn match_5_syllable(string: Vec<Phoneme>) -> bool {
 ///
 /// Returns `true` if the sequence matches either `kkpk` or `kpkk` pattern,
 /// `false` otherwise.
-pub fn match_4_syllable(string: Vec<Phoneme>) -> bool {
+pub fn match_4_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     if string.len() != 4 {
         return false;
     }
@@ -137,7 +137,7 @@ pub fn match_4_syllable(string: Vec<Phoneme>) -> bool {
 ///
 /// Returns `true` if the sequence matches `kkp`, `kpk`, or `pkk` pattern,
 /// `false` otherwise.
-pub fn match_3_syllable(string: Vec<Phoneme>) -> bool {
+pub fn match_3_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     if string.len() != 3 {
         return false;
     }
@@ -181,7 +181,7 @@ pub fn match_3_syllable(string: Vec<Phoneme>) -> bool {
 /// # Returns
 ///
 /// Returns `true` if the sequence matches `kp` or `pk` pattern, `false` otherwise.
-pub fn match_2_syllable(string: Vec<Phoneme>) -> bool {
+pub fn match_2_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     if string.len() != 2 {
         return false;
     }
@@ -201,7 +201,7 @@ pub fn match_2_syllable(string: Vec<Phoneme>) -> bool {
 ///
 /// Pattern notation: `p` = vowel (patinig)
 ///
-/// This is essentially a thin wrapper around `Phoneme::is_vowel` and
+/// This is essentially a thin wrapper around `FilipinoGrapheme::is_vowel` and
 /// checks only the first element in the vector.
 ///
 /// # Arguments
@@ -211,7 +211,7 @@ pub fn match_2_syllable(string: Vec<Phoneme>) -> bool {
 /// # Returns
 ///
 /// Returns `true` if the first phoneme is a vowel, `false` otherwise.
-pub fn match_1_syllable(string: Vec<Phoneme>) -> bool {
+pub fn match_1_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     string.len() == 1 && string.get(0).is_some_and(|x| x.is_vowel())
 }
 
@@ -232,7 +232,7 @@ pub fn match_1_syllable(string: Vec<Phoneme>) -> bool {
 ///
 /// Returns `true` if the entire sequence can be segmented into valid syllable patterns
 /// using a greedy approach, `false` otherwise.
-pub fn validate_filipino_syllables_greedy(nativized: Vec<Phoneme>) -> bool {
+pub fn validate_filipino_syllables_greedy(nativized: Vec<FilipinoGrapheme>) -> bool {
     let mut i = 0;
 
     while i < nativized.len() {
@@ -290,7 +290,7 @@ pub fn validate_filipino_syllables_greedy(nativized: Vec<Phoneme>) -> bool {
 ///
 /// Returns `true` if the entire sequence can be segmented into valid syllable patterns,
 /// `false` otherwise.
-pub fn validate_filipino_syllables_dp(nativized: Vec<Phoneme>) -> bool {
+pub fn validate_filipino_syllables_dp(nativized: Vec<FilipinoGrapheme>) -> bool {
     let n = nativized.len();
     if n == 0 {
         return true;

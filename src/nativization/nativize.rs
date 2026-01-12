@@ -4,8 +4,8 @@ use crate::nativization::error::{ErrorTypes, NativizationError};
 use crate::nativization::replacement::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
-use crate::tokenization::graphemes::Grapheme;
-use crate::tokenization::phoneme::Phoneme;
+use crate::tokenization::graphemes::EnglishGrapheme;
+use crate::tokenization::phoneme::FilipinoGrapheme;
 
 /// Builder for nativization with customizable configuration
 ///
@@ -78,7 +78,7 @@ impl Nativizer {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(Vec<Phoneme>)` on success, or `Err(NativizationError)` if
+    /// Returns `Ok(Vec<FilipinoGrapheme>)` on success, or `Err(NativizationError)` if
     /// nativization fails and `panic_at_error` is enabled.
     ///
     /// # Examples
@@ -93,7 +93,7 @@ impl Nativizer {
         &self,
         input: &str,
         config: &NativizationConfig,
-    ) -> Result<Vec<Phoneme>, ErrorTypes> {
+    ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
         self.nativize_internal(input, None, None, config)
     }
 
@@ -125,7 +125,7 @@ impl Nativizer {
         word_list: &[&str],
         dataset_name: &str,
         config: &NativizationConfig,
-    ) -> Vec<Result<Vec<Phoneme>, ErrorTypes>> {
+    ) -> Vec<Result<Vec<FilipinoGrapheme>, ErrorTypes>> {
         word_list
             .iter()
             .enumerate()
@@ -139,8 +139,8 @@ impl Nativizer {
         word_number: Option<usize>,
         dataset_name: Option<&str>,
         config: &NativizationConfig,
-    ) -> Result<Vec<Phoneme>, ErrorTypes> {
-        let mut result: Vec<Phoneme> = Vec::new();
+    ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
+        let mut result: Vec<FilipinoGrapheme> = Vec::new();
         let mut ctx = match Context::from_word(word, word_number, dataset_name, config) {
             Ok(ctx) => ctx,
             Err(e) => return Err(e),
@@ -209,13 +209,13 @@ impl Default for Nativizer {
 
 /// Detect and process abbreviations
 /// Returns (phonemes, graphemes_consumed) or None if not an abbreviation
-fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let prev = ctx.prev();
 
     let after_separator = match prev {
         None => true,
-        Some(Grapheme::Space) => true,
-        Some(Grapheme::Passthrough(s)) if s == "-" => true,
+        Some(EnglishGrapheme::Space) => true,
+        Some(EnglishGrapheme::Passthrough(s)) if s == "-" => true,
         _ => false,
     };
 
@@ -232,8 +232,8 @@ fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<Phoneme>, usize
     let next = ctx.graphemes.get(end);
     let before_separator = match next {
         None => true,
-        Some(Grapheme::Space) => true,
-        Some(Grapheme::Passthrough(s)) if s == "-" => true,
+        Some(EnglishGrapheme::Space) => true,
+        Some(EnglishGrapheme::Passthrough(s)) if s == "-" => true,
         _ => false,
     };
 
@@ -249,13 +249,13 @@ fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<Phoneme>, usize
 
 /// Convert an abbreviation to Filipino phonetic transcription
 /// E.g., "XR" -> "eks ar", "IV" -> "ay bi"
-fn nativize_abbreviation(abbr: Vec<Grapheme>) -> Vec<Phoneme> {
-    let mut result: Vec<Phoneme> = Vec::new();
+fn nativize_abbreviation(abbr: Vec<EnglishGrapheme>) -> Vec<FilipinoGrapheme> {
+    let mut result: Vec<FilipinoGrapheme> = Vec::new();
     for (i, grapheme) in abbr.iter().enumerate() {
         if let Some(phonemes) = letter_to_phonetic(grapheme.clone()) {
             // Add space before each letter except the first
             if i > 0 {
-                result.push(Phoneme::Space);
+                result.push(FilipinoGrapheme::Space);
             }
             result.extend(phonemes);
         }

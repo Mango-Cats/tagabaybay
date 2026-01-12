@@ -1,4 +1,4 @@
-use super::graphemes::{Grapheme, match_bigraph};
+use super::graphemes::{EnglishGrapheme, match_bigraph};
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///
@@ -11,8 +11,8 @@ use super::graphemes::{Grapheme, match_bigraph};
 ///
 /// # Returns
 ///
-/// Returns a vector of `Grapheme` enum values.
-pub fn tokenize(input: &str) -> Vec<Grapheme> {
+/// Returns a vector of `EnglishGrapheme` enum values.
+pub fn tokenize(input: &str) -> Vec<EnglishGrapheme> {
     let chars: Vec<char> = input.chars().collect();
     let mut result = Vec::new();
     let mut i = 0;
@@ -29,14 +29,14 @@ pub fn tokenize(input: &str) -> Vec<Grapheme> {
         }
 
         // Fall back to single character
-        result.push(Grapheme::from_char(chars[i]));
+        result.push(EnglishGrapheme::from_char(chars[i]));
         i += 1;
     }
 
     result
 }
 
-/// Convert a `Vec<Grapheme>` back to a String
+/// Convert a `Vec<EnglishGrapheme>` back to a String
 ///
 /// Reconstructs the original string from a sequence of graphemes.
 ///
@@ -47,6 +47,6 @@ pub fn tokenize(input: &str) -> Vec<Grapheme> {
 /// # Returns
 ///
 /// Returns the reconstructed string.
-pub fn detokenize(graphemes: &[Grapheme]) -> String {
+pub fn detokenize(graphemes: &[EnglishGrapheme]) -> String {
     graphemes.iter().map(|g| g.to_string()).collect()
 }

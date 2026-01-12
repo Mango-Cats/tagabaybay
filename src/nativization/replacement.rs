@@ -2,8 +2,8 @@ use std::vec;
 
 use super::context::Context;
 use crate::consts::NativizationConfig;
-use crate::tokenization::graphemes::Grapheme;
-use crate::tokenization::phoneme::Phoneme;
+use crate::tokenization::graphemes::EnglishGrapheme;
+use crate::tokenization::phoneme::FilipinoGrapheme;
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 ///
@@ -20,63 +20,70 @@ use crate::tokenization::phoneme::Phoneme;
 ///
 /// Returns `Some((phonemes, consumed))` if a context-free rule matches, where
 /// `consumed` is typically 1. Returns `None` for context-sensitive letters.
-pub fn free_replacement(ctx: &Context, config: &NativizationConfig) -> Option<(Phoneme, usize)> {
+pub fn free_replacement(
+    ctx: &Context,
+    config: &NativizationConfig,
+) -> Option<(FilipinoGrapheme, usize)> {
     let g = ctx.current().to_lowercase();
 
     match g {
         // Digraph replacements (digraph count as 1 grapheme)
-        Grapheme::PH => Some((Phoneme::F, 1)),
-        Grapheme::PS => Some((Phoneme::S, 1)),
-        Grapheme::TH => Some((Phoneme::T, 1)),
-        Grapheme::SH => {
+        EnglishGrapheme::PH => Some((FilipinoGrapheme::F, 1)),
+        EnglishGrapheme::PS => Some((FilipinoGrapheme::S, 1)),
+        EnglishGrapheme::TH => Some((FilipinoGrapheme::T, 1)),
+        EnglishGrapheme::SH => {
             if config.allow_sh_sound {
-                Some((Phoneme::SH, 1))
+                Some((FilipinoGrapheme::SH, 1))
             } else {
-                Some((Phoneme::S, 1))
+                Some((FilipinoGrapheme::S, 1))
             }
         }
-        Grapheme::EE => Some((Phoneme::I, 1)),
-        Grapheme::OO => Some((Phoneme::U, 1)),
+        EnglishGrapheme::EE => Some((FilipinoGrapheme::I, 1)),
+        EnglishGrapheme::OO => Some((FilipinoGrapheme::U, 1)),
 
         // Consonants
-        Grapheme::B => Some((Phoneme::B, 1)),
-        Grapheme::D => Some((Phoneme::D, 1)),
-        Grapheme::F => Some((Phoneme::F, 1)),
-        Grapheme::G => Some((Phoneme::G, 1)),
-        Grapheme::H => Some((Phoneme::H, 1)),
-        Grapheme::K => Some((Phoneme::K, 1)),
-        Grapheme::L => Some((Phoneme::L, 1)),
-        Grapheme::M => Some((Phoneme::M, 1)),
-        Grapheme::N => Some((Phoneme::N, 1)),
-        Grapheme::P => Some((Phoneme::P, 1)),
-        Grapheme::R => Some((Phoneme::R, 1)),
-        Grapheme::S => Some((Phoneme::S, 1)),
-        Grapheme::T => Some((Phoneme::T, 1)),
-        Grapheme::V => Some((Phoneme::B, 1)),
-        Grapheme::W => Some((Phoneme::W, 1)),
-        Grapheme::Y => Some((Phoneme::Y, 1)),
-        Grapheme::Z => {
+        EnglishGrapheme::B => Some((FilipinoGrapheme::B, 1)),
+        EnglishGrapheme::D => Some((FilipinoGrapheme::D, 1)),
+        EnglishGrapheme::F => Some((FilipinoGrapheme::F, 1)),
+        EnglishGrapheme::G => Some((FilipinoGrapheme::G, 1)),
+        EnglishGrapheme::H => Some((FilipinoGrapheme::H, 1)),
+        EnglishGrapheme::K => Some((FilipinoGrapheme::K, 1)),
+        EnglishGrapheme::L => Some((FilipinoGrapheme::L, 1)),
+        EnglishGrapheme::M => Some((FilipinoGrapheme::M, 1)),
+        EnglishGrapheme::N => Some((FilipinoGrapheme::N, 1)),
+        EnglishGrapheme::P => Some((FilipinoGrapheme::P, 1)),
+        EnglishGrapheme::R => Some((FilipinoGrapheme::R, 1)),
+        EnglishGrapheme::S => Some((FilipinoGrapheme::S, 1)),
+        EnglishGrapheme::T => Some((FilipinoGrapheme::T, 1)),
+        EnglishGrapheme::V => Some((FilipinoGrapheme::B, 1)),
+        EnglishGrapheme::W => Some((FilipinoGrapheme::W, 1)),
+        EnglishGrapheme::Y => Some((FilipinoGrapheme::Y, 1)),
+        EnglishGrapheme::Z => {
             if config.allow_z_sound {
-                Some((Phoneme::Z, 1))
+                Some((FilipinoGrapheme::Z, 1))
             } else {
-                Some((Phoneme::S, 1))
+                Some((FilipinoGrapheme::S, 1))
             }
         }
 
         // Spanish
-        Grapheme::Enye => Some((Phoneme::N, 1)),
+        EnglishGrapheme::Enye => Some((FilipinoGrapheme::N, 1)),
 
         // Whitespace
-        Grapheme::Space => Some((Phoneme::Space, 1)),
+        EnglishGrapheme::Space => Some((FilipinoGrapheme::Space, 1)),
 
         // ASCII passthrough (digits, punctuation, etc.)
-        Grapheme::Passthrough(c) => Some((Phoneme::Passthrough(c.to_string()), 1)),
+        EnglishGrapheme::Passthrough(c) => Some((FilipinoGrapheme::Passthrough(c.to_string()), 1)),
 
         // Context-sensitive letters (handled in sensitive_replacement)
-        Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::CH => None,
+        EnglishGrapheme::C
+        | EnglishGrapheme::J
+        | EnglishGrapheme::Q
+        | EnglishGrapheme::X
+        | EnglishGrapheme::CH => None,
 
         // Other characters (pass through as-is)
-        Grapheme::Other => Some((Phoneme::Other, 1)),
+        EnglishGrapheme::Other => Some((FilipinoGrapheme::Other, 1)),
 
         // Uppercase variants should not reach here (normalized by to_lowercase)
         _ => None,
@@ -102,7 +109,7 @@ pub fn free_replacement(ctx: &Context, config: &NativizationConfig) -> Option<(P
 pub fn sensitive_replacement(
     ctx: &Context,
     config: &NativizationConfig,
-) -> Option<(Vec<Phoneme>, usize)> {
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
     if curr.is_bigraph() {
@@ -130,7 +137,7 @@ pub fn sensitive_replacement(
 fn sensitive_consonant(
     ctx: &Context,
     config: &NativizationConfig,
-) -> Option<(Vec<Phoneme>, usize)> {
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
     // remove duplicates
@@ -139,15 +146,15 @@ fn sensitive_consonant(
     }
 
     match curr {
-        Grapheme::C => handle_consonant_c(&ctx),
-        Grapheme::X => handle_consonant_x(&ctx),
-        Grapheme::Y => handle_consonant_y(&ctx),
-        Grapheme::T => handle_consonant_t(&ctx),
-        Grapheme::D => handle_consonant_d(&ctx),
-        Grapheme::G => handle_consonant_g(&ctx),
-        Grapheme::S => handle_consonant_s(&ctx),
-        Grapheme::J => Some((vec![Phoneme::DY], 1)),
-        Grapheme::Q => Some((vec![Phoneme::K], 1)),
+        EnglishGrapheme::C => handle_consonant_c(&ctx),
+        EnglishGrapheme::X => handle_consonant_x(&ctx),
+        EnglishGrapheme::Y => handle_consonant_y(&ctx),
+        EnglishGrapheme::T => handle_consonant_t(&ctx),
+        EnglishGrapheme::D => handle_consonant_d(&ctx),
+        EnglishGrapheme::G => handle_consonant_g(&ctx),
+        EnglishGrapheme::S => handle_consonant_s(&ctx),
+        EnglishGrapheme::J => Some((vec![FilipinoGrapheme::DY], 1)),
+        EnglishGrapheme::Q => Some((vec![FilipinoGrapheme::K], 1)),
         _ => None,
     }
 }
@@ -161,12 +168,14 @@ fn sensitive_consonant(
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` with the appropriate conversion.
-fn handle_consonant_c(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_c(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.lookahead(1) {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::EE) => Some((vec![Phoneme::S], 1)),
+        Some(
+            EnglishGrapheme::E | EnglishGrapheme::I | EnglishGrapheme::Y | EnglishGrapheme::EE,
+        ) => Some((vec![FilipinoGrapheme::S], 1)),
         // default: 'k'
-        _ => Some((vec![Phoneme::K], 1)),
+        _ => Some((vec![FilipinoGrapheme::K], 1)),
     }
 }
 
@@ -179,13 +188,13 @@ fn handle_consonant_c(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` with the appropriate conversion.
-fn handle_consonant_x(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_x(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // 'x' at start becomes 's'
     if ctx.at_start() {
-        Some((vec![Phoneme::S], 1))
+        Some((vec![FilipinoGrapheme::S], 1))
     } else {
         // otherwise 'ks'
-        Some((vec![Phoneme::K, Phoneme::S], 1))
+        Some((vec![FilipinoGrapheme::K, FilipinoGrapheme::S], 1))
     }
 }
 
@@ -198,17 +207,19 @@ fn handle_consonant_x(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_y(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_y(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         // 'y' after ('s' | 'l' | 'x') becomes 'i'
-        (Some(Grapheme::S | Grapheme::L | Grapheme::X), _) => Some((vec![Phoneme::I], 1)),
+        (Some(EnglishGrapheme::S | EnglishGrapheme::L | EnglishGrapheme::X), _) => {
+            Some((vec![FilipinoGrapheme::I], 1))
+        }
         // 'y' before 's' or 'l' becomes 'i'
-        (_, Some(Grapheme::S | Grapheme::L)) => Some((vec![Phoneme::I], 1)),
+        (_, Some(EnglishGrapheme::S | EnglishGrapheme::L)) => Some((vec![FilipinoGrapheme::I], 1)),
         // 'y' not preceded by 'a' becomes 'i'
-        (Some(g), _) if g != Grapheme::A => Some((vec![Phoneme::I], 1)),
-        (None, _) => Some((vec![Phoneme::I], 1)), // 'y' at start becomes 'i'
+        (Some(g), _) if g != EnglishGrapheme::A => Some((vec![FilipinoGrapheme::I], 1)),
+        (None, _) => Some((vec![FilipinoGrapheme::I], 1)), // 'y' at start becomes 'i'
         // 'y' preceded by 'a' - just emit 'y' (A already processed)
-        (Some(Grapheme::A), _) => Some((vec![Phoneme::Y], 1)),
+        (Some(EnglishGrapheme::A), _) => Some((vec![FilipinoGrapheme::Y], 1)),
         _ => None,
     }
 }
@@ -222,18 +233,18 @@ fn handle_consonant_y(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_t(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_t(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         // 'th' + (a|o) -> 'tay/toy'
-        (Some(Grapheme::H), Some(Grapheme::A | Grapheme::O)) => Some((
+        (Some(EnglishGrapheme::H), Some(EnglishGrapheme::A | EnglishGrapheme::O)) => Some((
             vec![
-                Phoneme::T,
-                Phoneme::A,
-                Phoneme::Y,
+                FilipinoGrapheme::T,
+                FilipinoGrapheme::A,
+                FilipinoGrapheme::Y,
                 match ctx.next() {
-                    Some(Grapheme::A) => Phoneme::A,
-                    Some(Grapheme::O) => Phoneme::O,
-                    _ => Phoneme::Other,
+                    Some(EnglishGrapheme::A) => FilipinoGrapheme::A,
+                    Some(EnglishGrapheme::O) => FilipinoGrapheme::O,
+                    _ => FilipinoGrapheme::Other,
                 },
             ],
             2,
@@ -251,11 +262,16 @@ fn handle_consonant_t(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_d(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_d(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
-        (Some(Grapheme::I), Some(Grapheme::E)) => {
-            Some((vec![Phoneme::A, Phoneme::Y, Phoneme::D], 1))
-        }
+        (Some(EnglishGrapheme::I), Some(EnglishGrapheme::E)) => Some((
+            vec![
+                FilipinoGrapheme::A,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::D,
+            ],
+            1,
+        )),
         _ => None,
     }
 }
@@ -269,20 +285,22 @@ fn handle_consonant_d(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_g(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.next() {
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::EE) => {
+        Some(
+            EnglishGrapheme::E | EnglishGrapheme::I | EnglishGrapheme::Y | EnglishGrapheme::EE,
+        ) => {
             // Check if NOT followed by s/c/k
             match ctx.lookahead(2) {
-                Some(Grapheme::S | Grapheme::C | Grapheme::K) => None,
+                Some(EnglishGrapheme::S | EnglishGrapheme::C | EnglishGrapheme::K) => None,
                 _ => Some((
                     vec![
-                        Phoneme::DY,
+                        FilipinoGrapheme::DY,
                         match ctx.next() {
-                            Some(Grapheme::E) => Phoneme::E,
-                            Some(Grapheme::I) => Phoneme::I,
-                            Some(Grapheme::Y) => Phoneme::I,
-                            _ => Phoneme::Other,
+                            Some(EnglishGrapheme::E) => FilipinoGrapheme::E,
+                            Some(EnglishGrapheme::I) => FilipinoGrapheme::I,
+                            Some(EnglishGrapheme::Y) => FilipinoGrapheme::I,
+                            _ => FilipinoGrapheme::Other,
                         },
                     ],
                     2,
@@ -302,12 +320,16 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_s(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_consonant_s(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
-        (Some(Grapheme::EE | Grapheme::OO), Some(Grapheme::E)) => match ctx.lookahead(2) {
-            Some(Grapheme::B | Grapheme::D) => Some((vec![Phoneme::S], 2)),
-            _ => None,
-        },
+        (Some(EnglishGrapheme::EE | EnglishGrapheme::OO), Some(EnglishGrapheme::E)) => {
+            match ctx.lookahead(2) {
+                Some(EnglishGrapheme::B | EnglishGrapheme::D) => {
+                    Some((vec![FilipinoGrapheme::S], 2))
+                }
+                _ => None,
+            }
+        }
         _ => None,
     }
 }
@@ -321,19 +343,19 @@ fn handle_consonant_s(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a rule matches, `None` otherwise.
-fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
     let next = ctx.next();
 
     match curr {
-        Grapheme::CH => {
+        EnglishGrapheme::CH => {
             if let Some(next) = next {
                 if next.is_consonant() {
-                    return Some((vec![Phoneme::K], 1));
+                    return Some((vec![FilipinoGrapheme::K], 1));
                 }
             }
 
-            Some((vec![Phoneme::TS], 1))
+            Some((vec![FilipinoGrapheme::TS], 1))
         }
 
         // Th and Sh are handled in free_replacement
@@ -357,32 +379,35 @@ fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))`
-pub fn handle_vowel(ctx: &Context, arpabet: &Vec<Grapheme>) -> Option<(Vec<Phoneme>, usize)> {
+pub fn handle_vowel(
+    ctx: &Context,
+    arpabet: &Vec<EnglishGrapheme>,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
     let idx = ctx.index;
     let letter = arpabet.get(idx)?.to_lowercase();
 
     match letter {
-        Grapheme::A => handle_arpa_a(arpabet, idx),
-        Grapheme::E => handle_arpa_e(arpabet, idx),
-        Grapheme::I => handle_arpa_i(arpabet, idx),
-        Grapheme::O => handle_arpa_o(arpabet, idx),
-        Grapheme::U => handle_arpa_u(arpabet, idx),
+        EnglishGrapheme::A => handle_arpa_a(arpabet, idx),
+        EnglishGrapheme::E => handle_arpa_e(arpabet, idx),
+        EnglishGrapheme::I => handle_arpa_i(arpabet, idx),
+        EnglishGrapheme::O => handle_arpa_o(arpabet, idx),
+        EnglishGrapheme::U => handle_arpa_u(arpabet, idx),
         _ => None,
     }
 
     // match letter {
-    //     Grapheme::ArpaAA | Grapheme::ArpaAO =>  Some((vec![Phoneme::O], 1)),
-    //     Grapheme::ArpaAE | Grapheme::ArpaAH => Some((vec![Phoneme::A], 1)),
-    //     Grapheme::ArpaAW => Some((vec![Phoneme::A, Phoneme::W], 1)),
-    //     Grapheme::ArpaAY => Some((vec![Phoneme::A, Phoneme::Y], 1)),
-    //     Grapheme::ArpaEH => Some((vec![Phoneme::E], 1)),
-    //     Grapheme::ArpaER => Some((vec![Phoneme::E, Phoneme::R], 1)),
-    //     Grapheme::ArpaEY => Some((vec![Phoneme::E, Phoneme::Y], 1)),
-    //     Grapheme::ArpaIH | Grapheme::ArpaIY => Some((vec![Phoneme::I], 1)),
-    //     Grapheme::ArpaOW => Some((vec![Phoneme::O], 1)),
-    //     Grapheme::ArpaOY => Some((vec![Phoneme::O, Phoneme::Y], 1)),
-    //     Grapheme::ArpaUH | Grapheme::ArpaUW => Some((vec![Phoneme::U], 1)),
+    //     EnglishGrapheme::ArpaAA | EnglishGrapheme::ArpaAO =>  Some((vec![FilipinoGrapheme::O], 1)),
+    //     EnglishGrapheme::ArpaAE | EnglishGrapheme::ArpaAH => Some((vec![FilipinoGrapheme::A], 1)),
+    //     EnglishGrapheme::ArpaAW => Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::W], 1)),
+    //     EnglishGrapheme::ArpaAY => Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1)),
+    //     EnglishGrapheme::ArpaEH => Some((vec![FilipinoGrapheme::E], 1)),
+    //     EnglishGrapheme::ArpaER => Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::R], 1)),
+    //     EnglishGrapheme::ArpaEY => Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::Y], 1)),
+    //     EnglishGrapheme::ArpaIH | EnglishGrapheme::ArpaIY => Some((vec![FilipinoGrapheme::I], 1)),
+    //     EnglishGrapheme::ArpaOW => Some((vec![FilipinoGrapheme::O], 1)),
+    //     EnglishGrapheme::ArpaOY => Some((vec![FilipinoGrapheme::O, FilipinoGrapheme::Y], 1)),
+    //     EnglishGrapheme::ArpaUH | EnglishGrapheme::ArpaUW => Some((vec![FilipinoGrapheme::U], 1)),
     //     _ => None
     // }
 }
@@ -397,23 +422,26 @@ pub fn handle_vowel(ctx: &Context, arpabet: &Vec<Grapheme>) -> Option<(Vec<Phone
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_a(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_arpa_a(
+    arpabet: &Vec<EnglishGrapheme>,
+    idx: usize,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = arpabet.get(idx + 1);
 
-    if let Some(Grapheme::E | Grapheme::H) = next {
-        return Some((vec![Phoneme::A], 1));
+    if let Some(EnglishGrapheme::E | EnglishGrapheme::H) = next {
+        return Some((vec![FilipinoGrapheme::A], 1));
     }
 
-    if let Some(Grapheme::O | Grapheme::A) = next {
-        return Some((vec![Phoneme::O], 1));
+    if let Some(EnglishGrapheme::O | EnglishGrapheme::A) = next {
+        return Some((vec![FilipinoGrapheme::O], 1));
     }
 
-    if let Some(Grapheme::W) = next {
-        return Some((vec![Phoneme::A, Phoneme::W], 1));
+    if let Some(EnglishGrapheme::W) = next {
+        return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::W], 1));
     }
 
-    if let Some(Grapheme::Y) = next {
-        return Some((vec![Phoneme::A, Phoneme::Y], 1));
+    if let Some(EnglishGrapheme::Y) = next {
+        return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1));
     }
 
     None
@@ -429,19 +457,22 @@ fn handle_arpa_a(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, u
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_e(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_arpa_e(
+    arpabet: &Vec<EnglishGrapheme>,
+    idx: usize,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = arpabet.get(idx + 1);
 
-    if let Some(Grapheme::H) = next {
-        return Some((vec![Phoneme::E], 1));
+    if let Some(EnglishGrapheme::H) = next {
+        return Some((vec![FilipinoGrapheme::E], 1));
     }
 
-    if let Some(Grapheme::R) = next {
-        return Some((vec![Phoneme::E, Phoneme::R], 1));
+    if let Some(EnglishGrapheme::R) = next {
+        return Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::R], 1));
     }
 
-    if let Some(Grapheme::Y) = next {
-        return Some((vec![Phoneme::E, Phoneme::Y], 1));
+    if let Some(EnglishGrapheme::Y) = next {
+        return Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::Y], 1));
     }
 
     None
@@ -457,11 +488,14 @@ fn handle_arpa_e(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, u
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_i(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_arpa_i(
+    arpabet: &Vec<EnglishGrapheme>,
+    idx: usize,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = arpabet.get(idx + 1);
 
-    if let Some(Grapheme::H | Grapheme::Y) = next {
-        return Some((vec![Phoneme::I], 1));
+    if let Some(EnglishGrapheme::H | EnglishGrapheme::Y) = next {
+        return Some((vec![FilipinoGrapheme::I], 1));
     }
 
     None
@@ -477,15 +511,18 @@ fn handle_arpa_i(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, u
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_o(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_arpa_o(
+    arpabet: &Vec<EnglishGrapheme>,
+    idx: usize,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = arpabet.get(idx + 1);
 
-    if let Some(Grapheme::W) = next {
-        return Some((vec![Phoneme::O], 1));
+    if let Some(EnglishGrapheme::W) = next {
+        return Some((vec![FilipinoGrapheme::O], 1));
     }
 
-    if let Some(Grapheme::Y) = next {
-        return Some((vec![Phoneme::O, Phoneme::Y], 1));
+    if let Some(EnglishGrapheme::Y) = next {
+        return Some((vec![FilipinoGrapheme::O, FilipinoGrapheme::Y], 1));
     }
 
     None
@@ -501,15 +538,18 @@ fn handle_arpa_o(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, u
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_u(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_arpa_u(
+    arpabet: &Vec<EnglishGrapheme>,
+    idx: usize,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = arpabet.get(idx + 1);
 
-    if let Some(Grapheme::H | Grapheme::W) = next {
-        return Some((vec![Phoneme::U], 1));
+    if let Some(EnglishGrapheme::H | EnglishGrapheme::W) = next {
+        return Some((vec![FilipinoGrapheme::U], 1));
     }
 
-    // if let Some(Grapheme::W) = next {
-    //     return Some((vec![Phoneme::Y, Phoneme::U], 1))
+    // if let Some(EnglishGrapheme::W) = next {
+    //     return Some((vec![FilipinoGrapheme::Y, FilipinoGrapheme::U], 1))
     // }
 
     None
@@ -528,7 +568,10 @@ fn handle_arpa_u(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, u
 ///
 /// Returns `Some((phonemes, 2))` if a duplicate is found (consuming 2 graphemes),
 /// `None` otherwise.
-fn handle_duplicates(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<Phoneme>, usize)> {
+fn handle_duplicates(
+    ctx: &Context,
+    config: &NativizationConfig,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
     if let Some(next) = ctx.next() {
         if next == curr
@@ -536,7 +579,7 @@ fn handle_duplicates(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<
         // matches!() returns type bool.
         && !matches!(
                 curr,
-                Grapheme::Passthrough(_) | Grapheme::Space | Grapheme::Other
+                EnglishGrapheme::Passthrough(_) | EnglishGrapheme::Space | EnglishGrapheme::Other
             )
         {
             if let Some((phonemes, _)) = free_replacement(ctx, config) {
@@ -558,45 +601,73 @@ fn handle_duplicates(ctx: &Context, config: &NativizationConfig) -> Option<(Vec<
 ///
 /// # Returns
 ///
-/// Returns `Some(Vec<Phoneme>)` with the phonetic spelling, or `None` if
+/// Returns `Some(Vec<FilipinoGrapheme>)` with the phonetic spelling, or `None` if
 /// the grapheme is not a letter.
-pub fn letter_to_phonetic(letter: Grapheme) -> Option<Vec<Phoneme>> {
+pub fn letter_to_phonetic(letter: EnglishGrapheme) -> Option<Vec<FilipinoGrapheme>> {
     let l = letter.to_lowercase();
     match l {
-        Grapheme::A => Some(vec![Phoneme::E, Phoneme::Y]),
-        Grapheme::B => Some(vec![Phoneme::B, Phoneme::I]),
-        Grapheme::C => Some(vec![Phoneme::S, Phoneme::I]),
-        Grapheme::D => Some(vec![Phoneme::D, Phoneme::I]),
-        Grapheme::E => Some(vec![Phoneme::I]),
-        Grapheme::F => Some(vec![Phoneme::E, Phoneme::F]),
-        Grapheme::G => Some(vec![Phoneme::D, Phoneme::Y, Phoneme::I]),
-        Grapheme::H => Some(vec![Phoneme::E, Phoneme::Y, Phoneme::TS]),
-        Grapheme::I => Some(vec![Phoneme::A, Phoneme::Y]),
-        Grapheme::J => Some(vec![Phoneme::DY, Phoneme::E, Phoneme::Y]),
-        Grapheme::K => Some(vec![Phoneme::K, Phoneme::E, Phoneme::Y]),
-        Grapheme::L => Some(vec![Phoneme::E, Phoneme::L]),
-        Grapheme::M => Some(vec![Phoneme::E, Phoneme::M]),
-        Grapheme::N => Some(vec![Phoneme::E, Phoneme::N]),
-        Grapheme::O => Some(vec![Phoneme::O, Phoneme::W]),
-        Grapheme::P => Some(vec![Phoneme::P, Phoneme::I]),
-        Grapheme::Q => Some(vec![Phoneme::K, Phoneme::Y, Phoneme::U]),
-        Grapheme::R => Some(vec![Phoneme::A, Phoneme::R]),
-        Grapheme::S => Some(vec![Phoneme::E, Phoneme::S]),
-        Grapheme::T => Some(vec![Phoneme::T, Phoneme::I]),
-        Grapheme::U => Some(vec![Phoneme::Y, Phoneme::U]),
-        Grapheme::V => Some(vec![Phoneme::B, Phoneme::I]),
-        Grapheme::W => Some(vec![
-            Phoneme::D,
-            Phoneme::A,
-            Phoneme::B,
-            Phoneme::O,
-            Phoneme::L,
-            Phoneme::Y,
-            Phoneme::U,
+        EnglishGrapheme::A => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]),
+        EnglishGrapheme::B => Some(vec![FilipinoGrapheme::B, FilipinoGrapheme::I]),
+        EnglishGrapheme::C => Some(vec![FilipinoGrapheme::S, FilipinoGrapheme::I]),
+        EnglishGrapheme::D => Some(vec![FilipinoGrapheme::D, FilipinoGrapheme::I]),
+        EnglishGrapheme::E => Some(vec![FilipinoGrapheme::I]),
+        EnglishGrapheme::F => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::F]),
+        EnglishGrapheme::G => Some(vec![
+            FilipinoGrapheme::D,
+            FilipinoGrapheme::Y,
+            FilipinoGrapheme::I,
         ]),
-        Grapheme::X => Some(vec![Phoneme::E, Phoneme::K, Phoneme::S]),
-        Grapheme::Y => Some(vec![Phoneme::W, Phoneme::A, Phoneme::Y]),
-        Grapheme::Z => Some(vec![Phoneme::S, Phoneme::I]),
+        EnglishGrapheme::H => Some(vec![
+            FilipinoGrapheme::E,
+            FilipinoGrapheme::Y,
+            FilipinoGrapheme::TS,
+        ]),
+        EnglishGrapheme::I => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]),
+        EnglishGrapheme::J => Some(vec![
+            FilipinoGrapheme::DY,
+            FilipinoGrapheme::E,
+            FilipinoGrapheme::Y,
+        ]),
+        EnglishGrapheme::K => Some(vec![
+            FilipinoGrapheme::K,
+            FilipinoGrapheme::E,
+            FilipinoGrapheme::Y,
+        ]),
+        EnglishGrapheme::L => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::L]),
+        EnglishGrapheme::M => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::M]),
+        EnglishGrapheme::N => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::N]),
+        EnglishGrapheme::O => Some(vec![FilipinoGrapheme::O, FilipinoGrapheme::W]),
+        EnglishGrapheme::P => Some(vec![FilipinoGrapheme::P, FilipinoGrapheme::I]),
+        EnglishGrapheme::Q => Some(vec![
+            FilipinoGrapheme::K,
+            FilipinoGrapheme::Y,
+            FilipinoGrapheme::U,
+        ]),
+        EnglishGrapheme::R => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::R]),
+        EnglishGrapheme::S => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::S]),
+        EnglishGrapheme::T => Some(vec![FilipinoGrapheme::T, FilipinoGrapheme::I]),
+        EnglishGrapheme::U => Some(vec![FilipinoGrapheme::Y, FilipinoGrapheme::U]),
+        EnglishGrapheme::V => Some(vec![FilipinoGrapheme::B, FilipinoGrapheme::I]),
+        EnglishGrapheme::W => Some(vec![
+            FilipinoGrapheme::D,
+            FilipinoGrapheme::A,
+            FilipinoGrapheme::B,
+            FilipinoGrapheme::O,
+            FilipinoGrapheme::L,
+            FilipinoGrapheme::Y,
+            FilipinoGrapheme::U,
+        ]),
+        EnglishGrapheme::X => Some(vec![
+            FilipinoGrapheme::E,
+            FilipinoGrapheme::K,
+            FilipinoGrapheme::S,
+        ]),
+        EnglishGrapheme::Y => Some(vec![
+            FilipinoGrapheme::W,
+            FilipinoGrapheme::A,
+            FilipinoGrapheme::Y,
+        ]),
+        EnglishGrapheme::Z => Some(vec![FilipinoGrapheme::S, FilipinoGrapheme::I]),
         _ => None,
     }
 }

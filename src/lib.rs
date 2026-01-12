@@ -24,7 +24,7 @@
 //! ## Modules
 //!
 //! - `nativization`: Core nativization logic and configuration
-//! - `tokenization`: Grapheme and phoneme handling
+//! - `tokenization`: EnglishGrapheme and phoneme handling
 //! - `consts`: Configuration constants and types
 
 pub mod consts;

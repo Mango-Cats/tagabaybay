@@ -1,7 +1,7 @@
 use crate::nativization::context::Context;
-use crate::tokenization::phoneme::Phoneme;
+use crate::tokenization::phoneme::FilipinoGrapheme;
 
-pub fn handle_vowel(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
+pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
     // dbg!(&ctx.ipa);
