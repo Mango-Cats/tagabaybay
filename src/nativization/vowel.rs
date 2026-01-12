@@ -1,5 +1,5 @@
 use crate::nativization::context::Context;
-use crate::tokenization::{graphemes::Grapheme, phoneme::Phoneme};
+use crate::tokenization::phoneme::Phoneme;
 
 pub fn handle_vowel(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     let curr = ctx.current();
