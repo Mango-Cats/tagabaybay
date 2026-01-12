@@ -19,23 +19,6 @@ pub enum EnglishGrapheme {
     EE,
     OO,
 
-    //ArpaBet
-    ArpaAA,
-    ArpaAE,
-    ArpaAH,
-    ArpaAO,
-    ArpaAW,
-    ArpaAY,
-    ArpaEH,
-    ArpaER,
-    ArpaEY,
-    ArpaIH,
-    ArpaIY,
-    ArpaOW,
-    ArpaOY,
-    ArpaUH,
-    ArpaUW,
-
     // Vowels
     A,
     E,
@@ -119,23 +102,6 @@ impl EnglishGrapheme {
             EnglishGrapheme::SH => "sh".to_string(),
             EnglishGrapheme::EE => "ee".to_string(),
             EnglishGrapheme::OO => "oo".to_string(),
-
-            //ArpaBet
-            EnglishGrapheme::ArpaAA => "aa".to_string(),
-            EnglishGrapheme::ArpaAE => "ae".to_string(),
-            EnglishGrapheme::ArpaAH => "ah".to_string(),
-            EnglishGrapheme::ArpaAO => "ao".to_string(),
-            EnglishGrapheme::ArpaAW => "aw".to_string(),
-            EnglishGrapheme::ArpaAY => "ay".to_string(),
-            EnglishGrapheme::ArpaEH => "eh".to_string(),
-            EnglishGrapheme::ArpaER => "er".to_string(),
-            EnglishGrapheme::ArpaEY => "ey".to_string(),
-            EnglishGrapheme::ArpaIH => "ih".to_string(),
-            EnglishGrapheme::ArpaIY => "iy".to_string(),
-            EnglishGrapheme::ArpaOW => "ow".to_string(),
-            EnglishGrapheme::ArpaOY => "oy".to_string(),
-            EnglishGrapheme::ArpaUH => "uh".to_string(),
-            EnglishGrapheme::ArpaUW => "uw".to_string(),
 
             // Vowels
             EnglishGrapheme::A => "a".to_string(),
@@ -445,23 +411,6 @@ pub fn match_bigraph(s: &str) -> Option<EnglishGrapheme> {
         "sh" => Some(EnglishGrapheme::SH),
         "ee" => Some(EnglishGrapheme::EE),
         "oo" => Some(EnglishGrapheme::OO),
-
-        //ARPAbet
-        "aa" => Some(EnglishGrapheme::ArpaAA),
-        "ae" => Some(EnglishGrapheme::ArpaAE),
-        "ah" => Some(EnglishGrapheme::ArpaAH),
-        "ao" => Some(EnglishGrapheme::ArpaAO),
-        "aw" => Some(EnglishGrapheme::ArpaAW),
-        "ay" => Some(EnglishGrapheme::ArpaAY),
-        "eh" => Some(EnglishGrapheme::ArpaEH),
-        "er" => Some(EnglishGrapheme::ArpaER),
-        "ey" => Some(EnglishGrapheme::ArpaEY),
-        "ih" => Some(EnglishGrapheme::ArpaIH),
-        "iy" => Some(EnglishGrapheme::ArpaIY),
-        "ow" => Some(EnglishGrapheme::ArpaOW),
-        "oy" => Some(EnglishGrapheme::ArpaOY),
-        "uh" => Some(EnglishGrapheme::ArpaUH),
-        "uw" => Some(EnglishGrapheme::ArpaUW),
 
         _ => None,
     }
