@@ -4,6 +4,7 @@ use crate::nativization::error::{NativizationError, TagabaybayErrors};
 use crate::nativization::replacement::{
     free_replacement, letter_to_phonetic, sensitive_replacement,
 };
+use crate::nativization::vowel::handle_vowel;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
 
@@ -145,32 +146,36 @@ impl Nativizer {
             Ok(ctx) => ctx,
             Err(e) => return Err(e),
         };
-
-        while !ctx.at_end() {
+        dbg!(&ctx.phonetic_transcription);
+        while ctx.index < ctx.len() {
             let curr = ctx.current();
 
             // Handle abbreviations and single letters (spelled out phonetically)
             if curr.is_uppercase() {
-                if let Some((abbr_phonemes, consumed)) = detect_and_process_abbreviation(&ctx) {
-                    result.extend(abbr_phonemes);
+                if let Some((abbr_repl, consumed)) = detect_and_process_abbreviation(&ctx) {
+                    result.extend(abbr_repl);
                     ctx.index += consumed;
                     continue;
                 }
             }
 
             // Handle vowels (special case)
-            if curr.is_vowel() {}
+            if curr.is_vowel() {
+                if let Some((vowel_repl, consumed)) = handle_vowel(&ctx) {}
+                ctx.index += 1;
+                continue;
+            }
 
             // Context-sensitive replacement
-            if let Some((sens_res, consumed)) = sensitive_replacement(&ctx, &self.config) {
-                result.extend(sens_res);
+            if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
+                result.extend(sens_repl);
                 ctx.index += consumed;
                 continue;
             }
 
             // Context-free replacement (fallback)
-            if let Some((free_res, consumed)) = free_replacement(&ctx, &self.config) {
-                result.push(free_res);
+            if let Some((free_repl, consumed)) = free_replacement(&ctx, &self.config) {
+                result.push(free_repl);
                 ctx.index += consumed;
                 continue;
             }
