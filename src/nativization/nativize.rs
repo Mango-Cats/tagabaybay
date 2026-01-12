@@ -1,6 +1,6 @@
 use crate::consts::NativizationConfig;
 use crate::nativization::context::Context;
-use crate::nativization::error::{NativizationError, TagabaybayErrors};
+use crate::nativization::error::{ErrorTypes, NativizationError};
 use crate::nativization::replacement::{
     free_replacement, letter_to_phonetic, sensitive_replacement,
 };
@@ -94,7 +94,7 @@ impl Nativizer {
         &self,
         input: &str,
         config: &NativizationConfig,
-    ) -> Result<Vec<Phoneme>, TagabaybayErrors> {
+    ) -> Result<Vec<Phoneme>, ErrorTypes> {
         self.nativize_internal(input, None, None, config)
     }
 
@@ -126,7 +126,7 @@ impl Nativizer {
         word_list: &[&str],
         dataset_name: &str,
         config: &NativizationConfig,
-    ) -> Vec<Result<Vec<Phoneme>, TagabaybayErrors>> {
+    ) -> Vec<Result<Vec<Phoneme>, ErrorTypes>> {
         word_list
             .iter()
             .enumerate()
@@ -140,7 +140,7 @@ impl Nativizer {
         word_number: Option<usize>,
         dataset_name: Option<&str>,
         config: &NativizationConfig,
-    ) -> Result<Vec<Phoneme>, TagabaybayErrors> {
+    ) -> Result<Vec<Phoneme>, ErrorTypes> {
         let mut result: Vec<Phoneme> = Vec::new();
         let mut ctx = match Context::from_word(word, word_number, dataset_name, config) {
             Ok(ctx) => ctx,
@@ -189,7 +189,7 @@ impl Nativizer {
             );
             error.print_error();
             if self.config.panic_at_error {
-                return Err(TagabaybayErrors::Nativization(error));
+                return Err(ErrorTypes::Nativization(error));
             }
 
             ctx.index += 1;

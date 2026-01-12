@@ -2,7 +2,8 @@ use crate::tokenization::graphemes::Grapheme;
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub enum TagabaybayErrors {
+// TODO: rename to ErrorType
+pub enum ErrorTypes {
     Nativization(NativizationError),
     Phonetization(PhonetizationError),
 }
