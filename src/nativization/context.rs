@@ -8,17 +8,17 @@ use crate::tokenization::tokenize::tokenize;
 #[derive(Debug, Clone)]
 pub struct Context {
     pub graphemes: Vec<Grapheme>,
-    pub ipa: Vec<Grapheme>,
+    pub phonetic_transcription: String,
     pub index: usize,
 }
 
 impl Context {
     /// Create a new context with each parameter
-    pub fn new(graphemes: &[Grapheme], index: usize, ipa: &[Grapheme]) -> Self {
+    pub fn new(graphemes: &[Grapheme], index: usize, phonetic_transcription: &str) -> Self {
         Self {
             graphemes: graphemes.to_vec(),
             index,
-            ipa: ipa.to_vec(),
+            phonetic_transcription: phonetic_transcription.to_string(),
         }
     }
 
@@ -31,7 +31,7 @@ impl Context {
     ) -> Result<Self, TagabaybayErrors> {
         let graphemes = tokenize(word);
 
-        let ipa_string = phonemize(word).map_err(|mut err| {
+        let phonetic_transcription = phonemize(word).map_err(|mut err| {
             err.word_number = word_number;
             err.dataset_name = dataset_name.map(str::to_string);
 
@@ -44,12 +44,10 @@ impl Context {
             TagabaybayErrors::Phonetization(err)
         })?;
 
-        let ipa = tokenize(&ipa_string.to_ascii_lowercase());
-
         Ok(Self {
             graphemes,
             index: 0,
-            ipa,
+            phonetic_transcription,
         })
     }
 
