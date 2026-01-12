@@ -24,7 +24,7 @@ pub fn free_replacement(ctx: &Context, config: &NativizationConfig) -> Option<(P
     let g = ctx.current().to_lowercase();
 
     match g {
-        // Bigraph replacements (bigraphs count as 1 grapheme)
+        // Digraph replacements (digraph count as 1 grapheme)
         Grapheme::PH => Some((Phoneme::F, 1)),
         Grapheme::PS => Some((Phoneme::S, 1)),
         Grapheme::TH => Some((Phoneme::T, 1)),
