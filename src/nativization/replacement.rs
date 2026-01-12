@@ -4,6 +4,7 @@ use super::context::Context;
 use crate::consts::NativizationConfig;
 use crate::tokenization::graphemes::Grapheme;
 use crate::tokenization::phoneme::Phoneme;
+use crate::tokenization::tokenize::detokenize;
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 ///
@@ -343,6 +344,183 @@ fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
         // Th and Sh are handled in free_replacement
         _ => None,
     }
+}
+
+/// Handles G2P vowel replacement
+/// Based on the current index of an english word, get the corresponding
+/// bigram matching the index in the ARPAbet(ipa) string, then add rules to 
+/// nativize
+/// 
+/// Issue: Doesn't properly output vowels, could be with my logic here or
+/// how im accessing it through nativize.rs
+/// 
+/// # Arguments
+/// 
+/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `arpabet` - Contains the grapheme vector for the ARPAbet
+/// 
+/// # Returns
+/// 
+/// Returns `Some((phonemes, consumed))`
+pub fn handle_vowel(
+    ctx: &Context,
+    arpabet: &Vec<Grapheme>,
+) -> Option<(Vec<Phoneme>, usize)> {
+    let curr = ctx.current();
+    let idx = ctx.index;
+    let letter = arpabet.get(idx)?.to_lowercase();
+
+    match letter {
+        Grapheme::A => handle_arpa_a(arpabet, idx),
+        Grapheme::E => handle_arpa_e(arpabet, idx),
+        Grapheme::I => handle_arpa_i(arpabet, idx),
+        Grapheme::O => handle_arpa_o(arpabet, idx),
+        Grapheme::U => handle_arpa_u(arpabet, idx),
+        _ => None
+    }
+
+    // match letter {
+    //     Grapheme::ArpaAA | Grapheme::ArpaAO =>  Some((vec![Phoneme::O], 1)),
+    //     Grapheme::ArpaAE | Grapheme::ArpaAH => Some((vec![Phoneme::A], 1)),
+    //     Grapheme::ArpaAW => Some((vec![Phoneme::A, Phoneme::W], 1)),
+    //     Grapheme::ArpaAY => Some((vec![Phoneme::A, Phoneme::Y], 1)),
+    //     Grapheme::ArpaEH => Some((vec![Phoneme::E], 1)),
+    //     Grapheme::ArpaER => Some((vec![Phoneme::E, Phoneme::R], 1)),
+    //     Grapheme::ArpaEY => Some((vec![Phoneme::E, Phoneme::Y], 1)),
+    //     Grapheme::ArpaIH | Grapheme::ArpaIY => Some((vec![Phoneme::I], 1)),
+    //     Grapheme::ArpaOW => Some((vec![Phoneme::O], 1)),
+    //     Grapheme::ArpaOY => Some((vec![Phoneme::O, Phoneme::Y], 1)),
+    //     Grapheme::ArpaUH | Grapheme::ArpaUW => Some((vec![Phoneme::U], 1)),
+    //     _ => None
+    // }
+}
+
+/// Handle 'A' ARPAbet patterns
+/// (AA, AE, AH, AO, AW, AY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_a(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::E | Grapheme::H) = next {
+        return Some((vec![Phoneme::A], 1))
+    }
+
+    if let Some(Grapheme::O | Grapheme::A) = next {
+        return Some((vec![Phoneme::O], 1))
+    }
+
+    if let Some(Grapheme::W) = next {
+        return Some((vec![Phoneme::A, Phoneme::W], 1))
+    }
+
+    if let Some(Grapheme::Y) = next {
+        return Some((vec![Phoneme::A, Phoneme::Y], 1))
+    }
+
+    None
+}
+
+/// Handle 'E' ARPAbet patterns
+/// (EH, ER, EY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_e(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::H) = next {
+        return Some((vec![Phoneme::E], 1))
+    }
+
+    if let Some(Grapheme::R) = next {
+        return Some((vec![Phoneme::E, Phoneme::R], 1))
+    }
+
+    if let Some(Grapheme::Y) = next {
+        return Some((vec![Phoneme::E, Phoneme::Y], 1))
+    }
+
+    None
+}
+
+/// Handle 'I' ARPAbet patterns
+/// (IH, IY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_i(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::H | Grapheme::Y) = next {
+        return Some((vec![Phoneme::I], 1))
+    }
+
+    None
+}
+
+/// Handle 'O' ARPAbet patterns
+/// (OW, OY)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_o(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::W) = next {
+        return Some((vec![Phoneme::O], 1))
+    }
+
+    if let Some(Grapheme::Y) = next {
+        return Some((vec![Phoneme::O, Phoneme::Y], 1))
+    }
+
+    None
+}
+
+/// Handle 'U' ARPAbet patterns
+/// (UH, UW)
+/// 
+/// # Arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_arpa_u(arpabet: &Vec<Grapheme>, idx: usize) -> Option<(Vec<Phoneme>, usize)> {
+    let next = arpabet.get(idx+1);
+
+    if let Some(Grapheme::H | Grapheme::W) = next {
+        return Some((vec![Phoneme::U], 1))
+    }
+
+    // if let Some(Grapheme::W) = next {
+    //     return Some((vec![Phoneme::Y, Phoneme::U], 1))
+    // }
+
+    None
 }
 
 /// Handle duplicate graphemes

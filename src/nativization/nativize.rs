@@ -2,7 +2,7 @@ use crate::consts::NativizationConfig;
 use crate::nativization::context::Context;
 use crate::nativization::error::{ErrorTypes, NativizationError};
 use crate::nativization::replacement::{
-    free_replacement, letter_to_phonetic, sensitive_replacement,
+    free_replacement, letter_to_phonetic, sensitive_replacement, handle_vowel
 };
 use crate::nativization::vowel::handle_vowel;
 use crate::tokenization::graphemes::Grapheme;
@@ -161,9 +161,11 @@ impl Nativizer {
 
             // Handle vowels (special case)
             if curr.is_vowel() {
-                if let Some((vowel_repl, consumed)) = handle_vowel(&ctx) {}
-                ctx.index += 1;
-                continue;
+                if let Some((arpa, consumed)) = handle_vowel(&ctx, &ctx.ipa) {
+                    result.extend(arpa);
+                    ctx.index += consumed;
+                    continue;
+                }
             }
 
             // Context-sensitive replacement

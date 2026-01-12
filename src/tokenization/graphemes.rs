@@ -19,6 +19,23 @@ pub enum Grapheme {
     BigraphEe,
     BigraphOo,
 
+    //ArpaBet
+    ArpaAA,
+    ArpaAE,
+    ArpaAH,
+    ArpaAO,
+    ArpaAW,
+    ArpaAY,
+    ArpaEH,
+    ArpaER,
+    ArpaEY,
+    ArpaIH,
+    ArpaIY,
+    ArpaOW,
+    ArpaOY,
+    ArpaUH,
+    ArpaUW,
+
     // Vowels
     A,
     E,
@@ -102,6 +119,23 @@ impl Grapheme {
             Grapheme::BigraphSh => "sh".to_string(),
             Grapheme::BigraphEe => "ee".to_string(),
             Grapheme::BigraphOo => "oo".to_string(),
+
+            //ArpaBet
+            Grapheme::ArpaAA => "aa".to_string(),
+            Grapheme::ArpaAE => "ae".to_string(),
+            Grapheme::ArpaAH => "ah".to_string(),
+            Grapheme::ArpaAO => "ao".to_string(),
+            Grapheme::ArpaAW => "aw".to_string(),
+            Grapheme::ArpaAY => "ay".to_string(),
+            Grapheme::ArpaEH => "eh".to_string(),
+            Grapheme::ArpaER => "er".to_string(),
+            Grapheme::ArpaEY => "ey".to_string(),
+            Grapheme::ArpaIH => "ih".to_string(),
+            Grapheme::ArpaIY => "iy".to_string(),
+            Grapheme::ArpaOW => "ow".to_string(),
+            Grapheme::ArpaOY => "oy".to_string(),
+            Grapheme::ArpaUH => "uh".to_string(),
+            Grapheme::ArpaUW => "uw".to_string(),
 
             // Vowels
             Grapheme::A => "a".to_string(),
@@ -409,6 +443,24 @@ pub fn match_bigraph(s: &str) -> Option<Grapheme> {
         "sh" => Some(Grapheme::BigraphSh),
         "ee" => Some(Grapheme::BigraphEe),
         "oo" => Some(Grapheme::BigraphOo),
+
+        //ARPAbet
+        "aa" => Some(Grapheme::ArpaAA),
+        "ae" => Some(Grapheme::ArpaAE),
+        "ah" => Some(Grapheme::ArpaAH),
+        "ao" => Some(Grapheme::ArpaAO),
+        "aw" => Some(Grapheme::ArpaAW),
+        "ay" => Some(Grapheme::ArpaAY),
+        "eh" => Some(Grapheme::ArpaEH),
+        "er" => Some(Grapheme::ArpaER),
+        "ey" => Some(Grapheme::ArpaEY),
+        "ih" => Some(Grapheme::ArpaIH),
+        "iy" => Some(Grapheme::ArpaIY),
+        "ow" => Some(Grapheme::ArpaOW),
+        "oy" => Some(Grapheme::ArpaOY),
+        "uh" => Some(Grapheme::ArpaUH),
+        "uw" => Some(Grapheme::ArpaUW),
+
         _ => None,
     }
 }
