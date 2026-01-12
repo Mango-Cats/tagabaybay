@@ -4,7 +4,7 @@
 //! This checks whether the phonetic nativization follows the
 //! syllabification rules of Filipino.
 
-use crate::tokenization::phoneme::FilipinoGrapheme;
+use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 
 /// Check if a 6-phoneme sequence matches a `kkpkkk` pattern.
 ///

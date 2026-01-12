@@ -1,5 +1,5 @@
 use crate::nativization::context::Context;
-use crate::tokenization::phoneme::FilipinoGrapheme;
+use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 
 pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
@@ -23,7 +23,7 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 //     if let some(grapheme::t) = ctx.next() {
 //         if let some(grapheme::e) = ctx.lookahead(2) {
 //             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-//                 return some((vec![phoneme::e, phoneme::y, phoneme::t], 3));
+//                 return some((vec![phl_graphemes::e, phl_graphemes::y, phl_graphemes::t], 3));
 //             }
 //         }
 //     }
@@ -47,7 +47,7 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 
 //     // ei -> i (consume both e and i)
 //     match ctx.next() {
-//         some(grapheme::i) => some((vec![phoneme::i], 2)),
+//         some(grapheme::i) => some((vec![phl_graphemes::i], 2)),
 //         _ => none,
 //     }
 // }
@@ -66,17 +66,17 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 //     if let some(grapheme::d) = ctx.next() {
 //         if let some(grapheme::e) = ctx.lookahead(2) {
 //             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-//                 return some((vec![phoneme::a, phoneme::y, phoneme::d], 3));
+//                 return some((vec![phl_graphemes::a, phl_graphemes::y, phl_graphemes::d], 3));
 //             }
 //         }
 //     }
 
 //     // regular i + vowel patterns
 //     match ctx.next() {
-//         some(grapheme::a) => some((vec![phoneme::i, phoneme::y, phoneme::a], 2)),
-//         some(grapheme::e) => some((vec![phoneme::i, phoneme::y, phoneme::e], 2)),
-//         some(grapheme::o) => some((vec![phoneme::i, phoneme::y, phoneme::o], 2)),
-//         some(grapheme::u) => some((vec![phoneme::i, phoneme::y, phoneme::u], 2)),
+//         some(grapheme::a) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::a], 2)),
+//         some(grapheme::e) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::e], 2)),
+//         some(grapheme::o) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::o], 2)),
+//         some(grapheme::u) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::u], 2)),
 //         _ => none,
 //     }
 // }
@@ -95,7 +95,7 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 //     if let some(grapheme::n) = ctx.next() {
 //         if let some(grapheme::e) = ctx.lookahead(2) {
 //             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-//                 return some((vec![phoneme::o, phoneme::w, phoneme::n], 3));
+//                 return some((vec![phl_graphemes::o, phl_graphemes::w, phl_graphemes::n], 3));
 //             }
 //         }
 //     }
@@ -107,15 +107,15 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 //                 some(v) if v.is_vowel() => none,
 //                 _ => some((
 //                     vec![
-//                         phoneme::o,
-//                         phoneme::y,
+//                         phl_graphemes::o,
+//                         phl_graphemes::y,
 //                         match vowel {
-//                             grapheme::a => phoneme::a,
-//                             grapheme::e => phoneme::e,
-//                             grapheme::i => phoneme::i,
-//                             grapheme::o => phoneme::o,
-//                             grapheme::u => phoneme::u,
-//                             _ => phoneme::other,
+//                             grapheme::a => phl_graphemes::a,
+//                             grapheme::e => phl_graphemes::e,
+//                             grapheme::i => phl_graphemes::i,
+//                             grapheme::o => phl_graphemes::o,
+//                             grapheme::u => phl_graphemes::u,
+//                             _ => phl_graphemes::other,
 //                         },
 //                     ],
 //                     2,
@@ -137,13 +137,13 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 // /// returns `some((phonemes, consumed))` if a pattern matches, `none` otherwise.
 // fn handle_vowel_u(ctx: &context) -> option<(vec<phoneme>, usize)> {
 //     match ctx.next() {
-//         some(grapheme::a) => some((vec![phoneme::u, phoneme::w, phoneme::a], 2)),
-//         some(grapheme::e) => some((vec![phoneme::u, phoneme::w, phoneme::e], 2)),
-//         some(grapheme::i) => some((vec![phoneme::u, phoneme::w, phoneme::i], 2)),
-//         some(grapheme::o) => some((vec![phoneme::u, phoneme::w, phoneme::o], 2)),
-//         some(grapheme::u) => some((vec![phoneme::u, phoneme::w, phoneme::u], 2)),
+//         some(grapheme::a) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::a], 2)),
+//         some(grapheme::e) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::e], 2)),
+//         some(grapheme::i) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::i], 2)),
+//         some(grapheme::o) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::o], 2)),
+//         some(grapheme::u) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::u], 2)),
 //         _ => match ctx.prev() {
-//             some(grapheme::e) => some((vec![phoneme::y, phoneme::u], 1)),
+//             some(grapheme::e) => some((vec![phl_graphemes::y, phl_graphemes::u], 1)),
 //             _ => none,
 //         },
 //     }

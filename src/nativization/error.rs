@@ -1,4 +1,4 @@
-use crate::tokenization::graphemes::EnglishGrapheme;
+use crate::tokenization::eng_graphemes::EnglishGrapheme;
 use std::fmt;
 
 #[derive(Debug, Clone)]

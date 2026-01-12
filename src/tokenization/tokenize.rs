@@ -1,4 +1,4 @@
-use super::graphemes::{EnglishGrapheme, match_bigraph};
+use super::eng_graphemes::{EnglishGrapheme, match_bigraph};
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///

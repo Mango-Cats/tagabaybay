@@ -10,7 +10,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use tagabaybay::consts::NativizationConfig;
 use tagabaybay::nativization::nativize::Nativizer;
-use tagabaybay::tokenization::phoneme::phonemes_to_string;
+use tagabaybay::tokenization::phl_graphemes::phonemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
 const GOLD_COUNT: usize = 3;

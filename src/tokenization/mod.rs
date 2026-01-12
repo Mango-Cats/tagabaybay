@@ -1,4 +1,4 @@
 pub mod arpabet;
-pub mod graphemes;
-pub mod phoneme;
+pub mod eng_graphemes;
+pub mod phl_graphemes;
 pub mod tokenize;

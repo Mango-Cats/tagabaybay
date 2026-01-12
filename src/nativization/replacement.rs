@@ -2,8 +2,8 @@ use std::vec;
 
 use super::context::Context;
 use crate::consts::NativizationConfig;
-use crate::tokenization::graphemes::EnglishGrapheme;
-use crate::tokenization::phoneme::FilipinoGrapheme;
+use crate::tokenization::eng_graphemes::EnglishGrapheme;
+use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 
 /// Convert an input grapheme to output phoneme(s) - context-free replacements
 ///

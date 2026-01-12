@@ -4,8 +4,8 @@ use crate::nativization::error::{ErrorTypes, NativizationError};
 use crate::nativization::replacement::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
-use crate::tokenization::graphemes::EnglishGrapheme;
-use crate::tokenization::phoneme::FilipinoGrapheme;
+use crate::tokenization::eng_graphemes::EnglishGrapheme;
+use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 
 /// Builder for nativization with customizable configuration
 ///
@@ -17,7 +17,7 @@ use crate::tokenization::phoneme::FilipinoGrapheme;
 ///
 /// ```
 /// use tagabaybay::nativization::nativize::Nativizer;
-/// use tagabaybay::tokenization::phoneme::phonemes_to_string;
+/// use tagabaybay::tokenization::phl_graphemes::phonemes_to_string;
 ///
 /// let nativizer = Nativizer::new();
 /// let result = nativizer.nativize("chocolate").unwrap();

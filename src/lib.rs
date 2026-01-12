@@ -14,7 +14,7 @@
 //!
 //! ```
 //! use tagabaybay::nativization::nativize::Nativizer;
-//! use tagabaybay::tokenization::phoneme::phonemes_to_string;
+//! use tagabaybay::tokenization::phl_graphemes::phonemes_to_string;
 //!
 //! let nativizer = Nativizer::new();
 //! let result = nativizer.nativize("chocolate").unwrap();

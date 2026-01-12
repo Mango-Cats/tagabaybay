@@ -1,5 +1,5 @@
 use tagabaybay::syllabification::filipino_syllable_patterns::*;
-use tagabaybay::tokenization::phoneme::FilipinoGrapheme;
+use tagabaybay::tokenization::phl_graphemes::FilipinoGrapheme;
 
 #[test]
 fn test_match_1_syllable_vowel() {

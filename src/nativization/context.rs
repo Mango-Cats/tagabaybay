@@ -1,7 +1,7 @@
 use crate::consts::NativizationConfig;
 use crate::g2p::phonemize;
 use crate::nativization::error::ErrorTypes;
-use crate::tokenization::graphemes::EnglishGrapheme;
+use crate::tokenization::eng_graphemes::EnglishGrapheme;
 use crate::tokenization::tokenize::tokenize;
 
 /// Helper struct for accessing grapheme context during pattern matching
