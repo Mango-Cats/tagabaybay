@@ -25,18 +25,18 @@ pub fn free_replacement(ctx: &Context, config: &NativizationConfig) -> Option<(P
 
     match g {
         // Bigraph replacements (bigraphs count as 1 grapheme)
-        Grapheme::BigraphPh => Some((Phoneme::F, 1)),
-        Grapheme::BigraphPs => Some((Phoneme::S, 1)),
-        Grapheme::BigraphTh => Some((Phoneme::T, 1)),
-        Grapheme::BigraphSh => {
+        Grapheme::PH => Some((Phoneme::F, 1)),
+        Grapheme::PS => Some((Phoneme::S, 1)),
+        Grapheme::TH => Some((Phoneme::T, 1)),
+        Grapheme::SH => {
             if config.allow_sh_sound {
                 Some((Phoneme::SH, 1))
             } else {
                 Some((Phoneme::S, 1))
             }
         }
-        Grapheme::BigraphEe => Some((Phoneme::I, 1)),
-        Grapheme::BigraphOo => Some((Phoneme::U, 1)),
+        Grapheme::EE => Some((Phoneme::I, 1)),
+        Grapheme::OO => Some((Phoneme::U, 1)),
 
         // Consonants
         Grapheme::B => Some((Phoneme::B, 1)),
@@ -73,7 +73,7 @@ pub fn free_replacement(ctx: &Context, config: &NativizationConfig) -> Option<(P
         Grapheme::Passthrough(c) => Some((Phoneme::Passthrough(c.to_string()), 1)),
 
         // Context-sensitive letters (handled in sensitive_replacement)
-        Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::BigraphCh => None,
+        Grapheme::C | Grapheme::J | Grapheme::Q | Grapheme::X | Grapheme::CH => None,
 
         // Other characters (pass through as-is)
         Grapheme::Other => Some((Phoneme::Other, 1)),
@@ -164,9 +164,7 @@ fn sensitive_consonant(
 fn handle_consonant_c(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match ctx.lookahead(1) {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => {
-            Some((vec![Phoneme::S], 1))
-        }
+        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::EE) => Some((vec![Phoneme::S], 1)),
         // default: 'k'
         _ => Some((vec![Phoneme::K], 1)),
     }
@@ -273,7 +271,7 @@ fn handle_consonant_d(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match ctx.next() {
-        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::BigraphEe) => {
+        Some(Grapheme::E | Grapheme::I | Grapheme::Y | Grapheme::EE) => {
             // Check if NOT followed by s/c/k
             match ctx.lookahead(2) {
                 Some(Grapheme::S | Grapheme::C | Grapheme::K) => None,
@@ -306,12 +304,10 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
 /// Returns `Some((phonemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_s(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     match (ctx.prev(), ctx.next()) {
-        (Some(Grapheme::BigraphEe | Grapheme::BigraphOo), Some(Grapheme::E)) => {
-            match ctx.lookahead(2) {
-                Some(Grapheme::B | Grapheme::D) => Some((vec![Phoneme::S], 2)),
-                _ => None,
-            }
-        }
+        (Some(Grapheme::EE | Grapheme::OO), Some(Grapheme::E)) => match ctx.lookahead(2) {
+            Some(Grapheme::B | Grapheme::D) => Some((vec![Phoneme::S], 2)),
+            _ => None,
+        },
         _ => None,
     }
 }
@@ -330,7 +326,7 @@ fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<Phoneme>, usize)> {
     let next = ctx.next();
 
     match curr {
-        Grapheme::BigraphCh => {
+        Grapheme::CH => {
             if let Some(next) = next {
                 if next.is_consonant() {
                     return Some((vec![Phoneme::K], 1));

@@ -11,13 +11,13 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Grapheme {
     // Bigraphs (English spelling patterns)
-    BigraphPh,
-    BigraphPs,
-    BigraphCh,
-    BigraphTh,
-    BigraphSh,
-    BigraphEe,
-    BigraphOo,
+    PH,
+    PS,
+    CH,
+    TH,
+    SH,
+    EE,
+    OO,
 
     //ArpaBet
     ArpaAA,
@@ -112,13 +112,13 @@ impl Grapheme {
     pub fn as_str(&self) -> String {
         match self {
             // Bigraphs
-            Grapheme::BigraphPh => "ph".to_string(),
-            Grapheme::BigraphPs => "ps".to_string(),
-            Grapheme::BigraphCh => "ch".to_string(),
-            Grapheme::BigraphTh => "th".to_string(),
-            Grapheme::BigraphSh => "sh".to_string(),
-            Grapheme::BigraphEe => "ee".to_string(),
-            Grapheme::BigraphOo => "oo".to_string(),
+            Grapheme::PH => "ph".to_string(),
+            Grapheme::PS => "ps".to_string(),
+            Grapheme::CH => "ch".to_string(),
+            Grapheme::TH => "th".to_string(),
+            Grapheme::SH => "sh".to_string(),
+            Grapheme::EE => "ee".to_string(),
+            Grapheme::OO => "oo".to_string(),
 
             //ArpaBet
             Grapheme::ArpaAA => "aa".to_string(),
@@ -284,8 +284,8 @@ impl Grapheme {
                 | Grapheme::I
                 | Grapheme::O
                 | Grapheme::U
-                | Grapheme::BigraphEe
-                | Grapheme::BigraphOo
+                | Grapheme::EE
+                | Grapheme::OO
         )
     }
 
@@ -293,13 +293,13 @@ impl Grapheme {
     pub fn is_bigraph(&self) -> bool {
         matches!(
             self,
-            Grapheme::BigraphPh
-                | Grapheme::BigraphPs
-                | Grapheme::BigraphCh
-                | Grapheme::BigraphTh
-                | Grapheme::BigraphSh
-                | Grapheme::BigraphEe
-                | Grapheme::BigraphOo
+            Grapheme::PH
+                | Grapheme::PS
+                | Grapheme::CH
+                | Grapheme::TH
+                | Grapheme::SH
+                | Grapheme::EE
+                | Grapheme::OO
         )
     }
 
@@ -329,11 +329,11 @@ impl Grapheme {
                 | Grapheme::Y
                 | Grapheme::Z
                 | Grapheme::Enye
-                | Grapheme::BigraphPh
-                | Grapheme::BigraphPs
-                | Grapheme::BigraphCh
-                | Grapheme::BigraphTh
-                | Grapheme::BigraphSh
+                | Grapheme::PH
+                | Grapheme::PS
+                | Grapheme::CH
+                | Grapheme::TH
+                | Grapheme::SH
         )
     }
 
@@ -437,12 +437,12 @@ impl Grapheme {
 /// Returns `None` if no match is found.
 pub fn match_bigraph(s: &str) -> Option<Grapheme> {
     match s.to_lowercase().as_str() {
-        "ph" => Some(Grapheme::BigraphPh),
-        "ch" => Some(Grapheme::BigraphCh),
-        "th" => Some(Grapheme::BigraphTh),
-        "sh" => Some(Grapheme::BigraphSh),
-        "ee" => Some(Grapheme::BigraphEe),
-        "oo" => Some(Grapheme::BigraphOo),
+        "ph" => Some(Grapheme::PH),
+        "ch" => Some(Grapheme::CH),
+        "th" => Some(Grapheme::TH),
+        "sh" => Some(Grapheme::SH),
+        "ee" => Some(Grapheme::EE),
+        "oo" => Some(Grapheme::OO),
 
         //ARPAbet
         "aa" => Some(Grapheme::ArpaAA),
