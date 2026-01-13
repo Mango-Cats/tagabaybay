@@ -59,7 +59,7 @@ impl NativizationConfig {
 
     /// Enable 'sh' sound preservation (builder pattern)
     ///
-    /// When enabled, "sh" bigraphs are kept as "sh" sound. Otherwise,
+    /// When enabled, "sh" digraphs are kept as "sh" sound. Otherwise,
     /// they're converted to "s" (e.g., "ship" → "sip" vs "ship").
     ///
     /// # Arguments

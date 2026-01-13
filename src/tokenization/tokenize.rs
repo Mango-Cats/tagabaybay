@@ -1,9 +1,9 @@
-use super::eng_graphemes::{EnglishGrapheme, match_bigraph};
+use super::eng_graphemes::{EnglishGrapheme, match_digraph};
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///
 /// Converts a string into a sequence of graphemes, recognizing special
-/// bigraphs like "ph", "ch", "th", etc.
+/// digraphs like "ph", "ch", "th", etc.
 ///
 /// # Arguments
 ///
@@ -18,10 +18,10 @@ pub fn tokenize(input: &str) -> Vec<EnglishGrapheme> {
     let mut i = 0;
 
     while i < chars.len() {
-        // Check bigraphs first (2 characters)
+        // Check digraphs first (2 characters)
         if i + 2 <= chars.len() {
-            let bi: String = chars[i..i + 2].iter().collect();
-            if let Some(g) = match_bigraph(&bi) {
+            let substring_2: String = chars[i..i + 2].iter().collect();
+            if let Some(g) = match_digraph(&substring_2) {
                 result.push(g);
                 i += 2;
                 continue;

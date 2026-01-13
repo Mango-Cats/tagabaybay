@@ -112,8 +112,8 @@ pub fn sensitive_replacement(
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
-    if curr.is_bigraph() {
-        sensitive_bigraph(&ctx)
+    if curr.is_digraph() {
+        sensitive_digraph(&ctx)
     } else if curr.is_consonant() {
         sensitive_consonant(&ctx, config)
     } else {
@@ -334,7 +334,7 @@ fn handle_consonant_s(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// Bigraph-specific context-sensitive rules
+/// digraph-specific context-sensitive rules
 ///
 /// # Arguments
 ///
@@ -343,7 +343,7 @@ fn handle_consonant_s(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((phonemes, consumed))` if a rule matches, `None` otherwise.
-fn sensitive_bigraph(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn sensitive_digraph(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
     let next = ctx.next();
 

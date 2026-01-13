@@ -1,4 +1,5 @@
 use crate::nativization::context::Context;
+use crate::tokenization::eng_graphemes::EnglishGrapheme;
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 
 pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
@@ -9,142 +10,226 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     None
 }
 
-// /// handle 'a' vowel patterns
-// ///
-// /// # arguments
-// ///
-// /// * `ctx` - context containing the grapheme sequence and current position
-// ///
-// /// # returns
-// ///
-// /// returns `some((phonemes, consumed))` if a pattern matches, `none` otherwise.
-// fn handle_vowel_a(ctx: &context) -> option<(vec<phoneme>, usize)> {
-//     // check for "ate" pattern (a-t-e at end) → "eyt"
-//     if let some(grapheme::t) = ctx.next() {
-//         if let some(grapheme::e) = ctx.lookahead(2) {
-//             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-//                 return some((vec![phl_graphemes::e, phl_graphemes::y, phl_graphemes::t], 3));
-//             }
-//         }
-//     }
-//     none
-// }
+/// handle 'a' vowel patterns
+///
+/// # arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # returns
+///
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_a(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // check for "ate" pattern (a-t-e at end) → "eyt"
+    if let Some(EnglishGrapheme::T) = ctx.next() {
+        if let Some(EnglishGrapheme::E) = ctx.lookahead(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::E,
+                        FilipinoGrapheme::Y,
+                        FilipinoGrapheme::T,
+                    ],
+                    3,
+                ));
+            }
+        }
+    }
+    None
+}
 
-// /// handle 'e' vowel patterns
-// ///
-// /// # arguments
-// ///
-// /// * `ctx` - context containing the grapheme sequence and current position
-// ///
-// /// # returns
-// ///
-// /// returns `some((phonemes, consumed))` if a pattern matches, `none` otherwise.
-// fn handle_vowel_e(ctx: &context) -> option<(vec<phoneme>, usize)> {
-//     // remove trailing 'e'
-//     if ctx.at_end() {
-//         return some((vec![], 1));
-//     }
+/// handle 'e' vowel patterns
+///
+/// # arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # returns
+///
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_e(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // remove trailing 'e'
+    if ctx.at_end() {
+        return Some((vec![], 1));
+    }
 
-//     // ei -> i (consume both e and i)
-//     match ctx.next() {
-//         some(grapheme::i) => some((vec![phl_graphemes::i], 2)),
-//         _ => none,
-//     }
-// }
+    // ei -> i (consume both e and i)
+    match ctx.next() {
+        Some(EnglishGrapheme::I) => Some((vec![FilipinoGrapheme::I], 2)),
+        _ => None,
+    }
+}
 
-// /// handle 'i' vowel patterns
-// ///
-// /// # arguments
-// ///
-// /// * `ctx` - context containing the grapheme sequence and current position
-// ///
-// /// # returns
-// ///
-// /// returns `some((phonemes, consumed))` if a pattern matches, `none` otherwise.
-// fn handle_vowel_i(ctx: &context) -> option<(vec<phoneme>, usize)> {
-//     // check for "ide" pattern (i-d-e at end) → "ayd"
-//     if let some(grapheme::d) = ctx.next() {
-//         if let some(grapheme::e) = ctx.lookahead(2) {
-//             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-//                 return some((vec![phl_graphemes::a, phl_graphemes::y, phl_graphemes::d], 3));
-//             }
-//         }
-//     }
+/// handle 'i' vowel patterns
+///
+/// # arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # returns
+///
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_i(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // check for "ide" pattern (i-d-e at end) → "ayd"
+    if let Some(EnglishGrapheme::D) = ctx.next() {
+        if let Some(EnglishGrapheme::E) = ctx.lookahead(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::A,
+                        FilipinoGrapheme::Y,
+                        FilipinoGrapheme::D,
+                    ],
+                    3,
+                ));
+            }
+        }
+    }
 
-//     // regular i + vowel patterns
-//     match ctx.next() {
-//         some(grapheme::a) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::a], 2)),
-//         some(grapheme::e) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::e], 2)),
-//         some(grapheme::o) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::o], 2)),
-//         some(grapheme::u) => some((vec![phl_graphemes::i, phl_graphemes::y, phl_graphemes::u], 2)),
-//         _ => none,
-//     }
-// }
+    // regular i + vowel patterns
+    match ctx.next() {
+        Some(EnglishGrapheme::A) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::A,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::E) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::E,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::O) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::O,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::U) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::U,
+            ],
+            2,
+        )),
+        _ => None,
+    }
+}
 
-// /// handle 'o' vowel patterns
-// ///
-// /// # arguments
-// ///
-// /// * `ctx` - context containing the grapheme sequence and current position
-// ///
-// /// # returns
-// ///
-// /// returns `some((phonemes, consumed))` if a pattern matches, `none` otherwise.
-// fn handle_vowel_o(ctx: &context) -> option<(vec<phoneme>, usize)> {
-//     // check for "one" pattern (o-n-e at end) → "own"
-//     if let some(grapheme::n) = ctx.next() {
-//         if let some(grapheme::e) = ctx.lookahead(2) {
-//             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-//                 return some((vec![phl_graphemes::o, phl_graphemes::w, phl_graphemes::n], 3));
-//             }
-//         }
-//     }
+/// handle 'o' vowel patterns
+///
+/// # arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # returns
+///
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_o(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // check for "one" pattern (o-n-e at end) → "own"
+    if let Some(EnglishGrapheme::N) = ctx.next() {
+        if let Some(EnglishGrapheme::E) = ctx.lookahead(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::O,
+                        FilipinoGrapheme::W,
+                        FilipinoGrapheme::N,
+                    ],
+                    3,
+                ));
+            }
+        }
+    }
 
-//     match ctx.next() {
-//         some(vowel) if vowel.is_vowel() => {
-//             // o + vowel -> oy + vowel (unless next is also a vowel)
-//             match ctx.lookahead(2) {
-//                 some(v) if v.is_vowel() => none,
-//                 _ => some((
-//                     vec![
-//                         phl_graphemes::o,
-//                         phl_graphemes::y,
-//                         match vowel {
-//                             grapheme::a => phl_graphemes::a,
-//                             grapheme::e => phl_graphemes::e,
-//                             grapheme::i => phl_graphemes::i,
-//                             grapheme::o => phl_graphemes::o,
-//                             grapheme::u => phl_graphemes::u,
-//                             _ => phl_graphemes::other,
-//                         },
-//                     ],
-//                     2,
-//                 )),
-//             }
-//         }
-//         _ => none,
-//     }
-// }
+    match ctx.next() {
+        Some(vowel) if vowel.is_vowel() => {
+            // o + vowel -> oy + vowel (unless next is also a vowel)
+            match ctx.lookahead(2) {
+                Some(v) if v.is_vowel() => None,
+                _ => Some((
+                    vec![
+                        FilipinoGrapheme::O,
+                        FilipinoGrapheme::Y,
+                        match vowel {
+                            EnglishGrapheme::A => FilipinoGrapheme::A,
+                            EnglishGrapheme::E => FilipinoGrapheme::E,
+                            EnglishGrapheme::I => FilipinoGrapheme::I,
+                            EnglishGrapheme::O => FilipinoGrapheme::O,
+                            EnglishGrapheme::U => FilipinoGrapheme::U,
+                            _ => FilipinoGrapheme::Other,
+                        },
+                    ],
+                    2,
+                )),
+            }
+        }
+        _ => None,
+    }
+}
 
-// /// handle 'u' vowel patterns
-// ///
-// /// # arguments
-// ///
-// /// * `ctx` - context containing the grapheme sequence and current position
-// ///
-// /// # returns
-// ///
-// /// returns `some((phonemes, consumed))` if a pattern matches, `none` otherwise.
-// fn handle_vowel_u(ctx: &context) -> option<(vec<phoneme>, usize)> {
-//     match ctx.next() {
-//         some(grapheme::a) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::a], 2)),
-//         some(grapheme::e) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::e], 2)),
-//         some(grapheme::i) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::i], 2)),
-//         some(grapheme::o) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::o], 2)),
-//         some(grapheme::u) => some((vec![phl_graphemes::u, phl_graphemes::w, phl_graphemes::u], 2)),
-//         _ => match ctx.prev() {
-//             some(grapheme::e) => some((vec![phl_graphemes::y, phl_graphemes::u], 1)),
-//             _ => none,
-//         },
-//     }
-// }
+/// handle 'u' vowel patterns
+///
+/// # arguments
+///
+/// * `ctx` - Context containing the grapheme sequence and current position
+///
+/// # returns
+///
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_u(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    match ctx.next() {
+        Some(EnglishGrapheme::A) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::A,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::E) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::E,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::I) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::I,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::O) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::O,
+            ],
+            2,
+        )),
+        Some(EnglishGrapheme::U) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::U,
+            ],
+            2,
+        )),
+        _ => match ctx.prev() {
+            Some(EnglishGrapheme::E) => Some((vec![FilipinoGrapheme::Y, FilipinoGrapheme::U], 1)),
+            _ => None,
+        },
+    }
+}

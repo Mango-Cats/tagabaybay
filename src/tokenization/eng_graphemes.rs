@@ -3,14 +3,14 @@
 /// A grapheme is a unit of written language. This enum captures the patterns
 /// we recognize when tokenizing English text, including:
 /// - Single letters (a, b, c, ...)
-/// - Bigraphs (ph, ch, th, sh, ...)
+/// - Digraphs (ph, ch, th, sh, ...)
 /// - Uppercase variants (for abbreviation detection)
 /// - Special characters (spaces, punctuation, etc.)
 ///
 /// Each variant can be converted back to its string form using `as_str()`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EnglishGrapheme {
-    // Bigraphs (English spelling patterns)
+    // Digraphs (English spelling patterns)
     PH,
     PS,
     CH,
@@ -94,7 +94,7 @@ impl EnglishGrapheme {
     /// Convert the grapheme back to its original string representation
     pub fn as_str(&self) -> String {
         match self {
-            // Bigraphs
+            // Digraphs
             EnglishGrapheme::PH => "ph".to_string(),
             EnglishGrapheme::PS => "ps".to_string(),
             EnglishGrapheme::CH => "ch".to_string(),
@@ -255,8 +255,8 @@ impl EnglishGrapheme {
         )
     }
 
-    /// Check if this grapheme represents a bigraph
-    pub fn is_bigraph(&self) -> bool {
+    /// Check if this grapheme represents a digraph
+    pub fn is_digraph(&self) -> bool {
         matches!(
             self,
             EnglishGrapheme::PH
@@ -390,9 +390,9 @@ impl EnglishGrapheme {
 //     }
 // }
 
-/// Match a 2-character string to a bigraph grapheme
+/// Match a 2-character string to a digraph grapheme
 ///
-/// Recognizes common English bigraphs (two-letter combinations that represent
+/// Recognizes common English digraphs (two-letter combinations that represent
 /// a single sound or pattern).
 ///
 /// # Arguments
@@ -401,9 +401,9 @@ impl EnglishGrapheme {
 ///
 /// # Returns
 ///
-/// Returns `Some(EnglishGrapheme)` if the string matches a known bigraph.
+/// Returns `Some(EnglishGrapheme)` if the string matches a known digraph.
 /// Returns `None` if no match is found.
-pub fn match_bigraph(s: &str) -> Option<EnglishGrapheme> {
+pub fn match_digraph(s: &str) -> Option<EnglishGrapheme> {
     match s.to_lowercase().as_str() {
         "ph" => Some(EnglishGrapheme::PH),
         "ch" => Some(EnglishGrapheme::CH),

@@ -1,6 +1,7 @@
 # ᜆᜄᜊᜌ᜔ᜊᜌ᜔ / TagaBaybay 
 
-A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
+A loanword adaptation algorithm for Filipino loanwords. 
+Written in Rust.
 
 ## Project Team
 
@@ -21,10 +22,9 @@ A phonetic nativization algorithm for Filipino loanwords. Written in Rust.
 
 ## Motivation
 
-Working in NLP in the Philippine context is challenging due to
-the multilingual nature of Filipinos and their frequent tendency to 
-code-switch and borrow. Code-switching can occur through direct
-translation, for example:
+**Code-switching**, refers to the alternation between two 
+or more languages within a single utterance. For example, 
+we can use the loanword *directly*, as in:
 
 ```
     Pupunta  ako  sa   paaralan  mamaya
@@ -33,8 +33,8 @@ translation, for example:
     "I will go to school later"
 ```
 
-Alternatively, code-switching can involve the phonetic nativization of
-loanwords, as in:
+Or, *adapt the loanword* using the Phonetics of the first 
+language (which, in this case, is Filipino).
 
 ```
     Pakuha    nga  'yung  selpon     ko
@@ -43,27 +43,48 @@ loanwords, as in:
     "(Please) get my cellphone"
 ```
 
-Although there are linguistic descriptions and rules for phonetic nativization
-`[1]`, there is currently no software capable of automatically generating phonetic
-nativizations of English loanwords. This gap limits Taglish language processing,
-downstream NLP tasks, and broader computational work involving Philippine languages. 
+Despite its prevalence in everyday communication, relatively little
+attention has been given to NLP methodologies that operate on
+code-switched inputs. One central challenge in processing 
+code-switched Filipino speech is **loanword adaptation**: the 
+transformation of foreign lexical items into phonetic forms that 
+conform to Filipino pronunciation patterns. Loanword adaptation is 
+essential for speech-centered Filipino NLP tasks, including 
+text-to-speech synthesis and speech confusibility modeling.
+
+From a computational perspective, loanword adaptation can be viewed 
+as a transduction pipeline:
+$$
+    \Sigma_s^* \mapsto \Phi_s^* \mapsto \Phi_F^* \mapsto \Sigma_F^*
+$$
+Where:
+	$\Sigma_s$ is the orthographic alphabet of the source language 
+    S.
+	$\Phi_s$ is the phoneme inventory of S.
+	$\Phi_F$ is the phoneme inventory of Filipino F.
+	$\Sigma_F$ is the orthographic alphabet of F.
+
+The mapping $\Sigma_s^* \mapsto \Phi_s^*$ is G2P in $S$. In the 
+context of Filipino loanword adaptation, since the source language 
+is usually English, Spanish, or Chinese, this is a surjection due 
+to homophones. The mapping $\Phi_s^* \mapsto \Phi_F^*$ is the core 
+loanword adaptation function. The final mapping  $\Phi_F^* \mapsto 
+\Sigma_F^*$ is an optional P2G function step that renders the 
+adapted phoneme sequence in Filipino orthography.
+
+While G2P and P2G modeling have been extensively studied, 
+computational approaches to the phonological loanword adaptation 
+step remain comparatively underexplored, particularly in the 
+context of code-switched speech.
 
 ## Algorithm
 
-Our approach treats the process of phonetic nativization as a mapping, specifically
-a rule-based procedural rewrite system. For an input word $w$ in the English language
-$\mathcal{E}$, the function $M$ maps $w$ to $M(w) \in \mathcal{F}$, where $M(w)$
-represents the phonetic nativization of $w$. Formally, 
-$M: \mathcal{E} \mapsto\mathcal{F}$.
+> For more information, see [`docs/algorithm`](docs/algorithm.md).
 
-In practice, however, phonetic nativization is not strictly bijective. A single
-$w$ may correspond to multiple plausible candidates for $M(w)$, depending on
-factors such as speaker accent, exposure to the source language, or minor
-differences in the original pronunciation. To resolve this ambiguity, we rely on
-the resources in `[1]` as the authoritative reference for the final mapping.
-
-Moreover, most rules for phonetic nativization are context-sensitive, relying
-on surrounding graphemes or symbols to determine the appropriate phoneme output.
+Our approach treats the process of loanword adaptation as a 
+mapping, specifically a procedural rule-based rewrite system. For 
+an input word $\omega$ in the source language $L_1$, the 
+algorithm $A$ maps $\omega$ to $A(\omega) \in \Sigma_F^*$.
 
 ### Implementation
 
@@ -73,16 +94,17 @@ The Algorithm is implemented in the Rust programming language.
 
 The Algorithm is compared against gold standards.
 
-See the [`gold/`](gold/) directory and its corresponding [`README`](gold/README.md)
-for details.
+See the [`gold/`](gold/) directory and its corresponding [`README`]
+(gold/README.md) for details.
 
 ### Legacy
 
-This project was initially a final course project by Clarence, Zhean, Roan, and
-Clive for Nathaniel's Natural Language Processing class at De La Salle University.
+This project was initially a final course project by Clarence, 
+Zhean, Roan, and Clive for Nathaniel Oco's Natural Language 
+Processing class at De La Salle University.
 
-See the [`legacy/`](legacy/) directory and its corresponding [`README`](legacy/README)
-for details.
+See the [`legacy/`](legacy/) directory and its corresponding 
+[`README`](legacy/README) for details.
 
 ## License
 
@@ -109,4 +131,6 @@ Also see [`CITATION.cff`](/CITATION.cff).
 
 ## Bibliography
 
-`[1]` Virgilio S. Almario (Ed.). 2014. KWF Manwal sa Masinop na Pagsulat. Komisyon sa Wikang Filipino, Quezon City.
+1. Komisyon sa Wikang Filipino ed. 2015. KWF manwal sa masinop na pagsulat. Komisyon sa Wikang Filipino.
+1. Christian Uffmann 2015. Loanword Adaptation. The Oxford Handbook of Historical Phonology. Patrick Honeybone and Joseph Salmons, eds. Oxford University Press. 644–666.
+1. Lingshuang Mao and Mans Hulden How Regular is Japanese Loanword Adaptation? A Computational Study.
