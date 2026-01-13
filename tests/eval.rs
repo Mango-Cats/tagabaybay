@@ -8,8 +8,8 @@
 use chrono::Local;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
-use tagabaybay::consts::NativizationConfig;
-use tagabaybay::nativization::nativize::Nativizer;
+use tagabaybay::consts::AdaptationConfig;
+use tagabaybay::adaptation::adaptation::Adapter;
 use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
@@ -40,8 +40,8 @@ struct EvalReport {
 fn evaluate_csv(path: &str) -> EvalReport {
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
-    let nativizer = Nativizer::new();
-    let config = NativizationConfig::new();
+    let adapter = Adapter::new();
+    let config = AdaptationConfig::new();
 
     let mut results: Vec<TestResult> = Vec::new();
 
@@ -58,8 +58,8 @@ fn evaluate_csv(path: &str) -> EvalReport {
 
         let input = parts[0].trim();
         let expected = parts[1].trim();
-        let actual = nativizer
-            .nativize(input, &config)
+        let actual = adapter
+            .adaptation(input, &config)
             .map(|phl_graphemes| phl_graphemes_to_string(&phl_graphemes))
             .unwrap_or_default();
 

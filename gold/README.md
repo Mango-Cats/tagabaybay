@@ -2,7 +2,7 @@
 
 This directory contains gold standards for validating the accuracy of
 TagaBaybay. The directory contains gold standards ranging from general
-English words to specific domains where phonetic nativization commonly
+English words to specific domains where phonetic adaptation commonly
 occurs.
 
 ## Construction

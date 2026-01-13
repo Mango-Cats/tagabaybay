@@ -36,8 +36,7 @@ authors:
     affiliation: De La Salle University
 repository-code: 'https://github.com/Mango-Cats/tagabaybay/'
 abstract: >-
-  A phonetic nativization algorithm for Filipino loanwords.
-  Written in Rust.
+  A loanword adaptation algorithm for Filipino.
 keywords:
   - Rust
   - Context-Free Grammars

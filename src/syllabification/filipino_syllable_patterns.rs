@@ -1,7 +1,7 @@
 //! Syllabification layer for Filipino.
 //!
-//! These functions perform the post-nativization validation layer.
-//! This checks whether the phonetic nativization follows the
+//! These functions perform the post-adaptation validation layer.
+//! This checks whether the phonetic adaptation follows the
 //! syllabification rules of Filipino.
 
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
@@ -226,36 +226,36 @@ pub fn match_1_syllable(string: Vec<FilipinoGrapheme>) -> bool {
 ///
 /// # Arguments
 ///
-/// * `nativized` - A vector of Filipino graphemes to validate
+/// * `adapted` - A vector of Filipino graphemes to validate
 ///
 /// # Returns
 ///
 /// Returns `true` if the entire sequence can be segmented into valid syllable patterns
 /// using a greedy approach, `false` otherwise.
-pub fn validate_filipino_syllables_greedy(nativized: Vec<FilipinoGrapheme>) -> bool {
+pub fn validate_filipino_syllables_greedy(adapted: Vec<FilipinoGrapheme>) -> bool {
     let mut i = 0;
 
-    while i < nativized.len() {
-        let remaining = nativized.len() - i;
+    while i < adapted.len() {
+        let remaining = adapted.len() - i;
         let mut matched = false;
 
         // Try to match the longest syllable pattern possible
-        if remaining >= 6 && match_6_syllable(nativized[i..i + 6].to_vec()) {
+        if remaining >= 6 && match_6_syllable(adapted[i..i + 6].to_vec()) {
             i += 6;
             matched = true;
-        } else if remaining >= 5 && match_5_syllable(nativized[i..i + 5].to_vec()) {
+        } else if remaining >= 5 && match_5_syllable(adapted[i..i + 5].to_vec()) {
             i += 5;
             matched = true;
-        } else if remaining >= 4 && match_4_syllable(nativized[i..i + 4].to_vec()) {
+        } else if remaining >= 4 && match_4_syllable(adapted[i..i + 4].to_vec()) {
             i += 4;
             matched = true;
-        } else if remaining >= 3 && match_3_syllable(nativized[i..i + 3].to_vec()) {
+        } else if remaining >= 3 && match_3_syllable(adapted[i..i + 3].to_vec()) {
             i += 3;
             matched = true;
-        } else if remaining >= 2 && match_2_syllable(nativized[i..i + 2].to_vec()) {
+        } else if remaining >= 2 && match_2_syllable(adapted[i..i + 2].to_vec()) {
             i += 2;
             matched = true;
-        } else if remaining >= 1 && match_1_syllable(nativized[i..i + 1].to_vec()) {
+        } else if remaining >= 1 && match_1_syllable(adapted[i..i + 1].to_vec()) {
             i += 1;
             matched = true;
         }
@@ -284,14 +284,14 @@ pub fn validate_filipino_syllables_greedy(nativized: Vec<FilipinoGrapheme>) -> b
 ///
 /// # Arguments
 ///
-/// * `nativized` - A vector of Filipino graphemes to validate
+/// * `adapted` - A vector of Filipino graphemes to validate
 ///
 /// # Returns
 ///
 /// Returns `true` if the entire sequence can be segmented into valid syllable patterns,
 /// `false` otherwise.
-pub fn validate_filipino_syllables_dp(nativized: Vec<FilipinoGrapheme>) -> bool {
-    let n = nativized.len();
+pub fn validate_filipino_syllables_dp(adapted: Vec<FilipinoGrapheme>) -> bool {
+    let n = adapted.len();
     if n == 0 {
         return true;
     }
@@ -308,7 +308,7 @@ pub fn validate_filipino_syllables_dp(nativized: Vec<FilipinoGrapheme>) -> bool 
 
             // Check if prefix [0..i-len] is valid and current syllable [i-len..i] matches
             if dp[i - len] {
-                let syllable = nativized[i - len..i].to_vec();
+                let syllable = adapted[i - len..i].to_vec();
 
                 let is_valid = match len {
                     6 => match_6_syllable(syllable),

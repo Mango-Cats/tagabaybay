@@ -3,7 +3,7 @@ use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum ErrorTypes {
-    Nativization(NativizationError),
+    Adaptation(AdaptationError),
     Phonetization(PhonetizationError),
 }
 
@@ -19,7 +19,7 @@ pub struct PhonetizationError {
 }
 
 impl PhonetizationError {
-    /// Create a new nativization error
+    /// Create a new adaptation error
     pub fn new(input: String, word_number: Option<usize>, dataset_name: Option<&str>) -> Self {
         Self {
             input,
@@ -33,9 +33,9 @@ impl PhonetizationError {
         println!("error: the word phonetization is impossible; ensure it is lowercased");
     }
 }
-/// Error type for nativization failures
+/// Error type for adaptation failures
 #[derive(Debug, Clone)]
-pub struct NativizationError {
+pub struct AdaptationError {
     /// The original input text
     pub input: String,
     /// Position where the error occurred
@@ -48,8 +48,8 @@ pub struct NativizationError {
     pub graphemes: Vec<SourceGrapheme>,
 }
 
-impl NativizationError {
-    /// Create a new nativization error
+impl AdaptationError {
+    /// Create a new adaptation error
     pub fn new(
         graphemes: Vec<SourceGrapheme>,
         position: usize,
@@ -68,7 +68,7 @@ impl NativizationError {
 
     /// Print the error with context (for debugging)
     pub fn print_error(&self) {
-        println!("error: the word nativization is invalid or impossible");
+        println!("error: the word adaptation is invalid or impossible");
         match &self.dataset_name {
             Some(s) => match self.word_number {
                 Some(n) => println!("  --> {} @ {}::{}", self.input, s, n),
@@ -88,11 +88,11 @@ impl NativizationError {
     }
 }
 
-impl fmt::Display for NativizationError {
+impl fmt::Display for AdaptationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Nativization error at position {} in '{}'",
+            "Adaptation error at position {} in '{}'",
             self.position, self.input
         )
     }

@@ -1,4 +1,4 @@
-use crate::consts::NativizationConfig;
+use crate::consts::AdaptationConfig;
 use crate::g2p::phonemize;
 use crate::error::ErrorTypes;
 use crate::tokenization::src_graphemes::SourceGrapheme;
@@ -27,7 +27,7 @@ impl Context {
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
-        config: &NativizationConfig,
+        config: &AdaptationConfig,
     ) -> Result<Self, ErrorTypes> {
         let graphemes = tokenize(word);
 

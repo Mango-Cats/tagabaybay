@@ -11,17 +11,17 @@
 //! ## Quick Start
 //!
 //! ```
-//! use tagabaybay::nativization::nativize::Nativizer;
+//! use tagabaybay::adaptation::adaptation::Adapter;
 //! use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
 //!
-//! let nativizer = Nativizer::new();
-//! let result = nativizer.nativize("chocolate").unwrap();
+//! let adapter = Adapter::new();
+//! let result = adapter.adaptation("chocolate").unwrap();
 //! println!("{}", phl_graphemes_to_string(&result)); // "tsokoleyt"
 //! ```
 //!
 //! ## Modules
 //!
-//! - `nativization`: Core nativization logic and configuration
+//! - `adaptation`: Core adaptation logic and configuration
 //! - `tokenization`: SourceGrapheme and graphemes handling
 //! - `consts`: Configuration constants and types
 

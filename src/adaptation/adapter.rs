@@ -2,51 +2,51 @@ use crate::adaptation::context::Context;
 use crate::adaptation::replacement::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
-use crate::consts::NativizationConfig;
-use crate::error::{ErrorTypes, NativizationError};
+use crate::consts::AdaptationConfig;
+use crate::error::{AdaptationError, ErrorTypes};
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 
-/// Builder for nativization with customizable configuration
+/// Builder for adaptation with customizable configuration
 ///
-/// The `Nativizer` provides a flexible interface for converting loanwords
+/// The `Adapter` provides a flexible interface for converting loanwords
 /// to Filipino representation. It supports customization through
 /// configuration options.
 ///
 /// # Examples
 ///
 /// ```
-/// use tagabaybay::nativization::nativize::Nativizer;
+/// use tagabaybay::adaptation::adaptation::Adapter;
 /// use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
 ///
-/// let nativizer = Nativizer::new();
-/// let result = nativizer.nativize("chocolate").unwrap();
+/// let adapter = Adapter::new();
+/// let result = adapter.adaptation("chocolate").unwrap();
 /// assert_eq!(phl_graphemes_to_string(&result), "tsokoleyt");
 /// ```
 ///
 /// With custom configuration:
 ///
 /// ```
-/// use tagabaybay::nativization::nativize::Nativizer;
+/// use tagabaybay::adaptation::adaptation::Adapter;
 ///
-/// let nativizer = Nativizer::new()
+/// let adapter = Adapter::new()
 ///     .allow_sh_sound(true)
 ///     .allow_z_sound(true);
 /// ```
-pub struct Nativizer {
-    config: NativizationConfig,
+pub struct Adapter {
+    config: AdaptationConfig,
 }
 
-impl Nativizer {
-    /// Create a new Nativizer with default configuration
+impl Adapter {
+    /// Create a new Adapter with default configuration
     pub fn new() -> Self {
         Self {
-            config: NativizationConfig::default(),
+            config: AdaptationConfig::default(),
         }
     }
 
-    /// Create a Nativizer with a custom configuration
-    pub fn with_config(config: NativizationConfig) -> Self {
+    /// Create a Adapter with a custom configuration
+    pub fn with_config(config: AdaptationConfig) -> Self {
         Self { config }
     }
 
@@ -68,7 +68,7 @@ impl Nativizer {
         self
     }
 
-    /// Nativize an entire word or phrase
+    /// Adapt an entire word or phrase
     ///
     /// Converts loanwords to their Filipino representation.
     ///
@@ -78,33 +78,33 @@ impl Nativizer {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(Vec<FilipinoGrapheme>)` on success, or `Err(NativizationError)` if
-    /// nativization fails and `panic_at_error` is enabled.
+    /// Returns `Ok(Vec<FilipinoGrapheme>)` on success, or `Err(AdaptationError)` if
+    /// adaptation fails and `panic_at_error` is enabled.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tagabaybay::nativization::nativize::Nativizer;
+    /// use tagabaybay::adaptation::adaptation::Adapter;
     ///
-    /// let nativizer = Nativizer::new();
-    /// let result = nativizer.nativize("hello").unwrap();
+    /// let adapter = Adapter::new();
+    /// let result = adapter.adaptation("hello").unwrap();
     /// ```
-    pub fn nativize(
+    pub fn adaptation(
         &self,
         input: &str,
-        config: &NativizationConfig,
+        config: &AdaptationConfig,
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
-        self.nativize_internal(input, None, None, config)
+        self.adapter_internal(input, None, None, config)
     }
 
-    /// Nativize a list of words or phrases
+    /// Adapt a list of words or phrases
     ///
     /// Processes multiple words in batch, providing detailed error information
     /// including the word number and dataset name.
     ///
     /// # Arguments
     ///
-    /// * `word_list` - Slice of words to nativize
+    /// * `word_list` - Slice of words to adaptation
     /// * `dataset_name` - Name of the dataset for error reporting
     ///
     /// # Returns
@@ -114,31 +114,31 @@ impl Nativizer {
     /// # Examples
     ///
     /// ```
-    /// use tagabaybay::nativization::nativize::Nativizer;
+    /// use tagabaybay::adaptation::adaptation::Adapter;
     ///
-    /// let nativizer = Nativizer::new();
+    /// let adapter = Adapter::new();
     /// let words = vec!["hello", "world"];
-    /// let results = nativizer.nativize_batch(&words, "test_dataset");
+    /// let results = adapter.adapt_batch(&words, "test_dataset");
     /// ```
-    pub fn nativize_batch(
+    pub fn adapt_batch(
         &self,
         word_list: &[&str],
         dataset_name: &str,
-        config: &NativizationConfig,
+        config: &AdaptationConfig,
     ) -> Vec<Result<Vec<FilipinoGrapheme>, ErrorTypes>> {
         word_list
             .iter()
             .enumerate()
-            .map(|(i, word)| self.nativize_internal(word, Some(i), Some(dataset_name), config))
+            .map(|(i, word)| self.adapter_internal(word, Some(i), Some(dataset_name), config))
             .collect()
     }
 
-    fn nativize_internal(
+    fn adapter_internal(
         &self,
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
-        config: &NativizationConfig,
+        config: &AdaptationConfig,
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
         let mut ctx = match Context::from_word(word, word_number, dataset_name, config) {
@@ -183,15 +183,11 @@ impl Nativizer {
             }
 
             // Could not process current grapheme -> handle error
-            let error = NativizationError::new(
-                ctx.graphemes.to_vec(),
-                ctx.index,
-                word_number,
-                dataset_name,
-            );
+            let error =
+                AdaptationError::new(ctx.graphemes.to_vec(), ctx.index, word_number, dataset_name);
             error.print_error();
             if self.config.panic_at_error {
-                return Err(ErrorTypes::Nativization(error));
+                return Err(ErrorTypes::Adaptation(error));
             }
 
             ctx.index += 1;
@@ -201,7 +197,7 @@ impl Nativizer {
     }
 }
 
-impl Default for Nativizer {
+impl Default for Adapter {
     fn default() -> Self {
         Self::new()
     }
@@ -240,7 +236,7 @@ fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGraphem
     // Check if this is an abbreviation (2+ letters or single letter before separator)
     if (end - ctx.index >= 2) || before_separator {
         let abbr_segment = ctx.graphemes[(ctx.index)..end].to_vec();
-        let graphemes = nativize_abbreviation(abbr_segment);
+        let graphemes = adapt_abbreviation(abbr_segment);
         return Some((graphemes, end - ctx.index));
     }
 
@@ -249,7 +245,7 @@ fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGraphem
 
 /// Convert an abbreviation to Filipino phonetic transcription
 /// E.g., "XR" -> "eks ar", "IV" -> "ay bi"
-fn nativize_abbreviation(abbr: Vec<SourceGrapheme>) -> Vec<FilipinoGrapheme> {
+fn adapt_abbreviation(abbr: Vec<SourceGrapheme>) -> Vec<FilipinoGrapheme> {
     let mut result: Vec<FilipinoGrapheme> = Vec::new();
     for (i, grapheme) in abbr.iter().enumerate() {
         if let Some(graphemes) = letter_to_phonetic(grapheme.clone()) {

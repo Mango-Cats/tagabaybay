@@ -1,4 +1,4 @@
-/// Configuration for the nativization process
+/// Configuration for the loanword adaptation process
 ///
 /// Controls various aspects of how Source text is converted to Filipino phonetics.
 /// Use the builder methods to customize behavior.
@@ -6,15 +6,15 @@
 /// # Examples
 ///
 /// ```
-/// use tagabaybay::consts::NativizationConfig;
+/// use tagabaybay::consts::AdaptationConfig;
 ///
-/// let config = NativizationConfig::new()
+/// let config = AdaptationConfig::new()
 ///     .with_sh_sound(true)
 ///     .with_z_sound(false);
 /// ```
 #[derive(Debug, Clone)]
-pub struct NativizationConfig {
-    /// Whether to panic when an error occurs during nativization
+pub struct AdaptationConfig {
+    /// Whether to panic when an error occurs during loanword adaptation
     pub panic_at_error: bool,
     /// Whether to allow the 'sh' sound (instead of just 's')
     pub allow_sh_sound: bool,
@@ -22,7 +22,7 @@ pub struct NativizationConfig {
     pub allow_z_sound: bool,
 }
 
-impl Default for NativizationConfig {
+impl Default for AdaptationConfig {
     /// Create default configuration with conservative settings
     ///
     /// Default values:
@@ -38,7 +38,7 @@ impl Default for NativizationConfig {
     }
 }
 
-impl NativizationConfig {
+impl AdaptationConfig {
     /// Create a new configuration with default values
     pub fn new() -> Self {
         Self::default()
@@ -46,7 +46,7 @@ impl NativizationConfig {
 
     /// Enable panic on error (builder pattern)
     ///
-    /// When enabled, the nativizer will panic when encountering errors instead
+    /// When enabled, the adapter will panic when encountering errors instead
     /// of printing them and continuing. Useful for strict validation.
     ///
     /// # Arguments

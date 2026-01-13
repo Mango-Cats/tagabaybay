@@ -1,7 +1,7 @@
 use std::vec;
 
 use super::context::Context;
-use crate::consts::NativizationConfig;
+use crate::consts::AdaptationConfig;
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 
@@ -14,7 +14,7 @@ use crate::tokenization::src_graphemes::SourceGrapheme;
 ///
 /// * `graphemes` - The full sequence of graphemes
 /// * `index` - Current position in the sequence
-/// * `config` - Nativization configuration (affects sh/z sounds)
+/// * `config` - Adaptation configuration (affects sh/z sounds)
 ///
 /// # Returns
 ///
@@ -22,7 +22,7 @@ use crate::tokenization::src_graphemes::SourceGrapheme;
 /// `consumed` is typically 1. Returns `None` for context-sensitive letters.
 pub fn free_replacement(
     ctx: &Context,
-    config: &NativizationConfig,
+    config: &AdaptationConfig,
 ) -> Option<(FilipinoGrapheme, usize)> {
     let g = ctx.current().to_lowercase();
 
@@ -90,7 +90,7 @@ pub fn free_replacement(
     }
 }
 
-/// Context-sensitive nativization (needs surrounding graphemes)
+/// Context-sensitive adaptation (needs surrounding graphemes)
 ///
 /// Handles grapheme-to-grapheme conversions that depend on surrounding context.
 /// This includes soft c (cent→sent) and position-dependent
@@ -100,7 +100,7 @@ pub fn free_replacement(
 ///
 /// * `graphemes` - The full sequence of graphemes
 /// * `index` - Current position in the sequence
-/// * `config` - Nativization configuration
+/// * `config` - Adaptation configuration
 ///
 /// # Returns
 ///
@@ -108,7 +108,7 @@ pub fn free_replacement(
 /// Returns `None` if no rule applies (will print error).
 pub fn sensitive_replacement(
     ctx: &Context,
-    config: &NativizationConfig,
+    config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
@@ -128,7 +128,7 @@ pub fn sensitive_replacement(
 /// # Arguments
 ///
 /// * `ctx` - Context containing the grapheme sequence and current position
-/// * `config` - Nativization configuration
+/// * `config` - Adaptation configuration
 ///
 /// # Returns
 ///
@@ -136,7 +136,7 @@ pub fn sensitive_replacement(
 /// of graphemes processed. Returns `None` if no context-sensitive rule applies.
 fn sensitive_consonant(
     ctx: &Context,
-    config: &NativizationConfig,
+    config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
@@ -362,10 +362,10 @@ fn sensitive_digraph(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// Handles G2P vowel replacement
 /// Based on the current index of an loanword, get the corresponding
 /// bigram matching the index in the ARPAbet(ipa) string, then add rules to
-/// nativize
+/// adaptation
 ///
 /// Issue: Doesn't properly output vowels, could be with my logic here or
-/// how im accessing it through nativize.rs
+/// how im accessing it through adaptation.rs
 ///
 /// # Arguments
 ///
@@ -558,7 +558,7 @@ fn handle_arpa_u(
 /// # Arguments
 ///
 /// * `ctx` - Context containing the grapheme sequence and current position
-/// * `config` - Nativization configuration
+/// * `config` - Adaptation configuration
 ///
 /// # Returns
 ///
@@ -566,7 +566,7 @@ fn handle_arpa_u(
 /// `None` otherwise.
 fn handle_duplicates(
     ctx: &Context,
-    config: &NativizationConfig,
+    config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
     if let Some(next) = ctx.next() {
