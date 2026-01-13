@@ -6,7 +6,7 @@
 
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 
-/// Check if a 6-phoneme sequence matches a `kkpkkk` pattern.
+/// Check if a 6-Filipino grapheme sequence matches a `kkpkkk` pattern.
 ///
 /// Pattern notation: `k` = consonant, `p` = vowel (patinig)
 ///
@@ -19,7 +19,7 @@ use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 ///
 /// # Arguments
 ///
-/// * `string` - A vector of phonemes to check
+/// * `string` - A vector of Filipino graphemes to check
 ///
 /// # Returns
 ///
@@ -46,7 +46,7 @@ pub fn match_6_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     }
 }
 
-/// Check if a 5-phoneme sequence matches a `kkpkk` pattern.
+/// Check if a 5-Filipino grapheme sequence matches a `kkpkk` pattern.
 ///
 /// Pattern notation: `k` = consonant, `p` = vowel (patinig)
 ///
@@ -58,7 +58,7 @@ pub fn match_6_syllable(string: Vec<FilipinoGrapheme>) -> bool {
 ///
 /// # Arguments
 ///
-/// * `string` - A vector of phonemes to check
+/// * `string` - A vector of Filipino graphemes to check
 ///
 /// # Returns
 ///
@@ -83,7 +83,7 @@ pub fn match_5_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     }
 }
 
-/// Check if a 4-phoneme sequence matches one of two patterns:
+/// Check if a 4-Filipino grapheme sequence matches one of two patterns:
 ///
 /// - `kkpk` (C C V C)
 /// - `kpkk` (C V C C)
@@ -95,7 +95,7 @@ pub fn match_5_syllable(string: Vec<FilipinoGrapheme>) -> bool {
 ///
 /// # Arguments
 ///
-/// * `string` - A vector of phonemes to check
+/// * `string` - A vector of Filipino graphemes to check
 ///
 /// # Returns
 ///
@@ -117,7 +117,7 @@ pub fn match_4_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     if k0 && x1 == x2 && k3 { true } else { false }
 }
 
-/// Check if a 3-phoneme sequence matches one of the following:
+/// Check if a 3-Filipino grapheme sequence matches one of the following:
 ///
 /// - `kkp` (C C V)
 /// - `kpk` (C V C)
@@ -125,13 +125,13 @@ pub fn match_4_syllable(string: Vec<FilipinoGrapheme>) -> bool {
 ///
 /// Pattern notation: `k` = consonant, `p` = vowel (patinig)
 ///
-/// The function first checks if the initial phoneme is a consonant, then
+/// The function first checks if the initial Filipino grapheme is a consonant, then
 /// compares the remaining positions to ensure one vowel and one consonant
 /// in the last two slots, or handles the `pkk` case when the first is a vowel.
 ///
 /// # Arguments
 ///
-/// * `string` - A vector of phonemes to check
+/// * `string` - A vector of Filipino graphemes to check
 ///
 /// # Returns
 ///
@@ -163,7 +163,7 @@ pub fn match_3_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     false
 }
 
-/// Check if a 2-phoneme sequence matches either a `kp` or `pk` pattern.
+/// Check if a 2-Filipino grapheme sequence matches either a `kp` or `pk` pattern.
 ///
 /// Pattern notation: `k` = consonant, `p` = vowel (patinig)
 ///
@@ -172,11 +172,11 @@ pub fn match_3_syllable(string: Vec<FilipinoGrapheme>) -> bool {
 /// - `kp` (C V)
 /// - `pk` (V C)
 ///
-/// by comparing whether the consonant/vowel status of the two phonemes differs.
+/// by comparing whether the consonant/vowel status of the two Filipino graphemes differs.
 ///
 /// # Arguments
 ///
-/// * `string` - A vector of phonemes to check
+/// * `string` - A vector of Filipino graphemes to check
 ///
 /// # Returns
 ///
@@ -197,7 +197,7 @@ pub fn match_2_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     false
 }
 
-/// Check if a 1-phoneme sequence is a vowel (`p`).
+/// Check if a 1-Filipino grapheme sequence is a vowel (`p`).
 ///
 /// Pattern notation: `p` = vowel (patinig)
 ///
@@ -206,27 +206,27 @@ pub fn match_2_syllable(string: Vec<FilipinoGrapheme>) -> bool {
 ///
 /// # Arguments
 ///
-/// * `string` - A vector of phonemes to check
+/// * `string` - A vector of Filipino graphemes to check
 ///
 /// # Returns
 ///
-/// Returns `true` if the first phoneme is a vowel, `false` otherwise.
+/// Returns `true` if the first Filipino grapheme is a vowel, `false` otherwise.
 pub fn match_1_syllable(string: Vec<FilipinoGrapheme>) -> bool {
     string.len() == 1 && string.get(0).is_some_and(|x| x.is_vowel())
 }
 
-/// Validate that a phoneme sequence can be segmented into valid Filipino syllable patterns.
+/// Validate that a Filipino grapheme sequence can be segmented into valid Filipino syllable patterns.
 ///
-/// This function attempts to parse the entire phoneme sequence by greedily matching
+/// This function attempts to parse the entire Filipino grapheme sequence by greedily matching
 /// the longest possible syllable pattern at each position. It tries patterns from
-/// 6 phonemes down to 1 phoneme.
+/// 6 Filipino graphemes down to 1 Filipino grapheme.
 ///
 /// **Note**: This greedy approach may fail to find valid segmentations in some cases.
 /// For guaranteed correctness, use [`validate_filipino_syllables_dp`] instead.
 ///
 /// # Arguments
 ///
-/// * `nativized` - A vector of phonemes to validate
+/// * `nativized` - A vector of Filipino graphemes to validate
 ///
 /// # Returns
 ///
@@ -268,15 +268,15 @@ pub fn validate_filipino_syllables_greedy(nativized: Vec<FilipinoGrapheme>) -> b
     true
 }
 
-/// Validate that a phoneme sequence can be segmented into valid Filipino syllable patterns.
+/// Validate that a Filipino grapheme sequence can be segmented into valid Filipino syllable patterns.
 ///
-/// This function uses dynamic programming to determine if the entire phoneme sequence
+/// This function uses dynamic programming to determine if the entire Filipino grapheme sequence
 /// can be segmented into valid syllable patterns. It builds up solutions for prefixes
 /// of the sequence, trying all possible syllable lengths (1-6) at each position.
 ///
 /// # Algorithm
 ///
-/// - `dp[i]` = `true` if phonemes `[0..i]` can be validly segmented
+/// - `dp[i]` = `true` if Filipino graphemes `[0..i]` can be validly segmented
 /// - Base case: `dp[0]` = `true` (empty sequence)
 /// - For each position `i`, try syllable lengths 1-6 and check if:
 ///   - `dp[i - len]` is `true` (prefix is valid), AND
@@ -284,7 +284,7 @@ pub fn validate_filipino_syllables_greedy(nativized: Vec<FilipinoGrapheme>) -> b
 ///
 /// # Arguments
 ///
-/// * `nativized` - A vector of phonemes to validate
+/// * `nativized` - A vector of Filipino graphemes to validate
 ///
 /// # Returns
 ///

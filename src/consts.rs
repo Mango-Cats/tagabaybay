@@ -1,6 +1,6 @@
 /// Configuration for the nativization process
 ///
-/// Controls various aspects of how English text is converted to Filipino phonetics.
+/// Controls various aspects of how Source text is converted to Filipino phonetics.
 /// Use the builder methods to customize behavior.
 ///
 /// # Examples

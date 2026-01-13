@@ -1,20 +1,20 @@
 use crate::consts::NativizationConfig;
 use crate::g2p::phonemize;
 use crate::nativization::error::ErrorTypes;
-use crate::tokenization::eng_graphemes::EnglishGrapheme;
+use crate::tokenization::src_graphemes::SourceGrapheme;
 use crate::tokenization::tokenize::tokenize;
 
 /// Helper struct for accessing grapheme context during pattern matching
 #[derive(Debug, Clone)]
 pub struct Context {
-    pub graphemes: Vec<EnglishGrapheme>,
+    pub graphemes: Vec<SourceGrapheme>,
     pub phonetic_transcription: String,
     pub index: usize,
 }
 
 impl Context {
     /// Create a new context with each parameter
-    pub fn new(graphemes: &[EnglishGrapheme], index: usize, phonetic_transcription: &str) -> Self {
+    pub fn new(graphemes: &[SourceGrapheme], index: usize, phonetic_transcription: &str) -> Self {
         Self {
             graphemes: graphemes.to_vec(),
             index,
@@ -52,12 +52,12 @@ impl Context {
     }
 
     /// Return the current grapheme, normalized to lowercase
-    pub fn current(&self) -> EnglishGrapheme {
+    pub fn current(&self) -> SourceGrapheme {
         self.graphemes[self.index].to_lowercase()
     }
 
     /// Return the previous grapheme, lowercase if it exists
-    pub fn prev(&self) -> Option<EnglishGrapheme> {
+    pub fn prev(&self) -> Option<SourceGrapheme> {
         if self.index > 0 {
             Some(self.graphemes[self.index - 1].to_lowercase())
         } else {
@@ -66,12 +66,12 @@ impl Context {
     }
 
     /// Return the next grapheme, lowercase if it exists
-    pub fn next(&self) -> Option<EnglishGrapheme> {
+    pub fn next(&self) -> Option<SourceGrapheme> {
         self.graphemes.get(self.index + 1).map(|g| g.to_lowercase())
     }
 
     /// Look ahead n positions, lowercase if exists
-    pub fn lookahead(&self, n: isize) -> Option<EnglishGrapheme> {
+    pub fn lookahead(&self, n: isize) -> Option<SourceGrapheme> {
         let idx = self.index.checked_add_signed(n)?;
 
         self.graphemes.get(idx).map(|g| g.to_lowercase())

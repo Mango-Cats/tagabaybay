@@ -4,24 +4,24 @@ use crate::nativization::error::{ErrorTypes, NativizationError};
 use crate::nativization::replacement::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
-use crate::tokenization::eng_graphemes::EnglishGrapheme;
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
+use crate::tokenization::src_graphemes::SourceGrapheme;
 
 /// Builder for nativization with customizable configuration
 ///
-/// The `Nativizer` provides a flexible interface for converting English text
-/// to Filipino phonetic representation. It supports customization through
+/// The `Nativizer` provides a flexible interface for converting loanwords
+/// to Filipino representation. It supports customization through
 /// configuration options.
 ///
 /// # Examples
 ///
 /// ```
 /// use tagabaybay::nativization::nativize::Nativizer;
-/// use tagabaybay::tokenization::phl_graphemes::phonemes_to_string;
+/// use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
 ///
 /// let nativizer = Nativizer::new();
 /// let result = nativizer.nativize("chocolate").unwrap();
-/// assert_eq!(phonemes_to_string(&result), "tsokoleyt");
+/// assert_eq!(phl_graphemes_to_string(&result), "tsokoleyt");
 /// ```
 ///
 /// With custom configuration:
@@ -70,11 +70,11 @@ impl Nativizer {
 
     /// Nativize an entire word or phrase
     ///
-    /// Converts English text to Filipino phonetic representation.
+    /// Converts loanwords to their Filipino representation.
     ///
     /// # Arguments
     ///
-    /// * `input` - The English text to nativize
+    /// * `input` - The loanword to adapt
     ///
     /// # Returns
     ///
@@ -208,14 +208,14 @@ impl Default for Nativizer {
 }
 
 /// Detect and process abbreviations
-/// Returns (phonemes, graphemes_consumed) or None if not an abbreviation
+/// Returns (FilipinoGrapheme, graphemes_consumed) or None if not an abbreviation
 fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let prev = ctx.prev();
 
     let after_separator = match prev {
         None => true,
-        Some(EnglishGrapheme::Space) => true,
-        Some(EnglishGrapheme::Passthrough(s)) if s == "-" => true,
+        Some(SourceGrapheme::Space) => true,
+        Some(SourceGrapheme::Passthrough(s)) if s == "-" => true,
         _ => false,
     };
 
@@ -232,16 +232,16 @@ fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGraphem
     let next = ctx.graphemes.get(end);
     let before_separator = match next {
         None => true,
-        Some(EnglishGrapheme::Space) => true,
-        Some(EnglishGrapheme::Passthrough(s)) if s == "-" => true,
+        Some(SourceGrapheme::Space) => true,
+        Some(SourceGrapheme::Passthrough(s)) if s == "-" => true,
         _ => false,
     };
 
     // Check if this is an abbreviation (2+ letters or single letter before separator)
     if (end - ctx.index >= 2) || before_separator {
         let abbr_segment = ctx.graphemes[(ctx.index)..end].to_vec();
-        let phonemes = nativize_abbreviation(abbr_segment);
-        return Some((phonemes, end - ctx.index));
+        let graphemes = nativize_abbreviation(abbr_segment);
+        return Some((graphemes, end - ctx.index));
     }
 
     None
@@ -249,15 +249,15 @@ fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGraphem
 
 /// Convert an abbreviation to Filipino phonetic transcription
 /// E.g., "XR" -> "eks ar", "IV" -> "ay bi"
-fn nativize_abbreviation(abbr: Vec<EnglishGrapheme>) -> Vec<FilipinoGrapheme> {
+fn nativize_abbreviation(abbr: Vec<SourceGrapheme>) -> Vec<FilipinoGrapheme> {
     let mut result: Vec<FilipinoGrapheme> = Vec::new();
     for (i, grapheme) in abbr.iter().enumerate() {
-        if let Some(phonemes) = letter_to_phonetic(grapheme.clone()) {
+        if let Some(graphemes) = letter_to_phonetic(grapheme.clone()) {
             // Add space before each letter except the first
             if i > 0 {
                 result.push(FilipinoGrapheme::Space);
             }
-            result.extend(phonemes);
+            result.extend(graphemes);
         }
     }
     result

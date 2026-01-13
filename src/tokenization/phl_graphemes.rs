@@ -1,6 +1,6 @@
-/// Represents a Filipino phoneme (output sound unit)
+/// Represents a Filipino grapheme
 ///
-/// A phoneme is a unit of sound. This enum captures the sounds in native and
+/// A grapheme is a unit of sound. This enum captures the sounds in native and
 /// modern Filipino phonology, including:
 /// - Vowels (a, e, i, o, u)
 /// - Consonants (native: p, b, t, d, k, g, m, n, ng, ny, h, s, l, r, w, y)
@@ -65,7 +65,7 @@ pub enum FilipinoGrapheme {
 }
 
 impl FilipinoGrapheme {
-    /// Convert the phoneme to its Filipino orthographic representation
+    /// Convert the grapheme to its Filipino orthographic representation
     pub fn as_str(&self) -> String {
         match self {
             // Affricates
@@ -123,7 +123,7 @@ impl FilipinoGrapheme {
         .to_string()
     }
 
-    /// Check if this phoneme is a vowel
+    /// Check if this grapheme is a vowel
     pub fn is_vowel(&self) -> bool {
         matches!(
             self,
@@ -135,7 +135,7 @@ impl FilipinoGrapheme {
         )
     }
 
-    /// Check if this phoneme is a consonant
+    /// Check if this grapheme is a consonant
     pub fn is_consonant(&self) -> bool {
         !self.is_vowel()
             && !matches!(
@@ -149,17 +149,17 @@ impl FilipinoGrapheme {
 
 /// Convert a `Vec<FilipinoGrapheme>` to a String
 ///
-/// Converts a sequence of phonemes into their Filipino orthographic representation.
+/// Converts a sequence of graphemes into their Filipino orthographic representation.
 ///
 /// # Arguments
 ///
-/// * `phonemes` - Slice of phonemes to convert
+/// * `graphemes` - Slice of graphemes to convert
 ///
 /// # Returns
 ///
 /// Returns the string representation in Filipino orthography.
-pub fn phonemes_to_string(phonemes: &[FilipinoGrapheme]) -> String {
-    phonemes.iter().map(|p| p.to_string()).collect()
+pub fn phl_graphemes_to_string(graphemes: &[FilipinoGrapheme]) -> String {
+    graphemes.iter().map(|p| p.to_string()).collect()
 }
 
 impl std::fmt::Display for FilipinoGrapheme {

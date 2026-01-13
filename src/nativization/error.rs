@@ -1,4 +1,4 @@
-use crate::tokenization::eng_graphemes::EnglishGrapheme;
+use crate::tokenization::src_graphemes::SourceGrapheme;
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -46,13 +46,13 @@ pub struct NativizationError {
     /// Name of the dataset (if processing a batch)
     pub dataset_name: Option<String>,
     /// The grapheme vector for context
-    pub graphemes: Vec<EnglishGrapheme>,
+    pub graphemes: Vec<SourceGrapheme>,
 }
 
 impl NativizationError {
     /// Create a new nativization error
     pub fn new(
-        graphemes: Vec<EnglishGrapheme>,
+        graphemes: Vec<SourceGrapheme>,
         position: usize,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
