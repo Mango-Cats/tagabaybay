@@ -1,6 +1,6 @@
 use crate::consts::NativizationConfig;
 use crate::g2p::phonemize;
-use crate::nativization::error::ErrorTypes;
+use crate::error::ErrorTypes;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 use crate::tokenization::tokenize::tokenize;
 

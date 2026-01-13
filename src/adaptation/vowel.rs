@@ -1,4 +1,4 @@
-use crate::nativization::context::Context;
+use crate::adaptation::context::Context;
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 

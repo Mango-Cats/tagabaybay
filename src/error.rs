@@ -2,7 +2,6 @@ use crate::tokenization::src_graphemes::SourceGrapheme;
 use std::fmt;
 
 #[derive(Debug, Clone)]
-// TODO: rename to ErrorType
 pub enum ErrorTypes {
     Nativization(NativizationError),
     Phonetization(PhonetizationError),

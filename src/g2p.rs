@@ -1,4 +1,4 @@
-use crate::nativization::error::PhonetizationError;
+use crate::error::PhonetizationError;
 use once_cell::sync::Lazy;
 use phonetisaurus_g2p::PhonetisaurusModel;
 

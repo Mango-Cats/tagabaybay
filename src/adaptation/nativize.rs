@@ -1,9 +1,9 @@
-use crate::consts::NativizationConfig;
-use crate::nativization::context::Context;
-use crate::nativization::error::{ErrorTypes, NativizationError};
-use crate::nativization::replacement::{
+use crate::adaptation::context::Context;
+use crate::adaptation::replacement::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
+use crate::consts::NativizationConfig;
+use crate::error::{ErrorTypes, NativizationError};
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 
