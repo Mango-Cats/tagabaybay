@@ -22,9 +22,9 @@ as their specific domain and author.
 | `ph_fda_human`          | Pharmaceutical         | Z. Ganituen                |
 | `common_eng`            | General/None           | Z. Ganituen                |
 
-## Evaluation
+## Validation
 
-The quiz-like gold standard evaluation script is made available in this
+The quiz-like gold standard validation script is made available in this
 repository, see `validation.py` in this directory.
 
 Simply run 
