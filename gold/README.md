@@ -22,6 +22,16 @@ as their specific domain and author.
 | `ph_fda_human`          | Pharmaceutical         | Z. Ganituen                |
 | `common_eng`            | General/None           | Z. Ganituen                |
 
+## Evaluation
+
+The quiz-like gold standard evaluation script is made available in this
+repository, see `validation.py` in this directory.
+
+Simply run 
+```
+$ python3 validation.py
+```
+
 ## Bibliography
 
 `[1]` Virgilio S. Almario (Ed.). 2014. KWF Manwal sa Masinop na Pagsulat. Komisyon sa Wikang Filipino, Quezon City.
