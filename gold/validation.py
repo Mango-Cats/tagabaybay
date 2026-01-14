@@ -7,9 +7,10 @@ Simply run the script.
 """
 
 import csv
-from datetime import date
+from datetime import date, datetime
 from io import TextIOWrapper
-from os import listdir, mkdir
+from os import listdir, makedirs, mkdir
+from os.path import dirname, join
 from random import sample
 from typing import List, Optional, Tuple
 
@@ -23,11 +24,14 @@ from typing import List, Optional, Tuple
 """
 max_validation_sample = 0.6
 
+""" this is the directory where the script is located """""
+script_dir: str = dirname(__file__)
+
 """ this is the directory of the gold data """
-gold_data_dir: str = "data/"
+gold_data_dir: str = join(script_dir, "data/")
 
 """ this is the directory of the evaluation results """
-eval_dir: str = "eval/"
+eval_dir: str = join(script_dir, "eval/")
 
 """ this is a list of the gold data in `gold_data_dir` """
 gold_files: list[str] = listdir(gold_data_dir)
@@ -186,17 +190,18 @@ def print_result(
     validator: str,
 ) -> None:
     # Construct output filename
-    today_str = date.today().isoformat()
+    now = datetime.now()
+    timestamp = now.strftime("%Y-%m-%d_%H-%M")
     safe_validator = validator.replace(" ", "_").lower()
     safe_gold = gold_filename.replace(" ", "_")
-    output_filename = f"{safe_gold}_{today_str}_{safe_validator}.txt"
+    output_filename = f"{safe_gold}_{timestamp}_{safe_validator}.txt"
 
     # Prepare lines to print and write
     lines = []
 
     lines.append("===== VALIDATION TEST RESULT =====\n")
     lines.append("# METADATA")
-    lines.append(f"ON    :   {today_str}")
+    lines.append(f"ON    :   {now.strftime('%Y-%m-%d %H:%M')}")
     lines.append(f"BY    :   {validator}")
     lines.append(f"FOR   :   {gold_filename}")
     lines.append(f"SIZE  :   {valset_size}\n")
@@ -216,12 +221,13 @@ def print_result(
     for line in lines:
         print(line)
 
-    mkdir(eval_dir)
+    makedirs(eval_dir, exist_ok=True)
     with open(eval_dir + output_filename, "w", encoding="utf-8") as f:
         for line in lines:
             f.write(line + "\n")
 
     print(f"\nValidation results saved to {output_filename}")
+    
     print("\n\n\n===== VALIDATION TEST RESULT =====\n")
     print("# METADATA")
     print(f"ON    :   {date.today()}")
