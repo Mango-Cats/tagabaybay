@@ -67,7 +67,7 @@ pub fn phonetic_replacements(
     ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let curr = ctx.current_grapheme();
+    let curr = ctx.current_grapheme_low();
 
     // Only process unpredictable variants (vowels and Y) and if config allows it
     if !curr.is_unpredictable_variant() || !config.g2p_unpredictable_variants {
@@ -87,13 +87,13 @@ pub fn phonetic_replacements(
 
     // Check if next grapheme is also a vowel (might be consumed by diphthong)
     let next_is_vowel = ctx
-        .next_grapheme()
+        .next_grapheme_low()
         .map(|g| g.is_unpredictable_variant())
         .unwrap_or(false);
 
     // Check if the next grapheme is likely silent (don't consume it as diphthong)
     let next_likely_silent = ctx
-        .lookahead_grapheme(1)
+        .lookahead_grapheme_low(1)
         .map(|_| is_likely_silent_vowel_at(ctx, ctx.index + 1))
         .unwrap_or(false);
 

@@ -26,7 +26,7 @@ pub fn free_replacement(
     ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(FilipinoGrapheme, usize)> {
-    let g = ctx.current_grapheme().to_lowercase();
+    let g = ctx.current_grapheme_low();
 
     match g {
         // Digraph replacements (digraph count as 1 grapheme)

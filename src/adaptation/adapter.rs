@@ -148,10 +148,11 @@ impl Adapter {
         };
 
         while ctx.index < ctx.len() {
-            let curr = ctx.current_grapheme();
+            let curr = ctx.current_grapheme_low();
+            let curr_raw = &ctx.graphemes[ctx.index]; // Raw grapheme preserving case
 
             // Handle abbreviations and single letters (spelled out phonetically)
-            if curr.is_uppercase() {
+            if curr_raw.is_uppercase() {
                 if let Some((abbr_repl, consumed)) = detect_and_process_abbreviation(&ctx) {
                     result.extend(abbr_repl);
                     ctx.index += consumed;
@@ -204,7 +205,7 @@ impl Default for Adapter {
 /// Detect and process abbreviations
 /// Returns (FilipinoGrapheme, graphemes_consumed) or None if not an abbreviation
 fn detect_and_process_abbreviation(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let prev = ctx.prev_grapheme();
+    let prev = ctx.prev_grapheme_low();
 
     let after_separator = match prev {
         None => true,

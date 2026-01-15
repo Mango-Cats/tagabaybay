@@ -117,13 +117,27 @@ fn phonemize_phrase(
 }
 
 impl Cursor {
-    /// Current grapheme
+    /// Current grapheme (preserves case)
     pub fn current_grapheme(&self) -> SourceGrapheme {
+        self.graphemes[self.index].clone()
+    }
+
+    /// Current grapheme (lowercased)
+    pub fn current_grapheme_low(&self) -> SourceGrapheme {
         self.graphemes[self.index].to_lowercase()
     }
 
-    /// Previous grapheme
+    /// Previous grapheme (preserves case)
     pub fn prev_grapheme(&self) -> Option<SourceGrapheme> {
+        if self.index > 0 {
+            Some(self.graphemes[self.index - 1].clone())
+        } else {
+            None
+        }
+    }
+
+    /// Previous grapheme (lowercased)
+    pub fn prev_grapheme_low(&self) -> Option<SourceGrapheme> {
         if self.index > 0 {
             Some(self.graphemes[self.index - 1].to_lowercase())
         } else {
@@ -131,13 +145,24 @@ impl Cursor {
         }
     }
 
-    /// Next grapheme
+    /// Next grapheme (preserves case)
     pub fn next_grapheme(&self) -> Option<SourceGrapheme> {
+        self.graphemes.get(self.index + 1).cloned()
+    }
+
+    /// Next grapheme (lowercased)
+    pub fn next_grapheme_low(&self) -> Option<SourceGrapheme> {
         self.graphemes.get(self.index + 1).map(|g| g.to_lowercase())
     }
 
-    /// Look ahead n graphemes
+    /// Look ahead n graphemes (preserves case)
     pub fn lookahead_grapheme(&self, n: isize) -> Option<SourceGrapheme> {
+        let idx = self.index.checked_add_signed(n)?;
+        self.graphemes.get(idx).cloned()
+    }
+
+    /// Look ahead n graphemes (lowercased)
+    pub fn lookahead_grapheme_low(&self, n: isize) -> Option<SourceGrapheme> {
         let idx = self.index.checked_add_signed(n)?;
         self.graphemes.get(idx).map(|g| g.to_lowercase())
     }
