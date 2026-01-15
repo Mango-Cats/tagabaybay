@@ -3,8 +3,8 @@ use crate::arpabet::symbols::ArpabetSymbols;
 use crate::consts::AdaptationConfig;
 use crate::error::ErrorTypes;
 use crate::g2p::phonemize;
-use crate::tokenization;
-use crate::tokenization::src_graphemes::SourceGrapheme;
+use crate::graphemes;
+use crate::graphemes::src_graphemes::SourceGrapheme;
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]
@@ -31,7 +31,7 @@ impl Cursor {
         dataset_name: Option<&str>,
         config: &AdaptationConfig,
     ) -> Result<Self, ErrorTypes> {
-        let graphemes = tokenization::tokenize::tokenize(word);
+        let graphemes = graphemes::tokenize::tokenize(word);
 
         let phonetic_str = phonemize(word).map_err(|mut err| {
             err.word_number = word_number;

@@ -4,8 +4,8 @@ use crate::adaptation::orthographic::{
 };
 use crate::consts::AdaptationConfig;
 use crate::error::{AdaptationError, ErrorTypes};
-use crate::tokenization::phl_graphemes::FilipinoGrapheme;
-use crate::tokenization::src_graphemes::SourceGrapheme;
+use crate::graphemes::phl_graphemes::FilipinoGrapheme;
+use crate::graphemes::src_graphemes::SourceGrapheme;
 
 /// Builder for adaptation with customizable configuration
 ///

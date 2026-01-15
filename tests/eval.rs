@@ -10,7 +10,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::consts::AdaptationConfig;
-use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
+use tagabaybay::graphemes::phl_graphemes::phl_graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
 const GOLD_COUNT: usize = 3;

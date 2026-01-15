@@ -2,8 +2,8 @@ use std::vec;
 
 use super::cursor::Cursor;
 use crate::consts::AdaptationConfig;
-use crate::tokenization::phl_graphemes::FilipinoGrapheme;
-use crate::tokenization::src_graphemes::SourceGrapheme;
+use crate::graphemes::phl_graphemes::FilipinoGrapheme;
+use crate::graphemes::src_graphemes::SourceGrapheme;
 
 /// Convert an input grapheme to output grapheme(s) - context-free replacements
 ///
