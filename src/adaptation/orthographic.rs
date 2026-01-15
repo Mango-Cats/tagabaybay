@@ -1,7 +1,7 @@
 use std::vec;
 
 use super::cursor::Cursor;
-use crate::consts::AdaptationConfig;
+use crate::configs::AdaptationConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 

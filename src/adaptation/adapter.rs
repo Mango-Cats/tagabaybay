@@ -2,7 +2,7 @@ use crate::adaptation::cursor::Cursor;
 use crate::adaptation::orthographic::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
-use crate::consts::AdaptationConfig;
+use crate::configs::AdaptationConfig;
 use crate::error::{AdaptationError, ErrorTypes};
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;

@@ -26,7 +26,7 @@
 //! - `consts`: Configuration constants and types
 
 pub mod adaptation;
-pub mod consts;
+pub mod configs;
 pub mod error;
 pub mod g2p;
 pub mod syllabification;

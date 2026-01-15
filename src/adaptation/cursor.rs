@@ -1,6 +1,6 @@
 use crate::phoneme;
 use crate::phoneme::symbols::ArpabetSymbols;
-use crate::consts::AdaptationConfig;
+use crate::configs::AdaptationConfig;
 use crate::error::ErrorTypes;
 use crate::g2p::phonemize;
 use crate::grapheme;
