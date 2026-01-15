@@ -84,6 +84,14 @@ pub fn free_replacement(
         | SourceGrapheme::X
         | SourceGrapheme::CH => None,
 
+        // Basic vowel fallback (used when phonetic and sensitive rules don't apply)
+        // This is a last resort - phonetic rules should handle most vowels
+        SourceGrapheme::A => Some((FilipinoGrapheme::A, 1)),
+        SourceGrapheme::E => Some((FilipinoGrapheme::E, 1)),
+        SourceGrapheme::I => Some((FilipinoGrapheme::I, 1)),
+        SourceGrapheme::O => Some((FilipinoGrapheme::O, 1)),
+        SourceGrapheme::U => Some((FilipinoGrapheme::U, 1)),
+
         // Other characters (pass through as-is)
         SourceGrapheme::Other => Some((FilipinoGrapheme::Other, 1)),
 

@@ -6,7 +6,7 @@
 //! Unlike orthographic rules which look at spelling, phonetic rules consider
 //! how the word actually sounds, which can differ significantly from spelling
 //! (e.g., "knight" → /naɪt/, "phone" → /foʊn/).
-//! 
+//!
 //! All phonetic rules are context-free replacements
 //!
 //! ## Submodules
