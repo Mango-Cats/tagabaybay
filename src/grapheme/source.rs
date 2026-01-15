@@ -303,6 +303,20 @@ impl SourceGrapheme {
         )
     }
 
+    /// Checks if the grapheme is a grapheme whose pronunciation is
+    /// variant and unpredictable.
+    pub fn is_unpredictable_variant(&self) -> bool {
+        match self {
+            SourceGrapheme::A
+            | SourceGrapheme::E
+            | SourceGrapheme::I
+            | SourceGrapheme::O
+            | SourceGrapheme::U
+            | SourceGrapheme::Y => true,
+            _ => false,
+        }
+    }
+
     /// Create a SourceGrapheme from a single character
     pub fn from_char(c: char) -> SourceGrapheme {
         match c {

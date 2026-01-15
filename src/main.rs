@@ -1,5 +1,5 @@
-use tagabaybay::phoneme::tokenize::tokenize;
 use tagabaybay::g2p::phonemize;
+use tagabaybay::phoneme::tokenize::tokenize;
 
 fn main() {
     let word = "rhythym".to_string();

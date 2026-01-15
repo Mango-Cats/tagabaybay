@@ -1,96 +1,17 @@
-use std::vec;
+//! Context-sensitive consonant and digraph rules
+//!
+//! Handles grapheme-to-grapheme conversions that depend on surrounding context.
+//! This includes soft c (cent→sent), position-dependent transformations
+//! (x at start→s, otherwise→ks), and digraph patterns.
 
-use super::cursor::Cursor;
+use crate::adaptation::cursor::Cursor;
 use crate::configs::AdaptationConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 
-/// Convert an input grapheme to output grapheme(s) - context-free replacements
-///
-/// Handles straightforward grapheme-to-grapheme conversions that don't require
-/// context analysis.
-///
-/// # Arguments
-///
-/// * `graphemes` - The full sequence of graphemes
-/// * `index` - Current position in the sequence
-/// * `config` - Adaptation configuration (affects sh/z sounds)
-///
-/// # Returns
-///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a context-free rule matches, where
-/// `consumed` is typically 1. Returns `None` for context-sensitive letters.
-pub fn free_replacement(
-    ctx: &Cursor,
-    config: &AdaptationConfig,
-) -> Option<(FilipinoGrapheme, usize)> {
-    let g = ctx.current_grapheme().to_lowercase();
+use super::free::free_replacement;
 
-    match g {
-        // Digraph replacements (digraph count as 1 grapheme)
-        SourceGrapheme::PH => Some((FilipinoGrapheme::F, 1)),
-        SourceGrapheme::PS => Some((FilipinoGrapheme::S, 1)),
-        SourceGrapheme::TH => Some((FilipinoGrapheme::T, 1)),
-        SourceGrapheme::SH => {
-            if config.allow_sh_sound {
-                Some((FilipinoGrapheme::SH, 1))
-            } else {
-                Some((FilipinoGrapheme::S, 1))
-            }
-        }
-        SourceGrapheme::EE => Some((FilipinoGrapheme::I, 1)),
-        SourceGrapheme::OO => Some((FilipinoGrapheme::U, 1)),
-
-        // Consonants
-        SourceGrapheme::B => Some((FilipinoGrapheme::B, 1)),
-        SourceGrapheme::D => Some((FilipinoGrapheme::D, 1)),
-        SourceGrapheme::F => Some((FilipinoGrapheme::F, 1)),
-        SourceGrapheme::G => Some((FilipinoGrapheme::G, 1)),
-        SourceGrapheme::H => Some((FilipinoGrapheme::H, 1)),
-        SourceGrapheme::K => Some((FilipinoGrapheme::K, 1)),
-        SourceGrapheme::L => Some((FilipinoGrapheme::L, 1)),
-        SourceGrapheme::M => Some((FilipinoGrapheme::M, 1)),
-        SourceGrapheme::N => Some((FilipinoGrapheme::N, 1)),
-        SourceGrapheme::P => Some((FilipinoGrapheme::P, 1)),
-        SourceGrapheme::R => Some((FilipinoGrapheme::R, 1)),
-        SourceGrapheme::S => Some((FilipinoGrapheme::S, 1)),
-        SourceGrapheme::T => Some((FilipinoGrapheme::T, 1)),
-        SourceGrapheme::V => Some((FilipinoGrapheme::B, 1)),
-        SourceGrapheme::W => Some((FilipinoGrapheme::W, 1)),
-        SourceGrapheme::Y => Some((FilipinoGrapheme::Y, 1)),
-        SourceGrapheme::Z => {
-            if config.allow_z_sound {
-                Some((FilipinoGrapheme::Z, 1))
-            } else {
-                Some((FilipinoGrapheme::S, 1))
-            }
-        }
-
-        // Spanish
-        SourceGrapheme::Enye => Some((FilipinoGrapheme::N, 1)),
-
-        // Whitespace
-        SourceGrapheme::Space => Some((FilipinoGrapheme::Space, 1)),
-
-        // ASCII passthrough (digits, punctuation, etc.)
-        SourceGrapheme::Passthrough(c) => Some((FilipinoGrapheme::Passthrough(c.to_string()), 1)),
-
-        // Cursor-sensitive letters (handled in sensitive_replacement)
-        SourceGrapheme::C
-        | SourceGrapheme::J
-        | SourceGrapheme::Q
-        | SourceGrapheme::X
-        | SourceGrapheme::CH => None,
-
-        // Other characters (pass through as-is)
-        SourceGrapheme::Other => Some((FilipinoGrapheme::Other, 1)),
-
-        // Uppercase variants should not reach here (normalized by to_lowercase)
-        _ => None,
-    }
-}
-
-/// Cursor-sensitive adaptation (needs surrounding graphemes)
+/// Context-sensitive adaptation (needs surrounding graphemes)
 ///
 /// Handles grapheme-to-grapheme conversions that depend on surrounding context.
 /// This includes soft c (cent→sent) and position-dependent
@@ -98,8 +19,7 @@ pub fn free_replacement(
 ///
 /// # Arguments
 ///
-/// * `graphemes` - The full sequence of graphemes
-/// * `index` - Current position in the sequence
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 /// * `config` - Adaptation configuration
 ///
 /// # Returns
@@ -113,9 +33,14 @@ pub fn sensitive_replacement(
     let curr = ctx.current_grapheme();
 
     if curr.is_digraph() {
-        sensitive_digraph(&ctx)
+        sensitive_digraph(ctx)
     } else if curr.is_consonant() {
-        sensitive_consonant(&ctx, config)
+        sensitive_consonant(ctx, config)
+    } else if curr.is_vowel()
+        && !(config.g2p_unpredictable_variants && curr.is_unpredictable_variant())
+    {
+        // keep the condition here explicit!
+        sensitive_vowel(ctx)
     } else {
         None
     }
@@ -146,13 +71,13 @@ fn sensitive_consonant(
     }
 
     match curr {
-        SourceGrapheme::C => handle_consonant_c(&ctx),
-        SourceGrapheme::X => handle_consonant_x(&ctx),
-        SourceGrapheme::Y => handle_consonant_y(&ctx),
-        SourceGrapheme::T => handle_consonant_t(&ctx),
-        SourceGrapheme::D => handle_consonant_d(&ctx),
-        SourceGrapheme::G => handle_consonant_g(&ctx),
-        SourceGrapheme::S => handle_consonant_s(&ctx),
+        SourceGrapheme::C => handle_consonant_c(ctx),
+        SourceGrapheme::X => handle_consonant_x(ctx),
+        SourceGrapheme::Y => handle_consonant_y(ctx),
+        SourceGrapheme::T => handle_consonant_t(ctx),
+        SourceGrapheme::D => handle_consonant_d(ctx),
+        SourceGrapheme::G => handle_consonant_g(ctx),
+        SourceGrapheme::S => handle_consonant_s(ctx),
         SourceGrapheme::J => Some((vec![FilipinoGrapheme::DY], 1)),
         SourceGrapheme::Q => Some((vec![FilipinoGrapheme::K], 1)),
         _ => None,
@@ -330,7 +255,7 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// digraph-specific context-sensitive rules
+/// Digraph-specific context-sensitive rules
 ///
 /// # Arguments
 ///
@@ -359,42 +284,39 @@ fn sensitive_digraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// Handles G2P vowel replacement
-/// Based on the current index of an loanword, get the corresponding
-/// bigram matching the index in the ARPAbet(ipa) string, then add rules to
-/// adaptation
+/// Handles vowel replacement based on context
 ///
-/// Issue: Doesn't properly output vowels, could be with my logic here or
-/// how im accessing it through adaptation.rs
+/// Processes vowel graphemes and applies appropriate transformation rules
+/// based on surrounding context and position.
 ///
 /// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
-/// * `arpabet` - Contains the grapheme vector for the ARPAbet
 ///
 /// # Returns
 ///
-/// Returns `Some((FilipinoGrapheme, consumed))`
-pub fn handle_vowel(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+/// Returns `Some((Vec<FilipinoGrapheme>, consumed))` if a vowel rule matches,
+/// `None` otherwise.
+pub fn sensitive_vowel(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.current_grapheme() {
-        SourceGrapheme::A => handle_vowel_a(&ctx),
-        SourceGrapheme::E => handle_vowel_e(&ctx),
-        SourceGrapheme::I => handle_vowel_i(&ctx),
-        SourceGrapheme::O => handle_vowel_o(&ctx),
-        SourceGrapheme::U => handle_vowel_u(&ctx),
+        SourceGrapheme::A => handle_vowel_a(ctx),
+        SourceGrapheme::E => handle_vowel_e(ctx),
+        SourceGrapheme::I => handle_vowel_i(ctx),
+        SourceGrapheme::O => handle_vowel_o(ctx),
+        SourceGrapheme::U => handle_vowel_u(ctx),
         _ => None,
     }
 }
 
-/// handle 'a' vowel patterns
+/// Handle 'a' vowel patterns
 ///
-/// # arguments
+/// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # returns
+/// # Returns
 ///
-/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+/// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // check for "ate" pattern (a-t-e at end) → "eyt"
     if let Some(SourceGrapheme::T) = ctx.next_grapheme() {
@@ -414,15 +336,15 @@ fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     None
 }
 
-/// handle 'e' vowel patterns
+/// Handle 'e' vowel patterns
 ///
-/// # arguments
+/// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # returns
+/// # Returns
 ///
-/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+/// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // remove trailing 'e'
     if ctx.at_end() {
@@ -436,15 +358,15 @@ fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// handle 'i' vowel patterns
+/// Handle 'i' vowel patterns
 ///
-/// # arguments
+/// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # returns
+/// # Returns
 ///
-/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+/// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // check for "ide" pattern (i-d-e at end) → "ayd"
     if let Some(SourceGrapheme::D) = ctx.next_grapheme() {
@@ -500,15 +422,15 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// handle 'o' vowel patterns
+/// Handle 'o' vowel patterns
 ///
-/// # arguments
+/// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # returns
+/// # Returns
 ///
-/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+/// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // check for "one" pattern (o-n-e at end) → "own"
     if let Some(SourceGrapheme::N) = ctx.next_grapheme() {
@@ -552,15 +474,15 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// handle 'u' vowel patterns
+/// Handle 'u' vowel patterns
 ///
-/// # arguments
+/// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # returns
+/// # Returns
 ///
-/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+/// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.next_grapheme() {
         Some(SourceGrapheme::A) => Some((
@@ -644,85 +566,4 @@ fn handle_duplicates(
     }
 
     None
-}
-
-/// Convert a single letter to its Filipino phonetic alphabet name
-///
-/// Used for spelling out abbreviations and single letters.
-///
-/// # Arguments
-///
-/// * `letter` - The grapheme to spell out
-///
-/// # Returns
-///
-/// Returns `Some(Vec<FilipinoGrapheme>)` with the phonetic spelling, or `None` if
-/// the grapheme is not a letter.
-pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme>> {
-    let l = letter.to_lowercase();
-    match l {
-        SourceGrapheme::A => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]),
-        SourceGrapheme::B => Some(vec![FilipinoGrapheme::B, FilipinoGrapheme::I]),
-        SourceGrapheme::C => Some(vec![FilipinoGrapheme::S, FilipinoGrapheme::I]),
-        SourceGrapheme::D => Some(vec![FilipinoGrapheme::D, FilipinoGrapheme::I]),
-        SourceGrapheme::E => Some(vec![FilipinoGrapheme::I]),
-        SourceGrapheme::F => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::F]),
-        SourceGrapheme::G => Some(vec![
-            FilipinoGrapheme::D,
-            FilipinoGrapheme::Y,
-            FilipinoGrapheme::I,
-        ]),
-        SourceGrapheme::H => Some(vec![
-            FilipinoGrapheme::E,
-            FilipinoGrapheme::Y,
-            FilipinoGrapheme::TS,
-        ]),
-        SourceGrapheme::I => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]),
-        SourceGrapheme::J => Some(vec![
-            FilipinoGrapheme::DY,
-            FilipinoGrapheme::E,
-            FilipinoGrapheme::Y,
-        ]),
-        SourceGrapheme::K => Some(vec![
-            FilipinoGrapheme::K,
-            FilipinoGrapheme::E,
-            FilipinoGrapheme::Y,
-        ]),
-        SourceGrapheme::L => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::L]),
-        SourceGrapheme::M => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::M]),
-        SourceGrapheme::N => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::N]),
-        SourceGrapheme::O => Some(vec![FilipinoGrapheme::O, FilipinoGrapheme::W]),
-        SourceGrapheme::P => Some(vec![FilipinoGrapheme::P, FilipinoGrapheme::I]),
-        SourceGrapheme::Q => Some(vec![
-            FilipinoGrapheme::K,
-            FilipinoGrapheme::Y,
-            FilipinoGrapheme::U,
-        ]),
-        SourceGrapheme::R => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::R]),
-        SourceGrapheme::S => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::S]),
-        SourceGrapheme::T => Some(vec![FilipinoGrapheme::T, FilipinoGrapheme::I]),
-        SourceGrapheme::U => Some(vec![FilipinoGrapheme::Y, FilipinoGrapheme::U]),
-        SourceGrapheme::V => Some(vec![FilipinoGrapheme::B, FilipinoGrapheme::I]),
-        SourceGrapheme::W => Some(vec![
-            FilipinoGrapheme::D,
-            FilipinoGrapheme::A,
-            FilipinoGrapheme::B,
-            FilipinoGrapheme::O,
-            FilipinoGrapheme::L,
-            FilipinoGrapheme::Y,
-            FilipinoGrapheme::U,
-        ]),
-        SourceGrapheme::X => Some(vec![
-            FilipinoGrapheme::E,
-            FilipinoGrapheme::K,
-            FilipinoGrapheme::S,
-        ]),
-        SourceGrapheme::Y => Some(vec![
-            FilipinoGrapheme::W,
-            FilipinoGrapheme::A,
-            FilipinoGrapheme::Y,
-        ]),
-        SourceGrapheme::Z => Some(vec![FilipinoGrapheme::S, FilipinoGrapheme::I]),
-        _ => None,
-    }
 }

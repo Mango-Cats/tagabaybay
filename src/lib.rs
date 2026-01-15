@@ -29,6 +29,6 @@ pub mod adaptation;
 pub mod configs;
 pub mod error;
 pub mod g2p;
-pub mod syllabification;
 pub mod grapheme;
 pub mod phoneme;
+pub mod syllabification;

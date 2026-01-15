@@ -1,7 +1,8 @@
 use crate::adaptation::cursor::Cursor;
-use crate::adaptation::orthographic::{
-    free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
-};
+use crate::adaptation::orthographic::free::free_replacement;
+use crate::adaptation::orthographic::sensitive::sensitive_replacement;
+use crate::adaptation::orthographic::spelling::letter_to_phonetic;
+use crate::adaptation::phonetic::free::phonetic_replacements;
 use crate::configs::AdaptationConfig;
 use crate::error::{AdaptationError, ErrorTypes};
 use crate::grapheme::filipino::FilipinoGrapheme;
@@ -158,10 +159,10 @@ impl Adapter {
                 }
             }
 
-            // Handle phonetic cases
-            if curr.is_vowel() | matches!(curr, SourceGrapheme::Y) {
-                // ERR here
-                if let Some((arpa, consumed)) = handle_vowel(&ctx) {
+            // Handle unpredictable variants via phonetic replacements
+            // ensure that we match all unpredictable variants
+            if config.g2p_unpredictable_variants && curr.is_unpredictable_variant() {
+                if let Some((arpa, consumed)) = phonetic_replacements(&ctx) {
                     result.extend(arpa);
                     ctx.index += consumed;
                     continue;
