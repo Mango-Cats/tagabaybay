@@ -1,19 +1,18 @@
-use tagabaybay::adaptation::cursor::Cursor;
-use tagabaybay::configs::AdaptationConfig;
-use tagabaybay::g2p::phonemize;
-use tagabaybay::phoneme::tokenize::tokenize;
 use tagabaybay::adaptation::adapter::Adapter;
+use tagabaybay::configs::AdaptationConfig;
+use tagabaybay::grapheme::filipino::phl_graphemes_to_string;
 
 fn main() {
-    let word = "textbook";
-    let config: AdaptationConfig = AdaptationConfig::new();
-    let ctx = Cursor::from_word(word, None, None, &config).unwrap();
-    dbg!(&ctx.graphemes);
-    dbg!(&ctx.phonemes);
-    dbg!(&ctx.graphemes.len());
-    dbg!(&ctx.phonemes.len());
-    let tbb = Adapter::new().allow_sh_sound(true);
-    if let Ok(result) = tbb.adaptation(word, &config) {
-        dbg!(&result);
+    let words = ["hello", "aspirin", "chocolate", "ibuprofen", "tetracycline"];
+    let adapter = Adapter::new();
+    let config = AdaptationConfig::new();
+
+    for word in &words {
+        match adapter.adaptation(word, &config) {
+            Ok(result) => {
+                println!("{} -> {}", word, phl_graphemes_to_string(&result));
+            }
+            Err(e) => println!("{}: ERROR {:?}", word, e),
+        }
     }
 }

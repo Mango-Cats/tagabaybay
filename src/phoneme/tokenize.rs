@@ -35,7 +35,6 @@ pub fn tokenize(input: &str) -> Vec<ArpabetSymbols> {
             result.push(single_repl);
             i += 1;
         } else {
-            dbg!(&single_char);
             panic!("panic at arpabet/tokenize.rs @ tokenize()")
         }
     }
