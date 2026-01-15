@@ -1,4 +1,4 @@
-use crate::graphemes::src_graphemes::SourceGrapheme;
+use crate::grapheme::src_graphemes::SourceGrapheme;
 use std::fmt;
 
 #[derive(Debug, Clone)]

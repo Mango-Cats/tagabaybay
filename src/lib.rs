@@ -30,5 +30,5 @@ pub mod consts;
 pub mod error;
 pub mod g2p;
 pub mod syllabification;
-pub mod graphemes;
-pub mod arpabet;
+pub mod grapheme;
+pub mod phoneme;

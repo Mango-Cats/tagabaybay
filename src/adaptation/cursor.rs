@@ -1,10 +1,10 @@
-use crate::arpabet;
-use crate::arpabet::symbols::ArpabetSymbols;
+use crate::phoneme;
+use crate::phoneme::symbols::ArpabetSymbols;
 use crate::consts::AdaptationConfig;
 use crate::error::ErrorTypes;
 use crate::g2p::phonemize;
-use crate::graphemes;
-use crate::graphemes::src_graphemes::SourceGrapheme;
+use crate::grapheme;
+use crate::grapheme::src_graphemes::SourceGrapheme;
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]
@@ -18,8 +18,8 @@ impl Cursor {
     /// Create a new cursor from graphemes and phonemes explicitly
     pub fn new(graphemes: &[SourceGrapheme], phonemes: &[ArpabetSymbols], index: usize) -> Self {
         Self {
-            graphemes: graphemes.to_vec(),
-            phonemes: phonemes.to_vec(),
+            graphemes: grapheme.to_vec(),
+            phonemes: phoneme.to_vec(),
             index,
         }
     }
@@ -31,7 +31,7 @@ impl Cursor {
         dataset_name: Option<&str>,
         config: &AdaptationConfig,
     ) -> Result<Self, ErrorTypes> {
-        let graphemes = graphemes::tokenize::tokenize(word);
+        let graphemes = grapheme::tokenize::tokenize(word);
 
         let phonetic_str = phonemize(word).map_err(|mut err| {
             err.word_number = word_number;
@@ -46,11 +46,11 @@ impl Cursor {
             ErrorTypes::Phonetization(err)
         })?;
 
-        let phonemes = arpabet::tokenize::tokenize(&phonetic_str);
+        let phonemes = phoneme::tokenize::tokenize(&phonetic_str);
 
         Ok(Self {
-            graphemes,
-            phonemes,
+            grapheme,
+            phoneme,
             index: 0,
         })
     }

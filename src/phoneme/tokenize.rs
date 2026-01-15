@@ -1,4 +1,4 @@
-use crate::arpabet::symbols::{ArpabetSymbols, match_arpabet};
+use crate::phoneme::symbols::{ArpabetSymbols, match_arpabet};
 
 /// Tokenize a string into arpabet symbols, matching longest patterns first
 ///

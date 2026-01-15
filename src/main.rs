@@ -1,4 +1,4 @@
-use tagabaybay::arpabet::tokenize::tokenize;
+use tagabaybay::phoneme::tokenize::tokenize;
 use tagabaybay::g2p::phonemize;
 
 fn main() {
