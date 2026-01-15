@@ -1,4 +1,4 @@
-use crate::adaptation::context::Context;
+use crate::adaptation::cursor::Cursor;
 use crate::adaptation::replacement::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
@@ -141,7 +141,7 @@ impl Adapter {
         config: &AdaptationConfig,
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
-        let mut ctx = match Context::from_word(word, word_number, dataset_name, config) {
+        let mut ctx = match Cursor::from_word(word, word_number, dataset_name, config) {
             Ok(ctx) => ctx,
             Err(e) => return Err(e),
         };
@@ -205,7 +205,7 @@ impl Default for Adapter {
 
 /// Detect and process abbreviations
 /// Returns (FilipinoGrapheme, graphemes_consumed) or None if not an abbreviation
-fn detect_and_process_abbreviation(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn detect_and_process_abbreviation(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let prev = ctx.prev();
 
     let after_separator = match prev {

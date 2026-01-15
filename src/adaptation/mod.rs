@@ -1,4 +1,4 @@
 pub mod adapter;
-pub mod context;
+pub mod cursor;
 pub mod replacement;
 pub mod vowel;

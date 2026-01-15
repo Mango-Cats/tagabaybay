@@ -1,18 +1,18 @@
 use crate::consts::AdaptationConfig;
-use crate::g2p::phonemize;
 use crate::error::ErrorTypes;
+use crate::g2p::phonemize;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 use crate::tokenization::tokenize::tokenize;
 
 /// Helper struct for accessing grapheme context during pattern matching
 #[derive(Debug, Clone)]
-pub struct Context {
+pub struct Cursor {
     pub graphemes: Vec<SourceGrapheme>,
     pub phonetic_transcription: String,
     pub index: usize,
 }
 
-impl Context {
+impl Cursor {
     /// Create a new context with each parameter
     pub fn new(graphemes: &[SourceGrapheme], index: usize, phonetic_transcription: &str) -> Self {
         Self {

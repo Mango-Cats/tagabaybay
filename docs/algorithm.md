@@ -1,6 +1,7 @@
 # ᜆᜄᜊᜌ᜔ᜊᜌ᜔ / TagaBaybay: Algorithm
 
 ## Tokenization
+
 The tokenization stage is a preprocessing step in the loanword adaptation algorithm. Its purpose is to convert an input string from the source language into a sequence of orthographic units (graphemes) that the subsequent rewrite rules can process. This allows the algorithm to handle digraphs, uppercase letters, and special characters in a structured and deterministic manner.
 
 Sections:
@@ -106,8 +107,13 @@ Each variant implements core traits or predicates that allow the algorithm to cl
 - $\text{is\_vowel}$: indicates whether a grapheme represents a vowel sound.  
 - $\text{is\_consonant}$: indicates whether a grapheme represents a consonant sound.  
 - $\text{is\_digraph}$: indicates whether a grapheme represents a multi-character orthographic pattern.  
-- $\text{as\_str}$: converts a grapheme back to its canonical string representation.
 
 These predicates allow subsequent algorithms to reason about phonological and orthographic properties instead of operating on raw characters. For example, $\text{is\_vowel}$ partitions the sum type into the set of vowel graphemes, enabling adaptation rules to target vowel sequences directly.
 
 The sum type structure also distinguishes between plain constants $(\texttt{PH}, \texttt{A}, \texttt{B}, \dots)$ and parametric variants ($\texttt{Passthrough}(\text{String})$), allowing the algorithm to store additional information when necessary without breaking the type system.
+
+# Loanword Adaptation Algorithm
+
+## Context
+
+# Syllabification Stage

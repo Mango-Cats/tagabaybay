@@ -1,6 +1,6 @@
 use std::vec;
 
-use super::context::Context;
+use super::cursor::Cursor;
 use crate::consts::AdaptationConfig;
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 use crate::tokenization::src_graphemes::SourceGrapheme;
@@ -21,7 +21,7 @@ use crate::tokenization::src_graphemes::SourceGrapheme;
 /// Returns `Some((FilipinoGrapheme, consumed))` if a context-free rule matches, where
 /// `consumed` is typically 1. Returns `None` for context-sensitive letters.
 pub fn free_replacement(
-    ctx: &Context,
+    ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(FilipinoGrapheme, usize)> {
     let g = ctx.current().to_lowercase();
@@ -75,7 +75,7 @@ pub fn free_replacement(
         // ASCII passthrough (digits, punctuation, etc.)
         SourceGrapheme::Passthrough(c) => Some((FilipinoGrapheme::Passthrough(c.to_string()), 1)),
 
-        // Context-sensitive letters (handled in sensitive_replacement)
+        // Cursor-sensitive letters (handled in sensitive_replacement)
         SourceGrapheme::C
         | SourceGrapheme::J
         | SourceGrapheme::Q
@@ -90,7 +90,7 @@ pub fn free_replacement(
     }
 }
 
-/// Context-sensitive adaptation (needs surrounding graphemes)
+/// Cursor-sensitive adaptation (needs surrounding graphemes)
 ///
 /// Handles grapheme-to-grapheme conversions that depend on surrounding context.
 /// This includes soft c (cent→sent) and position-dependent
@@ -107,7 +107,7 @@ pub fn free_replacement(
 /// Returns `Some((FilipinoGrapheme, consumed))` if a context-sensitive rule matches.
 /// Returns `None` if no rule applies (will print error).
 pub fn sensitive_replacement(
-    ctx: &Context,
+    ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
@@ -127,7 +127,7 @@ pub fn sensitive_replacement(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 /// * `config` - Adaptation configuration
 ///
 /// # Returns
@@ -135,7 +135,7 @@ pub fn sensitive_replacement(
 /// Returns `Some((FilipinoGrapheme, consumed))` if a rule matches, where `consumed` is the number
 /// of graphemes processed. Returns `None` if no context-sensitive rule applies.
 fn sensitive_consonant(
-    ctx: &Context,
+    ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
@@ -163,12 +163,12 @@ fn sensitive_consonant(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
-fn handle_consonant_c(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.lookahead(1) {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
@@ -183,12 +183,12 @@ fn handle_consonant_c(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
-fn handle_consonant_x(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // 'x' at start becomes 's'
     if ctx.at_start() {
         Some((vec![FilipinoGrapheme::S], 1))
@@ -202,12 +202,12 @@ fn handle_consonant_x(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_y(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         // 'y' after ('s' | 'l' | 'x') becomes 'i'
         (Some(SourceGrapheme::S | SourceGrapheme::L | SourceGrapheme::X), _) => {
@@ -228,12 +228,12 @@ fn handle_consonant_y(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_t(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_t(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         // 'th' + (a|o) -> 'tay/toy'
         (Some(SourceGrapheme::H), Some(SourceGrapheme::A | SourceGrapheme::O)) => Some((
@@ -257,12 +257,12 @@ fn handle_consonant_t(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_d(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         (Some(SourceGrapheme::I), Some(SourceGrapheme::E)) => Some((
             vec![
@@ -280,12 +280,12 @@ fn handle_consonant_d(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_g(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.next() {
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
             // Check if NOT followed by s/c/k
@@ -313,12 +313,12 @@ fn handle_consonant_g(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_s(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.prev(), ctx.next()) {
         (Some(SourceGrapheme::EE | SourceGrapheme::OO), Some(SourceGrapheme::E)) => {
             match ctx.lookahead(2) {
@@ -334,12 +334,12 @@ fn handle_consonant_s(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a rule matches, `None` otherwise.
-fn sensitive_digraph(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn sensitive_digraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
     let next = ctx.next();
 
@@ -369,17 +369,16 @@ fn sensitive_digraph(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 /// * `arpabet` - Contains the grapheme vector for the ARPAbet
 ///
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))`
 pub fn handle_vowel(
-    ctx: &Context,
+    ctx: &Cursor,
     arpabet: &Vec<SourceGrapheme>,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let curr = ctx.current();
     let idx = ctx.index;
     let letter = arpabet.get(idx)?.to_lowercase();
 
@@ -413,7 +412,7 @@ pub fn handle_vowel(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
@@ -448,7 +447,7 @@ fn handle_arpa_a(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
@@ -479,7 +478,7 @@ fn handle_arpa_e(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
@@ -502,7 +501,7 @@ fn handle_arpa_i(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
@@ -529,7 +528,7 @@ fn handle_arpa_o(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # Returns
 ///
@@ -557,7 +556,7 @@ fn handle_arpa_u(
 ///
 /// # Arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 /// * `config` - Adaptation configuration
 ///
 /// # Returns
@@ -565,7 +564,7 @@ fn handle_arpa_u(
 /// Returns `Some((FilipinoGrapheme, 2))` if a duplicate is found (consuming 2 graphemes),
 /// `None` otherwise.
 fn handle_duplicates(
-    ctx: &Context,
+    ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();

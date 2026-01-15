@@ -1,8 +1,8 @@
-use crate::adaptation::context::Context;
+use crate::adaptation::cursor::Cursor;
 use crate::tokenization::phl_graphemes::FilipinoGrapheme;
 use crate::tokenization::src_graphemes::SourceGrapheme;
 
-pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+pub fn handle_vowel(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current();
 
     // dbg!(&ctx.ipa);
@@ -14,12 +14,12 @@ pub fn handle_vowel(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # returns
 ///
 /// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_vowel_a(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // check for "ate" pattern (a-t-e at end) → "eyt"
     if let Some(SourceGrapheme::T) = ctx.next() {
         if let Some(SourceGrapheme::E) = ctx.lookahead(2) {
@@ -42,12 +42,12 @@ fn handle_vowel_a(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # returns
 ///
 /// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_vowel_e(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // remove trailing 'e'
     if ctx.at_end() {
         return Some((vec![], 1));
@@ -64,12 +64,12 @@ fn handle_vowel_e(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # returns
 ///
 /// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_vowel_i(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // check for "ide" pattern (i-d-e at end) → "ayd"
     if let Some(SourceGrapheme::D) = ctx.next() {
         if let Some(SourceGrapheme::E) = ctx.lookahead(2) {
@@ -128,12 +128,12 @@ fn handle_vowel_i(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # returns
 ///
 /// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_vowel_o(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // check for "one" pattern (o-n-e at end) → "own"
     if let Some(SourceGrapheme::N) = ctx.next() {
         if let Some(SourceGrapheme::E) = ctx.lookahead(2) {
@@ -180,12 +180,12 @@ fn handle_vowel_o(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// # arguments
 ///
-/// * `ctx` - Context containing the grapheme sequence and current position
+/// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
 /// # returns
 ///
 /// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
-fn handle_vowel_u(ctx: &Context) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.next() {
         Some(SourceGrapheme::A) => Some((
             vec![
