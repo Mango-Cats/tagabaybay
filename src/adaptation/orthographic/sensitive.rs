@@ -95,6 +95,8 @@ fn sensitive_consonant(
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match ctx.lookahead_grapheme(1) {
+        // 'ck' → just 'k' (check, back, trick)
+        Some(SourceGrapheme::K) => Some((vec![FilipinoGrapheme::K], 2)),
         // 'c' before ('e' | 'i' | 'y') becomes 's'
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
             Some((vec![FilipinoGrapheme::S], 1))
@@ -372,6 +374,13 @@ fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
     }
 
+    // "a" before "ll" → "o" (call, mall, ball, all)
+    if let Some(SourceGrapheme::L) = next {
+        if let Some(SourceGrapheme::L) = ctx.lookahead_grapheme(2) {
+            return Some((vec![FilipinoGrapheme::O], 1));
+        }
+    }
+
     // "ai" → "ey" (wait, mail, paid)
     if let Some(SourceGrapheme::I) = next {
         return Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::Y], 2));
@@ -482,6 +491,22 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
     }
 
+    // check for "ise/ize" pattern (i-s/z-e at end) → "ays"
+    if let Some(SourceGrapheme::S | SourceGrapheme::Z) = next {
+        if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::A,
+                        FilipinoGrapheme::Y,
+                        FilipinoGrapheme::S,
+                    ],
+                    3,
+                ));
+            }
+        }
+    }
+
     // "igh" → "ay" (high, light, night, flight)
     if let Some(SourceGrapheme::G) = next {
         if let Some(SourceGrapheme::H) = ctx.lookahead_grapheme(2) {
@@ -489,6 +514,35 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 vec![FilipinoGrapheme::A, FilipinoGrapheme::Y],
                 3, // Consume i, g, h
             ));
+        }
+    }
+
+    // Magic-e pattern: i + consonant + e at end = "ay" (like, file, wine, price, time)
+    // BUT NOT for "-ine" when it's a longer word (chemical suffix in drugs: morphine, cocaine, etc.)
+    // Short words like "wine", "fine", "dine" should still use magic-e
+    if let Some(n) = &next {
+        if n.is_consonant() && !n.is_digraph() {
+            if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme(2) {
+                if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                    // For "-ine" ending, only apply magic-e for short words (5 or fewer graphemes)
+                    // This preserves "wine", "dine", "fine" but not "morphine", "caffeine"
+                    if *n == SourceGrapheme::N {
+                        if ctx.graphemes.len() <= 5 {
+                            return Some((
+                                vec![FilipinoGrapheme::A, FilipinoGrapheme::Y],
+                                1,
+                            ));
+                        }
+                        // Long word with -ine: don't apply magic-e (it's a drug suffix)
+                    } else {
+                        // "i" becomes "ay" in magic-e context
+                        return Some((
+                            vec![FilipinoGrapheme::A, FilipinoGrapheme::Y],
+                            1, // Just consume 'i', let consonant be processed next, then silent-e
+                        ));
+                    }
+                }
+            }
         }
     }
 
@@ -540,8 +594,10 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    let next = ctx.next_grapheme();
+    
     // check for "one" pattern (o-n-e at end) → "own"
-    if let Some(SourceGrapheme::N) = ctx.next_grapheme() {
+    if let Some(SourceGrapheme::N) = next {
         if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme(2) {
             if ctx.position() + 2 == ctx.graphemes.len() - 1 {
                 return Some((
@@ -556,7 +612,29 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
     }
 
-    match ctx.next_grapheme() {
+    // "ou" before consonant → "aw" (count, out, account, discount)
+    if let Some(SourceGrapheme::U) = next {
+        if let Some(after) = ctx.lookahead_grapheme(2) {
+            if after.is_consonant() {
+                return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
+            }
+        }
+        // "ou" at end → "aw" (you)
+        if ctx.position() + 1 == ctx.graphemes.len() - 1 {
+            return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
+        }
+    }
+
+    // "oa" + consonant → "ow" (loan, road, coat)
+    if let Some(SourceGrapheme::A) = next {
+        if let Some(after) = ctx.lookahead_grapheme(2) {
+            if after.is_consonant() {
+                return Some((vec![FilipinoGrapheme::O, FilipinoGrapheme::W], 2));
+            }
+        }
+    }
+
+    match next {
         Some(vowel) if vowel.is_vowel() => {
             // o + vowel -> oy + vowel (unless next is also a vowel)
             match ctx.lookahead_grapheme(2) {
