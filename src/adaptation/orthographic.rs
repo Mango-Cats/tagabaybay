@@ -24,7 +24,7 @@ pub fn free_replacement(
     ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(FilipinoGrapheme, usize)> {
-    let g = ctx.current().to_lowercase();
+    let g = ctx.current_grapheme().to_lowercase();
 
     match g {
         // Digraph replacements (digraph count as 1 grapheme)
@@ -110,7 +110,7 @@ pub fn sensitive_replacement(
     ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let curr = ctx.current();
+    let curr = ctx.current_grapheme();
 
     if curr.is_digraph() {
         sensitive_digraph(&ctx)
@@ -138,7 +138,7 @@ fn sensitive_consonant(
     ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let curr = ctx.current();
+    let curr = ctx.current_grapheme();
 
     // remove duplicates
     if let Some(x) = handle_duplicates(ctx, config) {
@@ -169,7 +169,7 @@ fn sensitive_consonant(
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match ctx.lookahead(1) {
+    match ctx.lookahead_grapheme(1) {
         // 'c' before ('e' | 'i' | 'y') becomes 's'
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
             Some((vec![FilipinoGrapheme::S], 1))
@@ -208,7 +208,7 @@ fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match (ctx.prev(), ctx.next()) {
+    match (ctx.prev_grapheme(), ctx.next_grapheme()) {
         // 'y' after ('s' | 'l' | 'x') becomes 'i'
         (Some(SourceGrapheme::S | SourceGrapheme::L | SourceGrapheme::X), _) => {
             Some((vec![FilipinoGrapheme::I], 1))
@@ -234,14 +234,14 @@ fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_t(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match (ctx.prev(), ctx.next()) {
+    match (ctx.prev_grapheme(), ctx.next_grapheme()) {
         // 'th' + (a|o) -> 'tay/toy'
         (Some(SourceGrapheme::H), Some(SourceGrapheme::A | SourceGrapheme::O)) => Some((
             vec![
                 FilipinoGrapheme::T,
                 FilipinoGrapheme::A,
                 FilipinoGrapheme::Y,
-                match ctx.next() {
+                match ctx.next_grapheme() {
                     Some(SourceGrapheme::A) => FilipinoGrapheme::A,
                     Some(SourceGrapheme::O) => FilipinoGrapheme::O,
                     _ => FilipinoGrapheme::Other,
@@ -263,7 +263,7 @@ fn handle_consonant_t(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match (ctx.prev(), ctx.next()) {
+    match (ctx.prev_grapheme(), ctx.next_grapheme()) {
         (Some(SourceGrapheme::I), Some(SourceGrapheme::E)) => Some((
             vec![
                 FilipinoGrapheme::A,
@@ -286,15 +286,15 @@ fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match ctx.next() {
+    match ctx.next_grapheme() {
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
             // Check if NOT followed by s/c/k
-            match ctx.lookahead(2) {
+            match ctx.lookahead_grapheme(2) {
                 Some(SourceGrapheme::S | SourceGrapheme::C | SourceGrapheme::K) => None,
                 _ => Some((
                     vec![
                         FilipinoGrapheme::DY,
-                        match ctx.next() {
+                        match ctx.next_grapheme() {
                             Some(SourceGrapheme::E) => FilipinoGrapheme::E,
                             Some(SourceGrapheme::I) => FilipinoGrapheme::I,
                             Some(SourceGrapheme::Y) => FilipinoGrapheme::I,
@@ -319,9 +319,9 @@ fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match (ctx.prev(), ctx.next()) {
+    match (ctx.prev_grapheme(), ctx.next_grapheme()) {
         (Some(SourceGrapheme::EE | SourceGrapheme::OO), Some(SourceGrapheme::E)) => {
-            match ctx.lookahead(2) {
+            match ctx.lookahead_grapheme(2) {
                 Some(SourceGrapheme::B | SourceGrapheme::D) => Some((vec![FilipinoGrapheme::S], 2)),
                 _ => None,
             }
@@ -340,8 +340,8 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a rule matches, `None` otherwise.
 fn sensitive_digraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let curr = ctx.current();
-    let next = ctx.next();
+    let curr = ctx.current_grapheme();
+    let next = ctx.next_grapheme();
 
     match curr {
         SourceGrapheme::CH => {
@@ -375,179 +375,239 @@ fn sensitive_digraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))`
-pub fn handle_vowel(
-    ctx: &Cursor,
-    arpabet: &Vec<SourceGrapheme>,
-) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let idx = ctx.index;
-    let letter = arpabet.get(idx)?.to_lowercase();
-
-    match letter {
-        SourceGrapheme::A => handle_arpa_a(arpabet, idx),
-        SourceGrapheme::E => handle_arpa_e(arpabet, idx),
-        SourceGrapheme::I => handle_arpa_i(arpabet, idx),
-        SourceGrapheme::O => handle_arpa_o(arpabet, idx),
-        SourceGrapheme::U => handle_arpa_u(arpabet, idx),
+pub fn handle_vowel(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    match ctx.current_grapheme() {
+        SourceGrapheme::A => handle_vowel_a(&ctx),
+        SourceGrapheme::E => handle_vowel_e(&ctx),
+        SourceGrapheme::I => handle_vowel_i(&ctx),
+        SourceGrapheme::O => handle_vowel_o(&ctx),
+        SourceGrapheme::U => handle_vowel_u(&ctx),
         _ => None,
     }
-
-    // match letter {
-    //     SourceGrapheme::ArpaAA | SourceGrapheme::ArpaAO =>  Some((vec![FilipinoGrapheme::O], 1)),
-    //     SourceGrapheme::ArpaAE | SourceGrapheme::ArpaAH => Some((vec![FilipinoGrapheme::A], 1)),
-    //     SourceGrapheme::ArpaAW => Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::W], 1)),
-    //     SourceGrapheme::ArpaAY => Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1)),
-    //     SourceGrapheme::ArpaEH => Some((vec![FilipinoGrapheme::E], 1)),
-    //     SourceGrapheme::ArpaER => Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::R], 1)),
-    //     SourceGrapheme::ArpaEY => Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::Y], 1)),
-    //     SourceGrapheme::ArpaIH | SourceGrapheme::ArpaIY => Some((vec![FilipinoGrapheme::I], 1)),
-    //     SourceGrapheme::ArpaOW => Some((vec![FilipinoGrapheme::O], 1)),
-    //     SourceGrapheme::ArpaOY => Some((vec![FilipinoGrapheme::O, FilipinoGrapheme::Y], 1)),
-    //     SourceGrapheme::ArpaUH | SourceGrapheme::ArpaUW => Some((vec![FilipinoGrapheme::U], 1)),
-    //     _ => None
-    // }
 }
 
-/// Handle 'A' ARPAbet patterns
-/// (AA, AE, AH, AO, AW, AY)
+/// handle 'a' vowel patterns
 ///
-/// # Arguments
+/// # arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # Returns
+/// # returns
 ///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_a(
-    arpabet: &Vec<SourceGrapheme>,
-    idx: usize,
-) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let next = arpabet.get(idx + 1);
-
-    if let Some(SourceGrapheme::E | SourceGrapheme::H) = next {
-        return Some((vec![FilipinoGrapheme::A], 1));
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // check for "ate" pattern (a-t-e at end) → "eyt"
+    if let Some(SourceGrapheme::T) = ctx.next_grapheme() {
+        if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::E,
+                        FilipinoGrapheme::Y,
+                        FilipinoGrapheme::T,
+                    ],
+                    3,
+                ));
+            }
+        }
     }
-
-    if let Some(SourceGrapheme::O | SourceGrapheme::A) = next {
-        return Some((vec![FilipinoGrapheme::O], 1));
-    }
-
-    if let Some(SourceGrapheme::W) = next {
-        return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::W], 1));
-    }
-
-    if let Some(SourceGrapheme::Y) = next {
-        return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1));
-    }
-
     None
 }
 
-/// Handle 'E' ARPAbet patterns
-/// (EH, ER, EY)
+/// handle 'e' vowel patterns
 ///
-/// # Arguments
+/// # arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # Returns
+/// # returns
 ///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_e(
-    arpabet: &Vec<SourceGrapheme>,
-    idx: usize,
-) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let next = arpabet.get(idx + 1);
-
-    if let Some(SourceGrapheme::H) = next {
-        return Some((vec![FilipinoGrapheme::E], 1));
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // remove trailing 'e'
+    if ctx.at_end() {
+        return Some((vec![], 1));
     }
 
-    if let Some(SourceGrapheme::R) = next {
-        return Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::R], 1));
+    // ei -> i (consume both e and i)
+    match ctx.next_grapheme() {
+        Some(SourceGrapheme::I) => Some((vec![FilipinoGrapheme::I], 2)),
+        _ => None,
     }
-
-    if let Some(SourceGrapheme::Y) = next {
-        return Some((vec![FilipinoGrapheme::E, FilipinoGrapheme::Y], 1));
-    }
-
-    None
 }
 
-/// Handle 'I' ARPAbet patterns
-/// (IH, IY)
+/// handle 'i' vowel patterns
 ///
-/// # Arguments
+/// # arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # Returns
+/// # returns
 ///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_i(
-    arpabet: &Vec<SourceGrapheme>,
-    idx: usize,
-) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let next = arpabet.get(idx + 1);
-
-    if let Some(SourceGrapheme::H | SourceGrapheme::Y) = next {
-        return Some((vec![FilipinoGrapheme::I], 1));
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // check for "ide" pattern (i-d-e at end) → "ayd"
+    if let Some(SourceGrapheme::D) = ctx.next_grapheme() {
+        if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::A,
+                        FilipinoGrapheme::Y,
+                        FilipinoGrapheme::D,
+                    ],
+                    3,
+                ));
+            }
+        }
     }
 
-    None
+    // regular i + vowel patterns
+    match ctx.next_grapheme() {
+        Some(SourceGrapheme::A) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::A,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::E) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::E,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::O) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::O,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::U) => Some((
+            vec![
+                FilipinoGrapheme::I,
+                FilipinoGrapheme::Y,
+                FilipinoGrapheme::U,
+            ],
+            2,
+        )),
+        _ => None,
+    }
 }
 
-/// Handle 'O' ARPAbet patterns
-/// (OW, OY)
+/// handle 'o' vowel patterns
 ///
-/// # Arguments
+/// # arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # Returns
+/// # returns
 ///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_o(
-    arpabet: &Vec<SourceGrapheme>,
-    idx: usize,
-) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let next = arpabet.get(idx + 1);
-
-    if let Some(SourceGrapheme::W) = next {
-        return Some((vec![FilipinoGrapheme::O], 1));
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // check for "one" pattern (o-n-e at end) → "own"
+    if let Some(SourceGrapheme::N) = ctx.next_grapheme() {
+        if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme(2) {
+            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                return Some((
+                    vec![
+                        FilipinoGrapheme::O,
+                        FilipinoGrapheme::W,
+                        FilipinoGrapheme::N,
+                    ],
+                    3,
+                ));
+            }
+        }
     }
 
-    if let Some(SourceGrapheme::Y) = next {
-        return Some((vec![FilipinoGrapheme::O, FilipinoGrapheme::Y], 1));
+    match ctx.next_grapheme() {
+        Some(vowel) if vowel.is_vowel() => {
+            // o + vowel -> oy + vowel (unless next is also a vowel)
+            match ctx.lookahead_grapheme(2) {
+                Some(v) if v.is_vowel() => None,
+                _ => Some((
+                    vec![
+                        FilipinoGrapheme::O,
+                        FilipinoGrapheme::Y,
+                        match vowel {
+                            SourceGrapheme::A => FilipinoGrapheme::A,
+                            SourceGrapheme::E => FilipinoGrapheme::E,
+                            SourceGrapheme::I => FilipinoGrapheme::I,
+                            SourceGrapheme::O => FilipinoGrapheme::O,
+                            SourceGrapheme::U => FilipinoGrapheme::U,
+                            _ => FilipinoGrapheme::Other,
+                        },
+                    ],
+                    2,
+                )),
+            }
+        }
+        _ => None,
     }
-
-    None
 }
 
-/// Handle 'U' ARPAbet patterns
-/// (UH, UW)
+/// handle 'u' vowel patterns
 ///
-/// # Arguments
+/// # arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
 ///
-/// # Returns
+/// # returns
 ///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_arpa_u(
-    arpabet: &Vec<SourceGrapheme>,
-    idx: usize,
-) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let next = arpabet.get(idx + 1);
-
-    if let Some(SourceGrapheme::H | SourceGrapheme::W) = next {
-        return Some((vec![FilipinoGrapheme::U], 1));
+/// returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
+fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    match ctx.next_grapheme() {
+        Some(SourceGrapheme::A) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::A,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::E) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::E,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::I) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::I,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::O) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::O,
+            ],
+            2,
+        )),
+        Some(SourceGrapheme::U) => Some((
+            vec![
+                FilipinoGrapheme::U,
+                FilipinoGrapheme::W,
+                FilipinoGrapheme::U,
+            ],
+            2,
+        )),
+        _ => match ctx.prev_grapheme() {
+            Some(SourceGrapheme::E) => Some((vec![FilipinoGrapheme::Y, FilipinoGrapheme::U], 1)),
+            _ => None,
+        },
     }
-
-    // if let Some(SourceGrapheme::W) = next {
-    //     return Some((vec![FilipinoGrapheme::Y, FilipinoGrapheme::U], 1))
-    // }
-
-    None
 }
 
 /// Handle duplicate graphemes
@@ -567,8 +627,8 @@ fn handle_duplicates(
     ctx: &Cursor,
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let curr = ctx.current();
-    if let Some(next) = ctx.next() {
+    let curr = ctx.current_grapheme();
+    if let Some(next) = ctx.next_grapheme() {
         if next == curr
         // some symbol overload here: !matches!() is `NOT`matches!()
         // matches!() returns type bool.

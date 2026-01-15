@@ -1,5 +1,5 @@
 use crate::adaptation::cursor::Cursor;
-use crate::adaptation::replacement::{
+use crate::adaptation::orthographic::{
     free_replacement, handle_vowel, letter_to_phonetic, sensitive_replacement,
 };
 use crate::consts::AdaptationConfig;
@@ -145,9 +145,9 @@ impl Adapter {
             Ok(ctx) => ctx,
             Err(e) => return Err(e),
         };
-        dbg!(&ctx.phonetic_transcription);
+
         while ctx.index < ctx.len() {
-            let curr = ctx.current();
+            let curr = ctx.current_grapheme();
 
             // Handle abbreviations and single letters (spelled out phonetically)
             if curr.is_uppercase() {
@@ -158,24 +158,24 @@ impl Adapter {
                 }
             }
 
-            // Handle vowels (special case)
-            if curr.is_vowel() {
+            // Handle phonetic cases
+            if curr.is_vowel() | matches!(curr, SourceGrapheme::Y) {
                 // ERR here
-                if let Some((arpa, consumed)) = handle_vowel(&ctx, &ctx.phonetic_transcription) {
+                if let Some((arpa, consumed)) = handle_vowel(&ctx) {
                     result.extend(arpa);
                     ctx.index += consumed;
                     continue;
                 }
             }
 
-            // Context-sensitive replacement
+            // Context-sensitive orthographic cases
             if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
                 result.extend(sens_repl);
                 ctx.index += consumed;
                 continue;
             }
 
-            // Context-free replacement (fallback)
+            // Context-free orthographic cases (fallback)
             if let Some((free_repl, consumed)) = free_replacement(&ctx, &self.config) {
                 result.push(free_repl);
                 ctx.index += consumed;
@@ -206,7 +206,7 @@ impl Default for Adapter {
 /// Detect and process abbreviations
 /// Returns (FilipinoGrapheme, graphemes_consumed) or None if not an abbreviation
 fn detect_and_process_abbreviation(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let prev = ctx.prev();
+    let prev = ctx.prev_grapheme();
 
     let after_separator = match prev {
         None => true,

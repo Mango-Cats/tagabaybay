@@ -1,4 +1,4 @@
 pub mod adapter;
 pub mod cursor;
-pub mod replacement;
-pub mod vowel;
+pub mod orthographic;
+pub mod phonetic;

@@ -8,8 +8,8 @@
 use chrono::Local;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
+use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::consts::AdaptationConfig;
-use tagabaybay::adaptation::adaptation::Adapter;
 use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";

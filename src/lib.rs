@@ -31,3 +31,4 @@ pub mod error;
 pub mod g2p;
 pub mod syllabification;
 pub mod tokenization;
+pub mod arpabet;
