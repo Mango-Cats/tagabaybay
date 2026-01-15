@@ -25,6 +25,7 @@ impl Cursor {
     }
 
     /// Construct cursor from a word using tokenization and phonemization
+    /// Handles multi-word inputs by phonemizing each word separately
     pub fn from_word(
         word: &str,
         word_number: Option<usize>,
@@ -33,18 +34,8 @@ impl Cursor {
     ) -> Result<Self, ErrorTypes> {
         let graphemes = grapheme::tokenize::tokenize(word);
 
-        let phonetic_str = phonemize(word).map_err(|mut err| {
-            err.word_number = word_number;
-            err.dataset_name = dataset_name.map(str::to_string);
-
-            err.print_error();
-
-            if config.panic_at_error {
-                panic!("Phonetization failed: {:?}", err);
-            }
-
-            ErrorTypes::Phonetization(err)
-        })?;
+        // Handle multi-word inputs by phonemizing each word separately
+        let phonetic_str = phonemize_phrase(word, word_number, dataset_name, config)?;
 
         let phonemes = phoneme::tokenize::tokenize(&phonetic_str);
 
@@ -54,7 +45,78 @@ impl Cursor {
             index: 0,
         })
     }
+}
 
+/// Phonemize a phrase (potentially multiple words separated by spaces)
+/// Each word is phonemized separately, with '$' as separator between words
+/// Numbers and special tokens are passed through as-is
+fn phonemize_phrase(
+    phrase: &str,
+    word_number: Option<usize>,
+    dataset_name: Option<&str>,
+    config: &AdaptationConfig,
+) -> Result<String, ErrorTypes> {
+    let words: Vec<&str> = phrase.split_whitespace().collect();
+
+    if words.is_empty() {
+        return Ok(String::new());
+    }
+
+    let mut phonetic_parts: Vec<String> = Vec::new();
+
+    for word_part in words {
+        // Handle hyphenated words by phonemizing each part
+        let subparts: Vec<&str> = word_part.split('-').collect();
+        let mut subpart_phonetics: Vec<String> = Vec::new();
+        
+        for subpart in &subparts {
+            // Skip numbers and special tokens - they'll be handled by grapheme pass-through
+            if subpart.chars().all(|c| c.is_ascii_digit() || c == '.' || c == '/' || c == '+') {
+                subpart_phonetics.push(String::new()); // Empty phonemes for numbers
+                continue;
+            }
+            
+            // Skip empty parts (e.g., from leading hyphen)
+            if subpart.is_empty() {
+                subpart_phonetics.push(String::new());
+                continue;
+            }
+            
+            // Strip trailing special characters (like "Shield+" -> "Shield")
+            let clean_subpart: String = subpart.chars()
+                .take_while(|c| c.is_ascii_alphabetic())
+                .collect();
+            
+            if clean_subpart.is_empty() {
+                subpart_phonetics.push(String::new());
+                continue;
+            }
+            
+            let phonetic_str = phonemize(&clean_subpart).map_err(|mut err| {
+                err.word_number = word_number;
+                err.dataset_name = dataset_name.map(str::to_string);
+
+                err.print_error();
+
+                if config.panic_at_error {
+                    panic!("Phonetization failed: {:?}", err);
+                }
+
+                ErrorTypes::Phonetization(err)
+            })?;
+
+            subpart_phonetics.push(phonetic_str);
+        }
+        
+        // Rejoin hyphenated parts with '$' (boundary marker)
+        phonetic_parts.push(subpart_phonetics.join("$"));
+    }
+
+    // Join with '$' which is used as syllable/word boundary
+    Ok(phonetic_parts.join("$"))
+}
+
+impl Cursor {
     /// Current grapheme
     pub fn current_grapheme(&self) -> SourceGrapheme {
         self.graphemes[self.index].to_lowercase()
