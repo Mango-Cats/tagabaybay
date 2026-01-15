@@ -4,7 +4,7 @@ use crate::consts::AdaptationConfig;
 use crate::error::ErrorTypes;
 use crate::g2p::phonemize;
 use crate::grapheme;
-use crate::grapheme::src_graphemes::SourceGrapheme;
+use crate::grapheme::source::SourceGrapheme;
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]

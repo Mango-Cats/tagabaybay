@@ -4,8 +4,8 @@ use crate::adaptation::orthographic::{
 };
 use crate::consts::AdaptationConfig;
 use crate::error::{AdaptationError, ErrorTypes};
-use crate::grapheme::phl_graphemes::FilipinoGrapheme;
-use crate::grapheme::src_graphemes::SourceGrapheme;
+use crate::grapheme::filipino::FilipinoGrapheme;
+use crate::grapheme::source::SourceGrapheme;
 
 /// Builder for adaptation with customizable configuration
 ///

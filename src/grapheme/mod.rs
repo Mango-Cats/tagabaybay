@@ -1,3 +1,3 @@
-pub mod phl_graphemes;
-pub mod src_graphemes;
+pub mod filipino;
+pub mod source;
 pub mod tokenize;

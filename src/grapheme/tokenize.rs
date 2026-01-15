@@ -1,4 +1,4 @@
-use super::src_graphemes::{SourceGrapheme, match_digraph};
+use super::source::{SourceGrapheme, match_digraph};
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///
