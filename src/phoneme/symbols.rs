@@ -93,6 +93,33 @@ impl ArpabetSymbols {
             _ => false,
         }
     }
+
+    /// Check if this is a vowel phoneme
+    pub fn is_vowel(&self) -> bool {
+        matches!(
+            self,
+            ArpabetSymbols::AA
+                | ArpabetSymbols::AE
+                | ArpabetSymbols::AH
+                | ArpabetSymbols::AO
+                | ArpabetSymbols::AW
+                | ArpabetSymbols::AY
+                | ArpabetSymbols::EH
+                | ArpabetSymbols::ER
+                | ArpabetSymbols::EY
+                | ArpabetSymbols::IH
+                | ArpabetSymbols::IY
+                | ArpabetSymbols::OW
+                | ArpabetSymbols::OY
+                | ArpabetSymbols::UH
+                | ArpabetSymbols::UW
+        )
+    }
+
+    /// Check if this is a consonant phoneme
+    pub fn is_consonant(&self) -> bool {
+        !self.is_vowel()
+    }
 }
 
 pub fn match_arpabet(s: &str) -> Option<ArpabetSymbols> {

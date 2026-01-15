@@ -14,3 +14,4 @@
 //! - `vowel`: Phoneme-based vowel handling
 
 pub mod free;
+pub mod p2g;

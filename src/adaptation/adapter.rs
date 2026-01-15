@@ -160,13 +160,10 @@ impl Adapter {
             }
 
             // Handle unpredictable variants via phonetic replacements
-            // ensure that we match all unpredictable variants
-            if config.g2p_unpredictable_variants && curr.is_unpredictable_variant() {
-                if let Some((arpa, consumed)) = phonetic_replacements(&ctx) {
-                    result.extend(arpa);
-                    ctx.index += consumed;
-                    continue;
-                }
+            if let Some((arpa, consumed)) = phonetic_replacements(&ctx, &self.config) {
+                result.extend(arpa);
+                ctx.index += consumed;
+                continue;
             }
 
             // Context-sensitive orthographic cases
