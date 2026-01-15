@@ -35,7 +35,8 @@ pub fn tokenize(input: &str) -> Vec<ArpabetSymbols> {
             result.push(single_repl);
             i += 1;
         } else {
-            panic!("panic at arpabet/tokenize.rs @ tokenize()")
+            // Skip unknown characters (e.g., unknown phoneme outputs from G2P model)
+            i += 1;
         }
     }
 
