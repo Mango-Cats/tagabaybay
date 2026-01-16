@@ -20,8 +20,8 @@ pub fn graphemize(phoneme: &ArpabetSymbols) -> (Vec<FilipinoGrapheme>, bool) {
         ArpabetSymbols::AW => (vec![FilipinoGrapheme::A, FilipinoGrapheme::W], true),
         ArpabetSymbols::AY => (vec![FilipinoGrapheme::A, FilipinoGrapheme::Y], true),
         ArpabetSymbols::EY => (vec![FilipinoGrapheme::E, FilipinoGrapheme::Y], true),
-        ArpabetSymbols::OW => (vec![FilipinoGrapheme::O, FilipinoGrapheme::W], true),
-        ArpabetSymbols::OY => (vec![FilipinoGrapheme::O, FilipinoGrapheme::Y], true),
+        ArpabetSymbols::OW => (vec![FilipinoGrapheme::O], true),
+        ArpabetSymbols::OY => (vec![FilipinoGrapheme::O], true),
 
         _ => (vec![FilipinoGrapheme::A], false),
     }
