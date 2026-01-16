@@ -38,7 +38,6 @@ use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
 use crate::configs::AdaptationConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
-use crate::grapheme::source::SourceGrapheme;
 use crate::phoneme::symbols::ArpabetSymbols;
 
 /// Handles phonetic replacement for vowels and Y based on G2P transcription.
@@ -74,16 +73,10 @@ pub fn phonetic_replacements(
         return None;
     }
 
-    // Check for common silent vowel patterns first
-    if is_likely_silent_vowel(ctx) {
-        // Return empty grapheme sequence to indicate this vowel should be skipped
-        return Some((vec![], 1));
-    }
-
     // Adjust vowel index by counting non-silent vowels we've already seen
-    let adjusted_index = count_non_silent_vowels_before(ctx);
+    let pre_vowels = vowels_before(ctx);
 
-    let phoneme = find_nth_vowel_phoneme(&ctx.phonemes, adjusted_index)?;
+    let phoneme = find_nth_vowel_phoneme(&ctx.phonemes, pre_vowels)?;
 
     // Check if next grapheme is also a vowel (might be consumed by diphthong)
     let next_is_vowel = ctx
@@ -91,108 +84,25 @@ pub fn phonetic_replacements(
         .map(|g| g.is_unpredictable_variant())
         .unwrap_or(false);
 
-    // Check if the next grapheme is likely silent (don't consume it as diphthong)
-    let next_likely_silent = ctx
-        .lookahead_grapheme_low(1)
-        .map(|_| is_likely_silent_vowel_at(ctx, ctx.index + 1))
-        .unwrap_or(false);
-
     // Convert ARPAbet phoneme to Filipino grapheme(s)
     let (result, is_diphthong) = graphemize(&phoneme);
 
-    let consumed = if is_diphthong && next_is_vowel && !next_likely_silent {
-        2
-    } else {
-        1
-    };
+    let consumed = if is_diphthong && next_is_vowel { 2 } else { 1 };
 
     Some((result, consumed))
 }
 
-/// Count vowel graphemes before current position, excluding likely silent ones
-fn count_non_silent_vowels_before(ctx: &Cursor) -> usize {
+/// Count vowel graphemes before current position
+fn vowels_before(ctx: &Cursor) -> usize {
     let mut count = 0;
     for i in 0..ctx.index {
         let g = ctx.graphemes[i].to_lowercase();
         if g.is_unpredictable_variant() {
             // Create a temporary "view" to check if this was silent
-            if !is_likely_silent_vowel_at(ctx, i) {
-                count += 1;
-            }
+            count += 1;
         }
     }
     count
-}
-
-/// Check if vowel at position `idx` is likely silent
-fn is_likely_silent_vowel_at(ctx: &Cursor, idx: usize) -> bool {
-    if idx >= ctx.graphemes.len() {
-        return false;
-    }
-
-    let g = ctx.graphemes[idx].to_lowercase();
-
-    // Only check vowels
-    if !g.is_unpredictable_variant() {
-        return false;
-    }
-
-    let is_last = idx == ctx.graphemes.len() - 1;
-    let prev = if idx > 0 {
-        Some(ctx.graphemes[idx - 1].to_lowercase())
-    } else {
-        None
-    };
-    let next = ctx.graphemes.get(idx + 1).map(|g| g.to_lowercase());
-
-    // Silent final 'e' patterns
-    if g == SourceGrapheme::E && is_last {
-        // Final 'e' after consonant is often silent: "make", "pine", "zone"
-        if let Some(ref p) = prev {
-            if p.is_consonant() && *p != SourceGrapheme::E {
-                return true;
-            }
-        }
-    }
-
-    // Silent 'e' before final consonant: "lined" (but not "bed")
-    // Check for pattern: vowel + consonant + e + consonant at end
-    if g == SourceGrapheme::E {
-        if let (Some(p), Some(n)) = (&prev, &next) {
-            // After a consonant and before a consonant at end
-            if p.is_consonant() && n.is_consonant() && idx + 2 == ctx.graphemes.len() {
-                // But not after single consonant at start
-                if idx > 2 {
-                    return true;
-                }
-            }
-        }
-    }
-
-    // Silent 'u' after 'q' (the U in QU is typically not a separate vowel)
-    if g == SourceGrapheme::U {
-        if let Some(ref p) = prev {
-            if *p == SourceGrapheme::Q {
-                return true;
-            }
-        }
-    }
-
-    // Silent 'u' in "gue", "gui" patterns (like "vogue", "guide")
-    if g == SourceGrapheme::U {
-        if let (Some(p), Some(n)) = (&prev, &next) {
-            if *p == SourceGrapheme::G && (*n == SourceGrapheme::E || *n == SourceGrapheme::I) {
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
-/// Check if the current position is a likely silent vowel
-fn is_likely_silent_vowel(ctx: &Cursor) -> bool {
-    is_likely_silent_vowel_at(ctx, ctx.index)
 }
 
 /// Find the nth vowel phoneme in the phoneme sequence

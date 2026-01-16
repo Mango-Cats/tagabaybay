@@ -148,11 +148,8 @@ impl Adapter {
         };
 
         while ctx.index < ctx.len() {
-            let curr = ctx.current_grapheme_low();
-            let curr_raw = &ctx.graphemes[ctx.index]; // Raw grapheme preserving case
-
             // Handle abbreviations and single letters (spelled out phonetically)
-            if curr_raw.is_uppercase() {
+            if ctx.current_grapheme().is_uppercase() {
                 if let Some((abbr_repl, consumed)) = detect_and_process_abbreviation(&ctx) {
                     result.extend(abbr_repl);
                     ctx.index += consumed;
@@ -160,16 +157,16 @@ impl Adapter {
                 }
             }
 
-            // Handle unpredictable variants via phonetic replacements
-            if let Some((arpa, consumed)) = phonetic_replacements(&ctx, &self.config) {
-                result.extend(arpa);
+            // Context-sensitive orthographic cases
+            if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
+                result.extend(sens_repl);
                 ctx.index += consumed;
                 continue;
             }
 
-            // Context-sensitive orthographic cases
-            if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
-                result.extend(sens_repl);
+            // Handle unpredictable variants via phonetic replacements
+            if let Some((arpa, consumed)) = phonetic_replacements(&ctx, &self.config) {
+                result.extend(arpa);
                 ctx.index += consumed;
                 continue;
             }
