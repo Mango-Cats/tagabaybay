@@ -54,6 +54,7 @@ pub enum ArpabetSymbols {
 impl ArpabetSymbols {
     pub fn as_str(&self) -> String {
         match self {
+            // Vowels
             ArpabetSymbols::AA => "aa".to_string(),
             ArpabetSymbols::AE => "ae".to_string(),
             ArpabetSymbols::AH => "ah".to_string(),
@@ -69,6 +70,38 @@ impl ArpabetSymbols {
             ArpabetSymbols::OY => "oy".to_string(),
             ArpabetSymbols::UH => "uh".to_string(),
             ArpabetSymbols::UW => "uw".to_string(),
+            
+            // Consonants
+            ArpabetSymbols::B => "b".to_string(),
+            ArpabetSymbols::CH => "ch".to_string(),
+            ArpabetSymbols::D => "d".to_string(),
+            ArpabetSymbols::DH => "dh".to_string(),
+            ArpabetSymbols::DX => "dx".to_string(),
+            ArpabetSymbols::EL => "el".to_string(),
+            ArpabetSymbols::EM => "em".to_string(),
+            ArpabetSymbols::EN => "en".to_string(),
+            ArpabetSymbols::F => "f".to_string(),
+            ArpabetSymbols::G => "g".to_string(),
+            ArpabetSymbols::HH => "hh".to_string(),
+            ArpabetSymbols::JH => "jh".to_string(),
+            ArpabetSymbols::K => "k".to_string(),
+            ArpabetSymbols::L => "l".to_string(),
+            ArpabetSymbols::M => "m".to_string(),
+            ArpabetSymbols::N => "n".to_string(),
+            ArpabetSymbols::NG => "ng".to_string(),
+            ArpabetSymbols::P => "p".to_string(),
+            ArpabetSymbols::Q => "q".to_string(),
+            ArpabetSymbols::R => "r".to_string(),
+            ArpabetSymbols::S => "s".to_string(),
+            ArpabetSymbols::SH => "sh".to_string(),
+            ArpabetSymbols::T => "t".to_string(),
+            ArpabetSymbols::TH => "th".to_string(),
+            ArpabetSymbols::V => "v".to_string(),
+            ArpabetSymbols::W => "w".to_string(),
+            ArpabetSymbols::WH => "wh".to_string(),
+            ArpabetSymbols::Y => "y".to_string(),
+            ArpabetSymbols::Z => "z".to_string(),
+            ArpabetSymbols::ZH => "zh".to_string(),
             _ => "".to_string(),
         }
     }
