@@ -51,21 +51,27 @@ impl Adapter {
         Self { config }
     }
 
-    /// Enable panic on error
+    /// Toggle panic on error
     pub fn panic_at_error(mut self, value: bool) -> Self {
         self.config.panic_at_error = value;
         self
     }
 
-    /// Enable 'sh' sound
+    /// Toggle 'sh' sound
     pub fn allow_sh_sound(mut self, value: bool) -> Self {
         self.config.allow_sh_sound = value;
         self
     }
 
-    /// Enable 'z' sound
+    /// Toggle 'z' sound
     pub fn allow_z_sound(mut self, value: bool) -> Self {
         self.config.allow_z_sound = value;
+        self
+    }
+
+    /// Toggle using G2P for unpredictable variants
+    pub fn g2p_unpredictable_variants(mut self, value: bool) -> Self {
+        self.config.g2p_unpredictable_variants = value;
         self
     }
 
@@ -165,8 +171,8 @@ impl Adapter {
             }
 
             // Handle unpredictable variants via phonetic replacements
-            if let Some((arpa, consumed)) = phonetic_replacements(&ctx, &self.config) {
-                result.extend(arpa);
+            if let Some((arpa_repl, consumed)) = phonetic_replacements(&ctx, &self.config) {
+                result.extend(arpa_repl);
                 ctx.index += consumed;
                 continue;
             }

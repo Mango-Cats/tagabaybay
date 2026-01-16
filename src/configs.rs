@@ -31,13 +31,13 @@ impl Default for AdaptationConfig {
     /// - `panic_at_error`: false (prints errors but continues)
     /// - `allow_sh_sound`: false (converts sh → s)
     /// - `allow_z_sound`: false (converts z → s)
-    /// - `g2p_unpredictable_variants`: false (uses orthographic rules for vowels)
+    /// - `g2p_unpredictable_variants`: true (uses phonetic rules for unpredictable variant graphemes)
     fn default() -> Self {
         Self {
             panic_at_error: false,
             allow_sh_sound: false,
             allow_z_sound: false,
-            g2p_unpredictable_variants: false,
+            g2p_unpredictable_variants: true,
         }
     }
 }
