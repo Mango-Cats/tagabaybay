@@ -1,1 +1,1 @@
-pub mod syllables;
+pub mod filipino_syllable_patterns;

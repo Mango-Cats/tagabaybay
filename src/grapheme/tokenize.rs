@@ -1,9 +1,9 @@
-use super::graphemes::{Grapheme, match_bigraph};
+use super::source::{SourceGrapheme, match_digraph};
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///
 /// Converts a string into a sequence of graphemes, recognizing special
-/// bigraphs like "ph", "ch", "th", etc.
+/// digraphs like "ph", "ch", "th", etc.
 ///
 /// # Arguments
 ///
@@ -11,17 +11,17 @@ use super::graphemes::{Grapheme, match_bigraph};
 ///
 /// # Returns
 ///
-/// Returns a vector of `Grapheme` enum values.
-pub fn tokenize(input: &str) -> Vec<Grapheme> {
+/// Returns a vector of `SourceGrapheme` enum values.
+pub fn tokenize(input: &str) -> Vec<SourceGrapheme> {
     let chars: Vec<char> = input.chars().collect();
     let mut result = Vec::new();
     let mut i = 0;
 
     while i < chars.len() {
-        // Check bigraphs first (2 characters)
+        // Check digraphs first (2 characters)
         if i + 2 <= chars.len() {
-            let bi: String = chars[i..i + 2].iter().collect();
-            if let Some(g) = match_bigraph(&bi) {
+            let substring_2: String = chars[i..i + 2].iter().collect();
+            if let Some(g) = match_digraph(&substring_2) {
                 result.push(g);
                 i += 2;
                 continue;
@@ -29,14 +29,14 @@ pub fn tokenize(input: &str) -> Vec<Grapheme> {
         }
 
         // Fall back to single character
-        result.push(Grapheme::from_char(chars[i]));
+        result.push(SourceGrapheme::from_char(chars[i]));
         i += 1;
     }
 
     result
 }
 
-/// Convert a `Vec<Grapheme>` back to a String
+/// Convert a `Vec<SourceGrapheme>` back to a String
 ///
 /// Reconstructs the original string from a sequence of graphemes.
 ///
@@ -47,6 +47,6 @@ pub fn tokenize(input: &str) -> Vec<Grapheme> {
 /// # Returns
 ///
 /// Returns the reconstructed string.
-pub fn detokenize(graphemes: &[Grapheme]) -> String {
+pub fn detokenize(graphemes: &[SourceGrapheme]) -> String {
     graphemes.iter().map(|g| g.to_string()).collect()
 }

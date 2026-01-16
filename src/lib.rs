@@ -1,8 +1,5 @@
-//! # Tagabaybay: English to Filipino Phonetic Nativization
-//!
-//! Tagabaybay is a  for converting English text to Filipino phonetic representation.
-//! It handles various English orthographic patterns and converts them to their Filipino
-//! phonetic equivalents according to Filipino phonology.
+//! # Tagabaybay
+//! Tagabaybay is for converting loanwords to the corresponding Filipino representation.
 //!
 //! ## Features
 //!
@@ -14,21 +11,24 @@
 //! ## Quick Start
 //!
 //! ```
-//! use tagabaybay::nativization::nativize::Nativizer;
-//! use tagabaybay::tokenization::phoneme::phonemes_to_string;
+//! use tagabaybay::adaptation::adaptation::Adapter;
+//! use tagabaybay::tokenization::phl_graphemes::phl_graphemes_to_string;
 //!
-//! let nativizer = Nativizer::new();
-//! let result = nativizer.nativize("chocolate").unwrap();
-//! println!("{}", phonemes_to_string(&result)); // "tsokoleyt"
+//! let adapter = Adapter::new();
+//! let result = adapter.adaptation("chocolate").unwrap();
+//! println!("{}", phl_graphemes_to_string(&result)); // "tsokoleyt"
 //! ```
 //!
 //! ## Modules
 //!
-//! - `nativization`: Core nativization logic and configuration
-//! - `tokenization`: Grapheme and phoneme handling
+//! - `adaptation`: Core adaptation logic and configuration
+//! - `tokenization`: SourceGrapheme and graphemes handling
 //! - `consts`: Configuration constants and types
 
-pub mod consts;
-pub mod nativization;
-pub mod tokenization;
+pub mod adaptation;
+pub mod configs;
+pub mod error;
+pub mod g2p;
+pub mod grapheme;
+pub mod phoneme;
 pub mod syllabification;

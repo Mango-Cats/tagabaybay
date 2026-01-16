@@ -2,7 +2,7 @@
 
 This directory contains gold standards for validating the accuracy of
 TagaBaybay. The directory contains gold standards ranging from general
-English words to specific domains where phonetic nativization commonly
+English words to specific domains where phonetic adaptation commonly
 occurs.
 
 ## Construction
@@ -21,6 +21,16 @@ as their specific domain and author.
 | `common_drugs`          | Pharmaceutical         | Z. Ganituen & C. Ang       |
 | `ph_fda_human`          | Pharmaceutical         | Z. Ganituen                |
 | `common_eng`            | General/None           | Z. Ganituen                |
+
+## Validation
+
+The quiz-like gold standard validation script is made available in this
+repository, see `validation.py` in this directory.
+
+Simply run 
+```
+$ python3 validation.py
+```
 
 ## Bibliography
 

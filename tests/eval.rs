@@ -1,10 +1,16 @@
 // to run: cargo test --test eval
+//
+// then, this will put test files in
+//      `target/tests/report/`
+// the file naming convention is as follows
+//      `<YY><MM><DD>_<HH><MM>_<GOLD_STANDARD>`
 
 use chrono::Local;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
-use tagabaybay::nativization::nativize::Nativizer;
-use tagabaybay::tokenization::phoneme::phonemes_to_string;
+use tagabaybay::adaptation::adapter::Adapter;
+use tagabaybay::configs::AdaptationConfig;
+use tagabaybay::grapheme::filipino::phl_graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
 const GOLD_COUNT: usize = 3;
@@ -13,7 +19,7 @@ const GOLD_STANDARDS: [&str; GOLD_COUNT] =
 
 const ACCEPT: f64 = 70.;
 
-const REPORT_DIR: &str = "target/tests/report";
+const REPORT_DIR: &str = ".tests/report";
 
 struct TestResult {
     input: String,
@@ -34,7 +40,8 @@ struct EvalReport {
 fn evaluate_csv(path: &str) -> EvalReport {
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
-    let nativizer = Nativizer::new();
+    let adapter = Adapter::new();
+    let config = AdaptationConfig::new();
 
     let mut results: Vec<TestResult> = Vec::new();
 
@@ -51,9 +58,9 @@ fn evaluate_csv(path: &str) -> EvalReport {
 
         let input = parts[0].trim();
         let expected = parts[1].trim();
-        let actual = nativizer
-            .nativize(input)
-            .map(|phonemes| phonemes_to_string(&phonemes))
+        let actual = adapter
+            .adaptation(input, &config)
+            .map(|phl_graphemes| phl_graphemes_to_string(&phl_graphemes))
             .unwrap_or_default();
 
         results.push(TestResult {

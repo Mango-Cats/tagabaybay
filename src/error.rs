@@ -1,9 +1,41 @@
-use crate::tokenization::graphemes::Grapheme;
+use crate::grapheme::source::SourceGrapheme;
 use std::fmt;
 
-/// Error type for nativization failures
 #[derive(Debug, Clone)]
-pub struct NativizationError {
+pub enum ErrorTypes {
+    Adaptation(AdaptationError),
+    Phonetization(PhonetizationError),
+}
+
+/// Error type for phonetization failures
+#[derive(Debug, Clone)]
+pub struct PhonetizationError {
+    /// The original input text
+    pub input: String,
+    /// Word number in the dataset (if processing a batch)
+    pub word_number: Option<usize>,
+    /// Name of the dataset (if processing a batch)
+    pub dataset_name: Option<String>,
+}
+
+impl PhonetizationError {
+    /// Create a new adaptation error
+    pub fn new(input: String, word_number: Option<usize>, dataset_name: Option<&str>) -> Self {
+        Self {
+            input,
+            word_number,
+            dataset_name: dataset_name.map(String::from),
+        }
+    }
+
+    /// Print the error with context (for debugging)
+    pub fn print_error(&self) {
+        println!("error: the word phonetization is impossible; ensure it is lowercased");
+    }
+}
+/// Error type for adaptation failures
+#[derive(Debug, Clone)]
+pub struct AdaptationError {
     /// The original input text
     pub input: String,
     /// Position where the error occurred
@@ -13,13 +45,13 @@ pub struct NativizationError {
     /// Name of the dataset (if processing a batch)
     pub dataset_name: Option<String>,
     /// The grapheme vector for context
-    pub graphemes: Vec<Grapheme>,
+    pub graphemes: Vec<SourceGrapheme>,
 }
 
-impl NativizationError {
-    /// Create a new nativization error
+impl AdaptationError {
+    /// Create a new adaptation error
     pub fn new(
-        graphemes: Vec<Grapheme>,
+        graphemes: Vec<SourceGrapheme>,
         position: usize,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
@@ -35,8 +67,8 @@ impl NativizationError {
     }
 
     /// Print the error with context (for debugging)
-    pub fn print_error(&self, panic: bool) {
-        println!("error: the word nativization is invalid or impossible");
+    pub fn print_error(&self) {
+        println!("error: the word adaptation is invalid or impossible");
         match &self.dataset_name {
             Some(s) => match self.word_number {
                 Some(n) => println!("  --> {} @ {}::{}", self.input, s, n),
@@ -49,25 +81,19 @@ impl NativizationError {
         println!("    |\t{}", self.input);
         println!(
             "    |\t{}^ error at token {}",
-            " ".repeat(self.position.saturating_sub(1)),
+            " ".repeat(self.position),
             self.position
         );
         println!("    |");
-
-        if panic {
-            panic!("Nativization error")
-        }
     }
 }
 
-impl fmt::Display for NativizationError {
+impl fmt::Display for AdaptationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Nativization error at position {} in '{}'",
+            "Adaptation error at position {} in '{}'",
             self.position, self.input
         )
     }
 }
-
-impl std::error::Error for NativizationError {}
