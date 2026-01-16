@@ -39,7 +39,6 @@ pub fn sensitive_replacement(
     } else if curr.is_vowel()
         && !(config.g2p_unpredictable_variants && curr.is_unpredictable_variant())
     {
-        // keep the condition here explicit!
         sensitive_vowel(ctx)
     } else {
         None
