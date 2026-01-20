@@ -146,6 +146,9 @@ impl Adapter {
             }
 
             // Handle unpredictable variants via phonetic replacements
+            // only if `sensitive_replacements` is none
+            // that is, even if it is unpredictable variants. Maybe there is a
+            // subset of patters where predicting it is possible.
             if let Some((arpa_repl, consumed)) = phonetic_replacements(&ctx, &self.config) {
                 result.extend(arpa_repl);
                 ctx.index += consumed;

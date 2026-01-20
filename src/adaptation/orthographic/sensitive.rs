@@ -36,9 +36,7 @@ pub fn sensitive_replacement(
         sensitive_digraph(ctx, config)
     } else if curr.is_consonant() {
         sensitive_consonant(ctx, config)
-    } else if curr.is_vowel()
-        && !(config.g2p_unpredictable_variants && curr.is_unpredictable_variant())
-    {
+    } else if curr.is_vowel() {
         sensitive_vowel(ctx)
     } else {
         None
