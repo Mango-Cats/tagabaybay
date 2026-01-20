@@ -4,13 +4,213 @@
 //! Revisyon ng Alfabeto at Patnubay sa Ispeling ng Wikang Filipino
 //! (2001 Revision Alphabet and Spelling Guide of the Filipino Language)
 
+// to run: cargo test --test syllabification csv_eval -- --nocapture
+//
+// this will not make a report file
+
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use tagabaybay::grapheme::filipino::FilipinoGrapheme::*;
 use tagabaybay::grapheme::filipino::hyphenate;
+use tagabaybay::grapheme::tokenize::filipino_tokenizer;
 use tagabaybay::syllabification::algorithm::*;
 use tagabaybay::syllabification::pattern_builder::*;
 use tagabaybay::syllabification::types::*;
 use tagabaybay::syllabification::validation::*;
 use tagabaybay::tokens;
+
+const CSV_PATH: &str = "tests/data/syllabification.csv";
+
+struct TestResult {
+    input: String,
+    expected: String,
+    actual: String,
+    valid: bool,
+}
+
+fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
+    let actual_chars: Vec<char> = actual.chars().collect();
+    let expected_chars: Vec<char> = expected.chars().collect();
+    let max_len = actual_chars.len().max(expected_chars.len());
+
+    let mut highlighted_actual = String::new();
+    let mut highlighted_expected = String::new();
+
+    for i in 0..max_len {
+        let a_char = actual_chars.get(i).copied();
+        let e_char = expected_chars.get(i).copied();
+
+        match (a_char, e_char) {
+            (Some(a), Some(e)) if a == e => {
+                highlighted_actual.push(a);
+                highlighted_expected.push(e);
+            }
+            (Some(a), Some(e)) => {
+                highlighted_actual.push_str(&a.to_uppercase().to_string());
+                highlighted_expected.push_str(&e.to_uppercase().to_string());
+            }
+            (Some(a), None) => {
+                highlighted_actual.push_str(&a.to_uppercase().to_string());
+            }
+            (None, Some(e)) => {
+                highlighted_expected.push_str(&e.to_uppercase().to_string());
+            }
+            (None, None) => break,
+        }
+    }
+
+    (highlighted_actual, highlighted_expected)
+}
+
+/// Evaluate syllabification against a CSV file.
+///
+/// CSV format: `input,expected_hyphenated`
+/// Example: `buksan,buk-san`
+///
+/// Run with: `cargo test --test syllabification csv_eval -- --nocapture`
+#[test]
+fn csv_eval() {
+    let file = match File::open(CSV_PATH) {
+        Ok(f) => f,
+        Err(_) => {
+            println!("No CSV file found at {}", CSV_PATH);
+            println!("Create a CSV with format: input,expected_hyphenated");
+            println!("Example: buksan,buk-san");
+            return;
+        }
+    };
+
+    let reader = BufReader::new(file);
+    let mut failures: Vec<TestResult> = Vec::new();
+    let mut invalid_syllables: Vec<TestResult> = Vec::new();
+    let mut total = 0;
+    let mut passed = 0;
+
+    for (i, line) in reader.lines().enumerate() {
+        let line = match line {
+            Ok(l) => l,
+            Err(_) => continue,
+        };
+
+        // Skip header and empty lines
+        if i == 0 || line.trim().is_empty() {
+            continue;
+        }
+
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() < 2 {
+            continue;
+        }
+
+        let input = parts[0].trim();
+        let expected = parts[1].trim().to_lowercase();
+
+        // Tokenize and syllabify
+        let graphemes = filipino_tokenizer(input);
+        let (actual, valid) = match syllabify(graphemes.as_slice()) {
+            Some((syllables, is_valid)) => (hyphenate(&syllables), is_valid),
+            None => (String::from("<failed>"), false),
+        };
+
+        total += 1;
+        let matches = actual == expected;
+        
+        if matches {
+            passed += 1;
+        } else {
+            failures.push(TestResult {
+                input: input.to_string(),
+                expected: expected.clone(),
+                actual: actual.clone(),
+                valid,
+            });
+        }
+        
+        // Track invalid syllabifications separately (even if they match expected)
+        if !valid && matches {
+            invalid_syllables.push(TestResult {
+                input: input.to_string(),
+                expected: expected.clone(),
+                actual,
+                valid,
+            });
+        }
+    }
+
+    // Print report
+    let failed = total - passed;
+    let num_invalid = failures.iter().filter(|f| !f.valid).count() + invalid_syllables.len();
+    let accuracy = if total > 0 {
+        (passed as f64 / total as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    println!("\nSYLLABIFICATION EVALUATION");
+    println!("{}", "=".repeat(50));
+    println!("├── Total           {}", total);
+    println!("├── Passed          {}", passed);
+    println!("├── Failed          {}", failed);
+    println!("├── Invalid         {}", num_invalid);
+    println!("└── Accuracy        {:.2}%", accuracy);
+
+    if !failures.is_empty() {
+        let max_input = failures.iter().map(|f| f.input.len()).max().unwrap_or(10).max(10);
+        let max_actual = failures.iter().map(|f| f.actual.len()).max().unwrap_or(10).max(10);
+        let max_expected = failures.iter().map(|f| f.expected.len()).max().unwrap_or(10).max(10);
+
+        println!("\nFailures:");
+        println!(
+            "  {}  {:<width_in$}  {:<width_act$}  {:<width_exp$}  {}",
+            " ~ ",
+            "INPUT",
+            "ACTUAL",
+            "EXPECTED",
+            "VALID",
+            width_in = max_input,
+            width_act = max_actual,
+            width_exp = max_expected
+        );
+        println!(
+            "  {}  {}  {}  {}  {}",
+            "-".repeat(4),
+            "-".repeat(max_input),
+            "-".repeat(max_actual),
+            "-".repeat(max_expected),
+            "-".repeat(5)
+        );
+
+        for (i, f) in failures.iter().enumerate() {
+            let (highlighted_actual, highlighted_expected) =
+                highlight_differences(&f.actual, &f.expected);
+            let valid_mark = if f.valid { "✓" } else { "✗" };
+            println!(
+                "  {:>3}. {:<width_in$}  {:<width_act$}  {:<width_exp$}  {}",
+                i + 1,
+                f.input,
+                highlighted_actual,
+                highlighted_expected,
+                valid_mark,
+                width_in = max_input,
+                width_act = max_actual,
+                width_exp = max_expected
+            );
+        }
+    }
+
+    // Show words that matched but had invalid syllable patterns
+    if !invalid_syllables.is_empty() {
+        println!("\nInvalid Syllable Patterns (matched but pattern invalid):");
+        for f in &invalid_syllables {
+            println!("  - {} → {}", f.input, f.actual);
+        }
+    }
+
+    // Don't fail the test, just report
+    if total == 0 {
+        println!("\nNo test cases found. Add entries to {}", CSV_PATH);
+    }
+}
 
 mod two_consonants {
     use super::*;
