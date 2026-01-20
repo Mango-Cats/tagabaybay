@@ -107,6 +107,19 @@ impl AdaptationConfig {
         self
     }
 
+    /// Set 'v' sound preservation
+    /// 
+    /// When enabled, 'v' letters are kept as the "v" sound. Otherwise,
+    /// they're converted to 'b' (e.g., "value" -> "valyu" vs "balyu")
+    /// 
+    /// # Arguments
+    /// 
+    /// * `value` - `true` to keep 'v' should, false to convert to 'b'
+    pub fn set_v_letter(mut self, value: bool) -> Self {
+        self.allow_v_letter = value;
+        self
+    }
+
     pub fn set_g2p_unpredictable_variants(mut self, value: bool) -> Self {
         self.g2p_unpredictable_variants = value;
         self

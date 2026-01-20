@@ -34,13 +34,6 @@ pub fn free_replacement(
         SourceGrapheme::PH => Some((vec![FilipinoGrapheme::F], 1)),
         SourceGrapheme::PS => Some((vec![FilipinoGrapheme::S], 1)),
         SourceGrapheme::TH => Some((vec![FilipinoGrapheme::T], 1)),
-        SourceGrapheme::SH => {
-            if config.allow_sh_letter {
-                Some((vec![FilipinoGrapheme::SH], 1))
-            } else {
-                Some((vec![FilipinoGrapheme::S], 1))
-            }
-        }
         SourceGrapheme::EE => Some((vec![FilipinoGrapheme::I], 1)),
         SourceGrapheme::OO => Some((vec![FilipinoGrapheme::U], 1)),
 
@@ -58,9 +51,18 @@ pub fn free_replacement(
         SourceGrapheme::R => Some((vec![FilipinoGrapheme::R], 1)),
         SourceGrapheme::S => Some((vec![FilipinoGrapheme::S], 1)),
         SourceGrapheme::T => Some((vec![FilipinoGrapheme::T], 1)),
-        SourceGrapheme::V => Some((vec![FilipinoGrapheme::B], 1)),
         SourceGrapheme::W => Some((vec![FilipinoGrapheme::W], 1)),
         SourceGrapheme::Y => Some((vec![FilipinoGrapheme::Y], 1)),
+
+        // Handling borrowed letters
+        SourceGrapheme::V => {
+            if config.allow_v_letter {
+                Some((vec![FilipinoGrapheme::V], 1))
+            } else {
+                Some((vec![FilipinoGrapheme::B], 1))
+            }
+        }
+
         SourceGrapheme::Z => {
             if config.allow_z_letter {
                 Some((vec![FilipinoGrapheme::Z], 1))
@@ -76,17 +78,20 @@ pub fn free_replacement(
         SourceGrapheme::Space => Some((vec![FilipinoGrapheme::Space], 1)),
 
         // ASCII passthrough (digits, punctuation, etc.)
-        SourceGrapheme::Passthrough(c) => Some((vec![FilipinoGrapheme::Passthrough(c.to_string())], 1)),
+        SourceGrapheme::Passthrough(c) => {
+            Some((vec![FilipinoGrapheme::Passthrough(c.to_string())], 1))
+        }
 
         // Context-sensitive letters (handled in sensitive_replacement)
         SourceGrapheme::C
         | SourceGrapheme::J
         | SourceGrapheme::Q
         | SourceGrapheme::X
-        | SourceGrapheme::CH => None,
+        | SourceGrapheme::CH
+        | SourceGrapheme::SH => None,
 
         // Vowels (unpredictable variants)
-        SourceGrapheme::A 
+        SourceGrapheme::A
         | SourceGrapheme::E
         | SourceGrapheme::I
         | SourceGrapheme::O
