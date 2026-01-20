@@ -14,25 +14,6 @@
 //! - "make" → graphemes: [m, a, k, e] vs phonemes: [M, EY, K]
 //! - The 'a' maps to EY, and 'e' is silent (no phoneme)
 //! - "knight" → graphemes: [k, n, i, g, h, t] vs phonemes: [N, AY, T]
-//!
-//! ## Current Approach
-//!
-//! We solve this by counting vowel graphemes before current position and
-//! finding the corresponding vowel phoneme at that count. We also detect
-//! common silent vowel patterns (final 'e', 'u' after 'q', etc.) to improve
-//! alignment accuracy.
-//!
-//! **Note**: This approach is disabled by default (`g2p_unpredictable_variants = false`)
-//! because the alignment is imperfect for words with many silent letters.
-//! Orthographic rules in `orthographic/sensitive.rs` handle most common patterns.
-//!
-//! ## Future Improvements
-//!
-//! To improve this module, consider:
-//! 1. Using sequence alignment algorithms (like Needleman-Wunsch) for better
-//!    grapheme-phoneme alignment
-//! 2. Building a lookup table of known alignments for common word patterns
-//! 3. Using machine learning to predict alignments
 
 use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
