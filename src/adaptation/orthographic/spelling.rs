@@ -46,7 +46,7 @@ pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme
         ]),
         SourceGrapheme::I => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]),
         SourceGrapheme::J => Some(vec![
-            FilipinoGrapheme::DY,
+            FilipinoGrapheme::J,
             FilipinoGrapheme::E,
             FilipinoGrapheme::Y,
         ]),
@@ -58,7 +58,7 @@ pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme
         SourceGrapheme::L => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::L]),
         SourceGrapheme::M => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::M]),
         SourceGrapheme::N => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::N]),
-        SourceGrapheme::O => Some(vec![FilipinoGrapheme::O, FilipinoGrapheme::W]),
+        SourceGrapheme::O => Some(vec![FilipinoGrapheme::O]),
         SourceGrapheme::P => Some(vec![FilipinoGrapheme::P, FilipinoGrapheme::I]),
         SourceGrapheme::Q => Some(vec![
             FilipinoGrapheme::K,
@@ -69,10 +69,10 @@ pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme
         SourceGrapheme::S => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::S]),
         SourceGrapheme::T => Some(vec![FilipinoGrapheme::T, FilipinoGrapheme::I]),
         SourceGrapheme::U => Some(vec![FilipinoGrapheme::Y, FilipinoGrapheme::U]),
-        SourceGrapheme::V => Some(vec![FilipinoGrapheme::B, FilipinoGrapheme::I]),
+        SourceGrapheme::V => Some(vec![FilipinoGrapheme::V, FilipinoGrapheme::I]),
         SourceGrapheme::W => Some(vec![
             FilipinoGrapheme::D,
-            FilipinoGrapheme::A,
+            FilipinoGrapheme::O,
             FilipinoGrapheme::B,
             FilipinoGrapheme::O,
             FilipinoGrapheme::L,
@@ -89,7 +89,7 @@ pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme
             FilipinoGrapheme::A,
             FilipinoGrapheme::Y,
         ]),
-        SourceGrapheme::Z => Some(vec![FilipinoGrapheme::S, FilipinoGrapheme::I]),
+        SourceGrapheme::Z => Some(vec![FilipinoGrapheme::Z, FilipinoGrapheme::I]),
         _ => None,
     }
 }

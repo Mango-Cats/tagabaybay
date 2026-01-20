@@ -33,7 +33,7 @@ pub fn sensitive_replacement(
     let curr = ctx.current_grapheme_low();
 
     if curr.is_digraph() {
-        sensitive_digraph(ctx)
+        sensitive_digraph(ctx, config)
     } else if curr.is_consonant() {
         sensitive_consonant(ctx, config)
     } else if curr.is_vowel()
@@ -77,11 +77,13 @@ fn sensitive_consonant(
         SourceGrapheme::D => handle_consonant_d(ctx),
         SourceGrapheme::G => handle_consonant_g(ctx),
         SourceGrapheme::S => handle_consonant_s(ctx),
-        SourceGrapheme::J => if config.allow_j_letter {
-            Some((vec![FilipinoGrapheme::J], 1))
-        } else {
-            Some((vec![FilipinoGrapheme::DY], 1))
-        },
+        SourceGrapheme::J => {
+            if config.allow_j_letter {
+                Some((vec![FilipinoGrapheme::J], 1))
+            } else {
+                Some((vec![FilipinoGrapheme::DY], 1))
+            }
+        }
         SourceGrapheme::Q => Some((vec![FilipinoGrapheme::K, FilipinoGrapheme::W], 1)),
         _ => None,
     }
@@ -301,11 +303,15 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// # Arguments
 ///
 /// * `ctx` - Cursor containing the grapheme sequence and current position
-///
+/// * `config` - Adaptation configuration
+
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a rule matches, `None` otherwise.
-fn sensitive_digraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn sensitive_digraph(
+    ctx: &Cursor,
+    config: &AdaptationConfig,
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
     let next = ctx.next_grapheme_low();
 
@@ -320,7 +326,16 @@ fn sensitive_digraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             Some((vec![FilipinoGrapheme::TS], 1))
         }
 
-        // Th and Sh are handled in free_replacement
+        SourceGrapheme::SH => {
+            if config.allow_sh_letter && ctx.at_end() {
+                Some((vec![FilipinoGrapheme::SH], 1))
+            } else if ctx.at_end() {
+                Some((vec![FilipinoGrapheme::SY], 1))
+            } else {
+                Some((vec![FilipinoGrapheme::S], 1))
+            }
+        }
+
         _ => None,
     }
 }
@@ -531,10 +546,7 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                     // This preserves "wine", "dine", "fine" but not "morphine", "caffeine"
                     if *n == SourceGrapheme::N {
                         if ctx.graphemes.len() <= 5 {
-                            return Some((
-                                vec![FilipinoGrapheme::A, FilipinoGrapheme::Y],
-                                1,
-                            ));
+                            return Some((vec![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1));
                         }
                         // Long word with -ine: don't apply magic-e (it's a drug suffix)
                     } else {
@@ -598,7 +610,7 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = ctx.next_grapheme_low();
-    
+
     // check for "one" pattern (o-n-e at end) → "own"
     if let Some(SourceGrapheme::N) = next {
         if let Some(SourceGrapheme::E) = ctx.lookahead_grapheme_low(2) {

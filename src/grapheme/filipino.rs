@@ -16,7 +16,9 @@ pub enum FilipinoGrapheme {
     DY, // /dʒ/  - e.g., (J/DY)eep
 
     // Fricatives
-    SH, // /ʃ/   - e.g., (SH/Siy)aron
+    // SH/SY depends if it is allowed in the configuration
+    SH, // /ʃ/   - e.g., (SH)aron
+    SY, // /ʃ/   - e.g., (SY)ampu
 
     // Vowels Sounds; Monophthongs
     A, // /a/       - e.g., Apoy
@@ -76,6 +78,7 @@ impl FilipinoGrapheme {
 
             // Fricatives
             FilipinoGrapheme::SH => "sh",
+            FilipinoGrapheme::SY => "sy",
 
             // Vowel Sounds
             FilipinoGrapheme::A => "a",
@@ -113,6 +116,7 @@ impl FilipinoGrapheme {
             FilipinoGrapheme::F => "f",
             FilipinoGrapheme::Z => "z",
             FilipinoGrapheme::J => "j",
+            FilipinoGrapheme::V => "v",
 
             // Whitespace
             FilipinoGrapheme::Space => " ",
