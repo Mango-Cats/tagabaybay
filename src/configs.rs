@@ -20,8 +20,10 @@ pub struct AdaptationConfig {
     pub allow_sh_letter: bool,
     /// Whether to allow the 'z' sound (instead of 's')
     pub allow_z_letter: bool,
-    /// Whether to allow the 'j' shound (instead of 'dy', as in sabdyek == subject)
+    /// Whether to allow the 'j' sound (instead of 'dy')
     pub allow_j_letter: bool,
+    /// Whether to allow the 'v' sound (instead of 'b')
+    pub allow_v_letter: bool,
     /// Whether to use G2P for unpredictable variant graphemes.
     pub g2p_unpredictable_variants: bool,
 }
@@ -41,6 +43,7 @@ impl Default for AdaptationConfig {
             allow_sh_letter: true,
             allow_z_letter: true,
             allow_j_letter: true,
+            allow_v_letter: true,
             g2p_unpredictable_variants: true,
         }
     }

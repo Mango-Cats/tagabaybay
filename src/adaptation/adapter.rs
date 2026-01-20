@@ -51,36 +51,6 @@ impl Adapter {
         Self { config }
     }
 
-    /// Toggle panic on error
-    pub fn panic_at_error(mut self, value: bool) -> Self {
-        self.config.panic_at_error = value;
-        self
-    }
-
-    /// Toggle 'sh' sound
-    pub fn allow_sh_letter(mut self, value: bool) -> Self {
-        self.config.allow_sh_letter = value;
-        self
-    }
-
-    /// Toggle 'z' sound
-    pub fn allow_z_letter(mut self, value: bool) -> Self {
-        self.config.allow_z_letter = value;
-        self
-    }
-
-    /// Toggle 'j' sound
-    pub fn allow_j_letter(mut self, value: bool) -> Self {
-        self.config.allow_j_letter = value;
-        self
-    }
-
-    /// Toggle using G2P for unpredictable variants
-    pub fn g2p_unpredictable_variants(mut self, value: bool) -> Self {
-        self.config.g2p_unpredictable_variants = value;
-        self
-    }
-
     /// Adapt an entire word or phrase
     ///
     /// Converts loanwords to their Filipino representation.
