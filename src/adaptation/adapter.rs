@@ -31,8 +31,7 @@ use crate::grapheme::source::SourceGrapheme;
 /// use tagabaybay::adaptation::adaptation::Adapter;
 ///
 /// let adapter = Adapter::new()
-///     .allow_sh_sound(true)
-///     .allow_z_sound(true);
+/// 
 /// ```
 pub struct Adapter {
     config: AdaptationConfig,
