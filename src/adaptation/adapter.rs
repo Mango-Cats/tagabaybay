@@ -96,11 +96,13 @@ impl Adapter {
     /// # Examples
     ///
     /// ```
-    /// use tagabaybay::adaptation::adaptation::Adapter;
+    /// use tagabaybay::adaptation::adapter::Adapter;
+    /// use tagabaybay::config::Config;
     ///
     /// let adapter = Adapter::new();
+    /// let config = Config::new();
     /// let words = tokens!["hello", "world"];
-    /// let results = adapter.adapt_batch(&words, "test_dataset");
+    /// let results = adapter.adapt_batch(&words, "test_dataset", config);
     /// ```
     pub fn adapt_batch(
         &self,

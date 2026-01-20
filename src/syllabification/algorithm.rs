@@ -60,6 +60,57 @@ pub fn syllabify(graphemes: &[FilipinoGrapheme]) -> Option<(Vec<Vec<FilipinoGrap
         return Some((tokens![], true));
     }
 
+    let hyphen_positions: Vec<usize> = graphemes
+        .iter()
+        .enumerate()
+        .filter(|(_, g)| matches!(g, FilipinoGrapheme::Hyphen))
+        .map(|(i, _)| i)
+        .collect();
+
+    if !hyphen_positions.is_empty() {
+        let mut all_syllables = Vec::new();
+        let mut all_valid = true;
+        let mut start = 0;
+
+        for &hyphen_pos in &hyphen_positions {
+            let segment = &graphemes[start..hyphen_pos];
+            if !segment.is_empty() {
+                if let Some((syllables, valid)) = syllabify_segment(segment) {
+                    all_syllables.extend(syllables);
+                    all_valid = all_valid && valid;
+                } else {
+                    return None;
+                }
+            }
+            start = hyphen_pos + 1;
+        }
+
+        let last_segment = &graphemes[start..];
+        if !last_segment.is_empty() {
+            if let Some((syllables, valid)) = syllabify_segment(last_segment) {
+                all_syllables.extend(syllables);
+                all_valid = all_valid && valid;
+            } else {
+                return None;
+            }
+        }
+
+        return Some((all_syllables, all_valid));
+    }
+
+    syllabify_segment(graphemes)
+}
+
+/// Syllabify a segment of graphemes (no hyphens).
+fn syllabify_segment(graphemes: &[FilipinoGrapheme]) -> Option<(Vec<Vec<FilipinoGrapheme>>, bool)> {
+    if graphemes.is_empty() {
+        return Some((tokens![], true));
+    }
+
+    // First, expand splittable clusters that are between vowels
+    let expanded = expand_intervocalic_clusters(graphemes);
+    let graphemes = &expanded;
+
     let vowel_positions: Vec<usize> = graphemes
         .iter()
         .enumerate()
@@ -112,6 +163,34 @@ pub fn syllabify(graphemes: &[FilipinoGrapheme]) -> Option<(Vec<Vec<FilipinoGrap
     }
 }
 
+/// Expand splittable clusters (ny, ts, dy, sy, sh) that appear between vowels.
+///
+/// For example: [B, A, Ny, O] -> [B, A, N, Y, O]
+/// This allows the normal consonant splitting rules to apply.
+fn expand_intervocalic_clusters(graphemes: &[FilipinoGrapheme]) -> Vec<FilipinoGrapheme> {
+    let mut result = Vec::with_capacity(graphemes.len() + 4);
+
+    for (i, g) in graphemes.iter().enumerate() {
+        // Check if this is a splittable cluster between vowels
+        if g.is_splittable_cluster() {
+            let prev_is_vowel = i > 0 && graphemes[i - 1].is_vowel();
+            let next_is_vowel = i + 1 < graphemes.len() && graphemes[i + 1].is_vowel();
+
+            if prev_is_vowel && next_is_vowel {
+                // Split the cluster into its components
+                if let Some((c1, c2)) = g.split_cluster() {
+                    result.push(c1);
+                    result.push(c2);
+                    continue;
+                }
+            }
+        }
+        result.push(g.clone());
+    }
+
+    result
+}
+
 /// Check if a grapheme matches a pattern element
 #[inline]
 fn matches_element(grapheme: &FilipinoGrapheme, pat: Pat) -> bool {
@@ -151,6 +230,8 @@ fn matches_any_pattern(graphemes: &[FilipinoGrapheme]) -> bool {
 /// Determine where to split a sequence of consonants between two vowels.
 ///
 /// Filipino rules:
+/// - 1 consonant: goes with following vowel
+/// - 1 splittable cluster (ny, ts, dy, sy): split it - first part with preceding, second with following
 /// - 2 consonants: split after first (C|C) - each consonant goes to its nearest vowel
 /// - 3 consonants:
 ///   - If first is M/N and last two form cluster (bl, br, dr, pl, tr): (C|CC)
@@ -163,47 +244,52 @@ fn find_consonant_split(
 ) -> usize {
     let num_consonants = consonant_end - consonant_start;
 
-    if num_consonants <= 1 {
+    if num_consonants == 0 {
         return consonant_start;
     }
 
-    if num_consonants == 2 {
-        let c1 = &graphemes[consonant_start];
-        let c2 = &graphemes[consonant_start + 1];
-
-        // SY cluster
-        if matches!((c1, c2), (FilipinoGrapheme::S, FilipinoGrapheme::Y)) {
-            return consonant_start;
+    // Special case: single splittable cluster between vowels
+    // e.g., banyo [B,A,Ny,O] -> ban-yo (split Ny as N|Y)
+    if num_consonants == 1 {
+        let c = &graphemes[consonant_start];
+        if c.is_splittable_cluster() {
+            // Return a marker that we need to split this cluster
+            // We'll handle the actual splitting in the main syllabify function
+            return consonant_start; // Signal: split the cluster
         }
+        return consonant_start; // Single consonant goes with following vowel
+    }
 
+    if num_consonants == 2 {
+        // Filipino rule: 2 consonants between vowels are split
+        // First consonant goes with preceding vowel, second with following vowel
+        // e.g., pinto -> pin-to, buksan -> buk-san, libro -> lib-ro
         return consonant_start + 1;
     }
 
     if num_consonants == 3 {
-        let first = &graphemes[consonant_start];
-
-        // General cluster
-        if matches!(first, FilipinoGrapheme::M | FilipinoGrapheme::N) {
-            if is_valid_onset_cluster(graphemes, consonant_start + 1) {
-                return consonant_start + 1;
-            }
-        }
-
-        // SY cluster
-        let c2 = &graphemes[consonant_start + 1];
-        let c3 = &graphemes[consonant_start + 2];
-        if matches!((c2, c3), (FilipinoGrapheme::S, FilipinoGrapheme::Y)) {
+        // If the last two consonants form a liquid cluster (C+L/R) or KW/TW, split before them
+        // e.g., eskwela (S-K-W) -> es-kwe-la (s|kw)
+        //       sentro (N-T-R) -> sen-tro (n|tr)
+        // But NOT for S-clusters: eksperimento (K-S-P) -> eks-pe (ks|p)
+        if is_liquid_or_kw_cluster(graphemes, consonant_start + 1) {
             return consonant_start + 1;
         }
 
+        // Otherwise, split after second consonant (CC|C)
         return consonant_start + 2;
     }
 
     consonant_start + 2
 }
 
-/// Check if two consonants at the given position form a valid consonant cluster.
-fn is_valid_onset_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
+/// Check if two consonants at the given position form a liquid onset cluster.
+///
+/// These are the traditional Spanish-derived onset clusters (consonant + L/R)
+/// that are preserved in Filipino syllabification even between vowels.
+/// Used for the 2-consonant case where these clusters stay together.
+#[allow(dead_code)]
+fn is_liquid_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
     if pos + 1 >= graphemes.len() {
         return false;
     }
@@ -211,7 +297,70 @@ fn is_valid_onset_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
     let c1 = &graphemes[pos];
     let c2 = &graphemes[pos + 1];
 
-    // Common consonant clusters in Filipino (especially loanwords)
+    // Only liquid clusters (C + L/R) stay together in 2-consonant intervocalic position
+    matches!(
+        (c1, c2),
+        (FilipinoGrapheme::B, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::B, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::K, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::K, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::D, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::F, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::F, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::G, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::G, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::P, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::P, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::T, FilipinoGrapheme::R)
+    )
+}
+
+/// Check if two consonants form a liquid cluster (C+L/R) or KW/TW cluster.
+///
+/// These clusters stay together when they appear at the end of a 3+ consonant sequence.
+/// Used for the 3-consonant case to determine split point.
+fn is_liquid_or_kw_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
+    if pos + 1 >= graphemes.len() {
+        return false;
+    }
+
+    let c1 = &graphemes[pos];
+    let c2 = &graphemes[pos + 1];
+
+    // Liquid clusters (C + L/R) and KW/TW clusters
+    matches!(
+        (c1, c2),
+        // Liquid clusters
+        (FilipinoGrapheme::B, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::B, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::K, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::K, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::D, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::F, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::F, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::G, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::G, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::P, FilipinoGrapheme::L)
+            | (FilipinoGrapheme::P, FilipinoGrapheme::R)
+            | (FilipinoGrapheme::T, FilipinoGrapheme::R)
+            // KW/TW clusters
+            | (FilipinoGrapheme::K, FilipinoGrapheme::W)
+            | (FilipinoGrapheme::T, FilipinoGrapheme::W)
+    )
+}
+
+/// Check if two consonants form a cluster that should stay together in intervocalic position.
+///
+/// Includes liquid clusters (C+L/R), glide clusters (C+Y), and KW/TW clusters.
+/// Used for the 2-consonant case to determine if they should stay together.
+fn is_liquid_or_glide_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
+    if pos + 1 >= graphemes.len() {
+        return false;
+    }
+
+    let c1 = &graphemes[pos];
+    let c2 = &graphemes[pos + 1];
+
     matches!(
         (c1, c2),
         // Liquid clusters (C + L/R)
@@ -227,27 +376,15 @@ fn is_valid_onset_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
             | (FilipinoGrapheme::P, FilipinoGrapheme::L)
             | (FilipinoGrapheme::P, FilipinoGrapheme::R)
             | (FilipinoGrapheme::T, FilipinoGrapheme::R)
-            // S clusters
-            | (FilipinoGrapheme::S, FilipinoGrapheme::K)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::L)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::M)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::N)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::P)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::T)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::W)
-            // W clusters
-            | (FilipinoGrapheme::K, FilipinoGrapheme::W)
-            | (FilipinoGrapheme::T, FilipinoGrapheme::W)
-            // Y clusters (glides)
+            // Glide clusters (C + Y)
             | (FilipinoGrapheme::P, FilipinoGrapheme::Y)
             | (FilipinoGrapheme::B, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::K, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::D, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::G, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::M, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::N, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::S, FilipinoGrapheme::Y)
             | (FilipinoGrapheme::T, FilipinoGrapheme::Y)
-            | (FilipinoGrapheme::L, FilipinoGrapheme::Y)
+            | (FilipinoGrapheme::D, FilipinoGrapheme::Y)
+            | (FilipinoGrapheme::K, FilipinoGrapheme::Y)
+            | (FilipinoGrapheme::G, FilipinoGrapheme::Y)
+            // KW/TW clusters
+            | (FilipinoGrapheme::K, FilipinoGrapheme::W)
+            | (FilipinoGrapheme::T, FilipinoGrapheme::W)
     )
 }

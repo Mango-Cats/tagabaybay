@@ -1,7 +1,7 @@
 use crate::grapheme::types::GraphemesSet;
 
-use super::source;
 use super::filipino;
+use super::source;
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///
@@ -58,8 +58,9 @@ pub fn filipino_tokenizer(input: &str) -> Vec<filipino::FilipinoGrapheme> {
     let mut i = 0;
 
     while i < chars.len() {
-        // Skip hyphens (used in syllabification)
+        // Preserve hyphens as syllable boundary markers
         if chars[i] == '-' {
+            result.push(filipino::FilipinoGrapheme::Hyphen);
             i += 1;
             continue;
         }

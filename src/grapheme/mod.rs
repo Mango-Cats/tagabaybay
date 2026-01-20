@@ -19,5 +19,3 @@ macro_rules! tokens {
         vec![$($g),*]
     };
 }
-
-

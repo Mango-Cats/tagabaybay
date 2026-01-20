@@ -7,6 +7,9 @@
 // to run: cargo test --test syllabification csv_eval -- --nocapture
 //
 // this will not make a report file
+//
+// CSV format: `input,expected_hyphenated`
+// Example: `buksan,buk-san`
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -63,13 +66,8 @@ fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
 }
 
 /// Evaluate syllabification against a CSV file.
-///
-/// CSV format: `input,expected_hyphenated`
-/// Example: `buksan,buk-san`
-///
-/// Run with: `cargo test --test syllabification csv_eval -- --nocapture`
 #[test]
-fn csv_eval() {
+fn from_csv() {
     let file = match File::open(CSV_PATH) {
         Ok(f) => f,
         Err(_) => {
@@ -114,7 +112,7 @@ fn csv_eval() {
 
         total += 1;
         let matches = actual == expected;
-        
+
         if matches {
             passed += 1;
         } else {
@@ -125,7 +123,7 @@ fn csv_eval() {
                 valid,
             });
         }
-        
+
         // Track invalid syllabifications separately (even if they match expected)
         if !valid && matches {
             invalid_syllables.push(TestResult {
@@ -155,9 +153,24 @@ fn csv_eval() {
     println!("└── Accuracy        {:.2}%", accuracy);
 
     if !failures.is_empty() {
-        let max_input = failures.iter().map(|f| f.input.len()).max().unwrap_or(10).max(10);
-        let max_actual = failures.iter().map(|f| f.actual.len()).max().unwrap_or(10).max(10);
-        let max_expected = failures.iter().map(|f| f.expected.len()).max().unwrap_or(10).max(10);
+        let max_input = failures
+            .iter()
+            .map(|f| f.input.len())
+            .max()
+            .unwrap_or(10)
+            .max(10);
+        let max_actual = failures
+            .iter()
+            .map(|f| f.actual.len())
+            .max()
+            .unwrap_or(10)
+            .max(10);
+        let max_expected = failures
+            .iter()
+            .map(|f| f.expected.len())
+            .max()
+            .unwrap_or(10)
+            .max(10);
 
         println!("\nFailures:");
         println!(
@@ -309,14 +322,15 @@ mod three_consonants {
         assert_eq!(hyphenate(&syllables), "eks-pe-ri-men-to");
     }
 
-    /// transkripsyon → trans-krip-syon
+    /// transkripsyon → trans-krips-yon
+    /// (P-S splits, then S-Y splits: S with preceding, Y with following)
     #[test]
     fn test_transkripsyon() {
         let word = tokens![T, R, A, N, S, K, R, I, P, S, Y, O, N];
         assert!(validate_filipino_syllables_dp(word.clone()));
 
         let (syllables, _) = syllabify(&word).unwrap();
-        assert_eq!(hyphenate(&syllables), "trans-krip-syon");
+        assert_eq!(hyphenate(&syllables), "trans-krips-yon");
     }
 }
 
@@ -387,14 +401,15 @@ mod mn_cluster_exception {
 mod four_consonants {
     use super::*;
 
-    /// ekstradisyon → eks-tra-di-syon
+    /// ekstradisyon → eks-tra-dis-yon
+    /// (S-Y splits: S with preceding, Y with following - matches telebisyon pattern)
     #[test]
     fn test_ekstradisyon() {
         let word = tokens![E, K, S, T, R, A, D, I, S, Y, O, N];
         assert!(validate_filipino_syllables_dp(word.clone()));
 
         let (syllables, _) = syllabify(&word).unwrap();
-        assert_eq!(hyphenate(&syllables), "eks-tra-di-syon");
+        assert_eq!(hyphenate(&syllables), "eks-tra-dis-yon");
     }
 
     /// eksklusibo → eks-klu-si-bo

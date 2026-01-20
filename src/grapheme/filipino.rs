@@ -63,6 +63,9 @@ pub enum FilipinoGrapheme {
     // Whitespace
     Space,
 
+    // Hyphen (syllable boundary marker)
+    Hyphen,
+
     // ASCII non-alphanumeric passthrough (digits, punctuation, etc.)
     Passthrough(String),
 
@@ -123,6 +126,9 @@ impl FilipinoGrapheme {
             // Whitespace
             FilipinoGrapheme::Space => " ",
 
+            // Hyphen
+            FilipinoGrapheme::Hyphen => "-",
+
             // ASCII passthrough
             FilipinoGrapheme::Passthrough(c) => c,
 
@@ -151,8 +157,47 @@ impl FilipinoGrapheme {
                 self,
                 FilipinoGrapheme::Other
                     | FilipinoGrapheme::Space
+                    | FilipinoGrapheme::Hyphen
                     | FilipinoGrapheme::Passthrough(_)
             )
+    }
+
+    /// Check if this grapheme is a splittable consonant cluster.
+    ///
+    /// These are digraphs that represent two consonant sounds and can be
+    /// split at syllable boundaries (first part with preceding vowel,
+    /// second part with following vowel).
+    ///
+    /// - `Ny` (n + y) - from Spanish ñ, splittable as n|y
+    /// - `TS` (t + s) - affricate, splittable as t|s
+    /// - `DY` (d + y) - affricate, splittable as d|y
+    /// - `SY` (s + y) - cluster, splittable as s|y
+    /// - `SH` (s + h) - cluster, splittable as s|h
+    ///
+    /// Note: `Ng` is NOT splittable as it represents a single phoneme /ŋ/.
+    pub fn is_splittable_cluster(&self) -> bool {
+        matches!(
+            self,
+            FilipinoGrapheme::Ny
+                | FilipinoGrapheme::TS
+                | FilipinoGrapheme::DY
+                | FilipinoGrapheme::SY
+                | FilipinoGrapheme::SH
+        )
+    }
+
+    /// Split a splittable cluster into its two component consonants.
+    ///
+    /// Returns `Some((first, second))` for splittable clusters, `None` otherwise.
+    pub fn split_cluster(&self) -> Option<(FilipinoGrapheme, FilipinoGrapheme)> {
+        match self {
+            FilipinoGrapheme::Ny => Some((FilipinoGrapheme::N, FilipinoGrapheme::Y)),
+            FilipinoGrapheme::TS => Some((FilipinoGrapheme::T, FilipinoGrapheme::S)),
+            FilipinoGrapheme::DY => Some((FilipinoGrapheme::D, FilipinoGrapheme::Y)),
+            FilipinoGrapheme::SY => Some((FilipinoGrapheme::S, FilipinoGrapheme::Y)),
+            FilipinoGrapheme::SH => Some((FilipinoGrapheme::S, FilipinoGrapheme::H)),
+            _ => None,
+        }
     }
 
     pub fn from_char(c: char) -> FilipinoGrapheme {

@@ -1,5 +1,5 @@
-use super::source::SourceGrapheme;
 use super::filipino::FilipinoGrapheme;
+use super::source::SourceGrapheme;
 
 pub enum GraphemesSet {
     Src(SourceGrapheme),
