@@ -32,9 +32,9 @@ use crate::phoneme::symbols::ArpabetSymbols;
 /// Returns `Some((Vec<FilipinoGrapheme>, consumed))` if the current grapheme
 /// is a vowel/Y and we can find a corresponding phoneme.
 /// Returns `None` if not applicable, alignment fails, or this is a silent vowel.
-/// 
+///
 /// # Issues
-/// 
+///
 /// - There is no proper alignment for phonetics.
 /// - This relies on G2P. Question: what if we G2P(w) = p
 ///     and let w:=w1,w2,w3,...,wn and p:=p1,p2,p3,...pn

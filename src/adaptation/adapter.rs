@@ -31,7 +31,7 @@ use crate::grapheme::source::SourceGrapheme;
 /// use tagabaybay::adaptation::adaptation::Adapter;
 ///
 /// let adapter = Adapter::new()
-/// 
+///
 /// ```
 pub struct Adapter {
     config: AdaptationConfig,
@@ -99,7 +99,7 @@ impl Adapter {
     /// use tagabaybay::adaptation::adaptation::Adapter;
     ///
     /// let adapter = Adapter::new();
-    /// let words = vec!["hello", "world"];
+    /// let words = tokens!["hello", "world"];
     /// let results = adapter.adapt_batch(&words, "test_dataset");
     /// ```
     pub fn adapt_batch(

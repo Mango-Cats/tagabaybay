@@ -95,12 +95,12 @@ impl AdaptationConfig {
     }
 
     /// Set 'j' sound preservation
-    /// 
+    ///
     /// When enabled, 'j' letters are kept as the "j" sound. Otherwise,
     /// they're converted to 'dy' (e.g., "budyet" -> "bajet" vs "badyet")
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `value` - `true` to keep 'j' should, false to convert to 'dy'
     pub fn set_j_letter(mut self, value: bool) -> Self {
         self.allow_j_letter = value;
@@ -108,12 +108,12 @@ impl AdaptationConfig {
     }
 
     /// Set 'v' sound preservation
-    /// 
+    ///
     /// When enabled, 'v' letters are kept as the "v" sound. Otherwise,
     /// they're converted to 'b' (e.g., "value" -> "valyu" vs "balyu")
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `value` - `true` to keep 'v' should, false to convert to 'b'
     pub fn set_v_letter(mut self, value: bool) -> Self {
         self.allow_v_letter = value;

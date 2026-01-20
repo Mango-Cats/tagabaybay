@@ -70,7 +70,7 @@ impl ArpabetSymbols {
             ArpabetSymbols::OY => "oy".to_string(),
             ArpabetSymbols::UH => "uh".to_string(),
             ArpabetSymbols::UW => "uw".to_string(),
-            
+
             // Consonants
             ArpabetSymbols::B => "b".to_string(),
             ArpabetSymbols::CH => "ch".to_string(),

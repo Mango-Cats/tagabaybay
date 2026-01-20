@@ -5,6 +5,7 @@
 
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
+use crate::tokens;
 
 /// Convert a single letter to its Filipino phonetic alphabet name
 ///
@@ -28,49 +29,49 @@ use crate::grapheme::source::SourceGrapheme;
 pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme>> {
     let l = letter.to_lowercase();
     match l {
-        SourceGrapheme::A => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]),
-        SourceGrapheme::B => Some(vec![FilipinoGrapheme::B, FilipinoGrapheme::I]),
-        SourceGrapheme::C => Some(vec![FilipinoGrapheme::S, FilipinoGrapheme::I]),
-        SourceGrapheme::D => Some(vec![FilipinoGrapheme::D, FilipinoGrapheme::I]),
-        SourceGrapheme::E => Some(vec![FilipinoGrapheme::I]),
-        SourceGrapheme::F => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::F]),
-        SourceGrapheme::G => Some(vec![
+        SourceGrapheme::A => Some(tokens![FilipinoGrapheme::E, FilipinoGrapheme::Y]),
+        SourceGrapheme::B => Some(tokens![FilipinoGrapheme::B, FilipinoGrapheme::I]),
+        SourceGrapheme::C => Some(tokens![FilipinoGrapheme::S, FilipinoGrapheme::I]),
+        SourceGrapheme::D => Some(tokens![FilipinoGrapheme::D, FilipinoGrapheme::I]),
+        SourceGrapheme::E => Some(tokens![FilipinoGrapheme::I]),
+        SourceGrapheme::F => Some(tokens![FilipinoGrapheme::E, FilipinoGrapheme::F]),
+        SourceGrapheme::G => Some(tokens![
             FilipinoGrapheme::D,
             FilipinoGrapheme::Y,
             FilipinoGrapheme::I,
         ]),
-        SourceGrapheme::H => Some(vec![
+        SourceGrapheme::H => Some(tokens![
             FilipinoGrapheme::E,
             FilipinoGrapheme::Y,
             FilipinoGrapheme::TS,
         ]),
-        SourceGrapheme::I => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]),
-        SourceGrapheme::J => Some(vec![
+        SourceGrapheme::I => Some(tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y]),
+        SourceGrapheme::J => Some(tokens![
             FilipinoGrapheme::J,
             FilipinoGrapheme::E,
             FilipinoGrapheme::Y,
         ]),
-        SourceGrapheme::K => Some(vec![
+        SourceGrapheme::K => Some(tokens![
             FilipinoGrapheme::K,
             FilipinoGrapheme::E,
             FilipinoGrapheme::Y,
         ]),
-        SourceGrapheme::L => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::L]),
-        SourceGrapheme::M => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::M]),
-        SourceGrapheme::N => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::N]),
-        SourceGrapheme::O => Some(vec![FilipinoGrapheme::O]),
-        SourceGrapheme::P => Some(vec![FilipinoGrapheme::P, FilipinoGrapheme::I]),
-        SourceGrapheme::Q => Some(vec![
+        SourceGrapheme::L => Some(tokens![FilipinoGrapheme::E, FilipinoGrapheme::L]),
+        SourceGrapheme::M => Some(tokens![FilipinoGrapheme::E, FilipinoGrapheme::M]),
+        SourceGrapheme::N => Some(tokens![FilipinoGrapheme::E, FilipinoGrapheme::N]),
+        SourceGrapheme::O => Some(tokens![FilipinoGrapheme::O]),
+        SourceGrapheme::P => Some(tokens![FilipinoGrapheme::P, FilipinoGrapheme::I]),
+        SourceGrapheme::Q => Some(tokens![
             FilipinoGrapheme::K,
             FilipinoGrapheme::Y,
             FilipinoGrapheme::U,
         ]),
-        SourceGrapheme::R => Some(vec![FilipinoGrapheme::A, FilipinoGrapheme::R]),
-        SourceGrapheme::S => Some(vec![FilipinoGrapheme::E, FilipinoGrapheme::S]),
-        SourceGrapheme::T => Some(vec![FilipinoGrapheme::T, FilipinoGrapheme::I]),
-        SourceGrapheme::U => Some(vec![FilipinoGrapheme::Y, FilipinoGrapheme::U]),
-        SourceGrapheme::V => Some(vec![FilipinoGrapheme::V, FilipinoGrapheme::I]),
-        SourceGrapheme::W => Some(vec![
+        SourceGrapheme::R => Some(tokens![FilipinoGrapheme::A, FilipinoGrapheme::R]),
+        SourceGrapheme::S => Some(tokens![FilipinoGrapheme::E, FilipinoGrapheme::S]),
+        SourceGrapheme::T => Some(tokens![FilipinoGrapheme::T, FilipinoGrapheme::I]),
+        SourceGrapheme::U => Some(tokens![FilipinoGrapheme::Y, FilipinoGrapheme::U]),
+        SourceGrapheme::V => Some(tokens![FilipinoGrapheme::V, FilipinoGrapheme::I]),
+        SourceGrapheme::W => Some(tokens![
             FilipinoGrapheme::D,
             FilipinoGrapheme::O,
             FilipinoGrapheme::B,
@@ -79,17 +80,17 @@ pub fn letter_to_phonetic(letter: SourceGrapheme) -> Option<Vec<FilipinoGrapheme
             FilipinoGrapheme::Y,
             FilipinoGrapheme::U,
         ]),
-        SourceGrapheme::X => Some(vec![
+        SourceGrapheme::X => Some(tokens![
             FilipinoGrapheme::E,
             FilipinoGrapheme::K,
             FilipinoGrapheme::S,
         ]),
-        SourceGrapheme::Y => Some(vec![
+        SourceGrapheme::Y => Some(tokens![
             FilipinoGrapheme::W,
             FilipinoGrapheme::A,
             FilipinoGrapheme::Y,
         ]),
-        SourceGrapheme::Z => Some(vec![FilipinoGrapheme::Z, FilipinoGrapheme::I]),
+        SourceGrapheme::Z => Some(tokens![FilipinoGrapheme::Z, FilipinoGrapheme::I]),
         _ => None,
     }
 }

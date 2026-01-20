@@ -68,30 +68,34 @@ fn phonemize_phrase(
         // Handle hyphenated words by phonemizing each part
         let subparts: Vec<&str> = word_part.split('-').collect();
         let mut subpart_phonetics: Vec<String> = Vec::new();
-        
+
         for subpart in &subparts {
             // Skip numbers and special tokens - they'll be handled by grapheme pass-through
-            if subpart.chars().all(|c| c.is_ascii_digit() || c == '.' || c == '/' || c == '+') {
+            if subpart
+                .chars()
+                .all(|c| c.is_ascii_digit() || c == '.' || c == '/' || c == '+')
+            {
                 subpart_phonetics.push(String::new()); // Empty phonemes for numbers
                 continue;
             }
-            
+
             // Skip empty parts (e.g., from leading hyphen)
             if subpart.is_empty() {
                 subpart_phonetics.push(String::new());
                 continue;
             }
-            
+
             // Strip trailing special characters (like "Shield+" -> "Shield")
-            let clean_subpart: String = subpart.chars()
+            let clean_subpart: String = subpart
+                .chars()
                 .take_while(|c| c.is_ascii_alphabetic())
                 .collect();
-            
+
             if clean_subpart.is_empty() {
                 subpart_phonetics.push(String::new());
                 continue;
             }
-            
+
             let phonetic_str = phonemize(&clean_subpart).map_err(|mut err| {
                 err.word_number = word_number;
                 err.dataset_name = dataset_name.map(str::to_string);
@@ -107,7 +111,7 @@ fn phonemize_phrase(
 
             subpart_phonetics.push(phonetic_str);
         }
-        
+
         // Rejoin hyphenated parts with '$' (boundary marker)
         phonetic_parts.push(subpart_phonetics.join("$"));
     }
