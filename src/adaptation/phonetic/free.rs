@@ -42,17 +42,6 @@ use crate::phoneme::symbols::ArpabetSymbols;
 
 /// Handles phonetic replacement for vowels and Y based on G2P transcription.
 ///
-/// The key insight: vowels in spelling roughly correspond to vowel phonemes
-/// in order. We count how many vowel graphemes appear before the current
-/// position, then find the nth vowel phoneme.
-///
-/// # Algorithm
-///
-/// 1. Count vowel graphemes (A, E, I, O, U, Y) before current position
-/// 2. Find the nth vowel phoneme in the phoneme sequence
-/// 3. Convert that ARPAbet vowel to Filipino grapheme(s)
-/// 4. If no phoneme found (silent vowel), return None to fall back to orthographic
-///
 /// # Arguments
 ///
 /// * `ctx` - Cursor containing both graphemes and phonemes
@@ -62,6 +51,14 @@ use crate::phoneme::symbols::ArpabetSymbols;
 /// Returns `Some((Vec<FilipinoGrapheme>, consumed))` if the current grapheme
 /// is a vowel/Y and we can find a corresponding phoneme.
 /// Returns `None` if not applicable, alignment fails, or this is a silent vowel.
+/// 
+/// # Issues
+/// 
+/// - There is no proper alignment for phonetics.
+/// - This relies on G2P. Question: what if we G2P(w) = p
+///     and let w:=w1,w2,w3,...,wn and p:=p1,p2,p3,...pn
+///     how do we check if the mapping wi -> pi is too far?
+///     Example: crap -> crawp (isn't a -> aw too far given the context?)
 pub fn phonetic_replacements(
     ctx: &Cursor,
     config: &AdaptationConfig,
