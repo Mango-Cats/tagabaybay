@@ -12,7 +12,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdaptationConfig;
-use tagabaybay::grapheme::filipino::phl_graphemes_to_string;
+use tagabaybay::grapheme::filipino::graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
 const GOLD_COUNT: usize = 3;
@@ -262,7 +262,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
         let expected = parts[1].trim();
         let actual = adapter
             .adaptation(input, &config)
-            .map(|phl_graphemes| phl_graphemes_to_string(&phl_graphemes))
+            .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
             .unwrap_or_default();
 
         let actual_lower = actual.to_lowercase();

@@ -56,7 +56,7 @@ impl AdaptationError {
         word_number: Option<usize>,
         dataset_name: Option<&str>,
     ) -> Self {
-        let input = graphemes.iter().map(|f| f.as_str()).collect::<String>();
+        let input = graphemes.iter().map(|f| f.to_string_rep()).collect::<String>();
         Self {
             input,
             position,

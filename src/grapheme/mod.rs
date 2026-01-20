@@ -1,6 +1,7 @@
 pub mod filipino;
 pub mod source;
 pub mod tokenize;
+pub mod types;
 
 /// Helper macro to create grapheme vectors more easily
 ///
@@ -18,3 +19,5 @@ macro_rules! tokens {
         vec![$($g),*]
     };
 }
+
+

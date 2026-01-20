@@ -32,12 +32,12 @@ impl Cursor {
         dataset_name: Option<&str>,
         config: &AdaptationConfig,
     ) -> Result<Self, ErrorTypes> {
-        let graphemes = grapheme::tokenize::tokenize(word);
+        let graphemes = grapheme::tokenize::source_tokenizer(word);
 
         // Handle multi-word inputs by phonemizing each word separately
         let phonetic_str = phonemize_phrase(word, word_number, dataset_name, config)?;
 
-        let phonemes = phoneme::tokenize::tokenize(&phonetic_str);
+        let phonemes = phoneme::tokenize::tokenizer(&phonetic_str);
 
         Ok(Self {
             graphemes,

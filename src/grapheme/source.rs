@@ -92,7 +92,7 @@ pub enum SourceGrapheme {
 
 impl SourceGrapheme {
     /// Convert the grapheme back to its original string representation
-    pub fn as_str(&self) -> String {
+    pub fn to_string_rep(&self) -> String {
         match self {
             // Digraphs
             SourceGrapheme::PH => "ph".to_string(),
@@ -432,6 +432,6 @@ pub fn match_digraph(s: &str) -> Option<SourceGrapheme> {
 
 impl std::fmt::Display for SourceGrapheme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.to_string_rep())
     }
 }

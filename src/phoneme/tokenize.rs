@@ -9,7 +9,7 @@ use crate::phoneme::symbols::{ArpabetSymbols, match_arpabet};
 /// # Returns
 ///
 /// Returns a vector of `ArpabetSymbols` enum values.
-pub fn tokenize(input: &str) -> Vec<ArpabetSymbols> {
+pub fn tokenizer(input: &str) -> Vec<ArpabetSymbols> {
     let chars: Vec<char> = input.chars().collect();
     let mut result = Vec::new();
     let mut i = 0;
@@ -54,6 +54,6 @@ pub fn tokenize(input: &str) -> Vec<ArpabetSymbols> {
 /// # Returns
 ///
 /// Returns the reconstructed string.
-pub fn detokenize(graphemes: &[ArpabetSymbols]) -> String {
+pub fn detokenizer(graphemes: &[ArpabetSymbols]) -> String {
     graphemes.iter().map(|g| g.to_string()).collect()
 }

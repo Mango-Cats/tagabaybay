@@ -1,6 +1,6 @@
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdaptationConfig;
-use tagabaybay::grapheme::filipino::phl_graphemes_to_string;
+use tagabaybay::grapheme::filipino::graphemes_to_string;
 
 fn main() {
     let words = ["hello", "aspirin", "chocolate", "ibuprofen", "tetracycline"];
@@ -10,7 +10,7 @@ fn main() {
     for word in &words {
         match adapter.adaptation(word, &config) {
             Ok(result) => {
-                println!("{} -> {}", word, phl_graphemes_to_string(&result));
+                println!("{} -> {}", word, graphemes_to_string(&result));
             }
             Err(e) => println!("{}: ERROR {:?}", word, e),
         }

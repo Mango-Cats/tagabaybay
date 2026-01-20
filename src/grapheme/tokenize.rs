@@ -1,4 +1,7 @@
-use super::source::{SourceGrapheme, match_digraph};
+use crate::grapheme::types::GraphemesSet;
+
+use super::source;
+use super::filipino;
 
 /// Tokenize a string into graphemes, matching longest patterns first
 ///
@@ -12,7 +15,7 @@ use super::source::{SourceGrapheme, match_digraph};
 /// # Returns
 ///
 /// Returns a vector of `SourceGrapheme` enum values.
-pub fn tokenize(input: &str) -> Vec<SourceGrapheme> {
+pub fn source_tokenizer(input: &str) -> Vec<source::SourceGrapheme> {
     let chars: Vec<char> = input.chars().collect();
     let mut result = Vec::new();
     let mut i = 0;
@@ -21,7 +24,7 @@ pub fn tokenize(input: &str) -> Vec<SourceGrapheme> {
         // Check digraphs first (2 characters)
         if i + 2 <= chars.len() {
             let substring_2: String = chars[i..i + 2].iter().collect();
-            if let Some(g) = match_digraph(&substring_2) {
+            if let Some(g) = source::match_digraph(&substring_2) {
                 result.push(g);
                 i += 2;
                 continue;
@@ -29,7 +32,49 @@ pub fn tokenize(input: &str) -> Vec<SourceGrapheme> {
         }
 
         // Fall back to single character
-        result.push(SourceGrapheme::from_char(chars[i]));
+        result.push(source::SourceGrapheme::from_char(chars[i]));
+        i += 1;
+    }
+
+    result
+}
+
+/// Tokenize a Filipino orthographic string into graphemes
+///
+/// Parses a Filipino string into a sequence of graphemes,
+/// recognizing digraphs like "ng", "ny", "ts", "dy", "sh", "sy".
+///
+/// # Arguments
+///
+/// * `input` - The Filipino string to tokenize
+///
+/// # Returns
+///
+/// Returns a vector of `FilipinoGrapheme` values.
+pub fn filipino_tokenizer(input: &str) -> Vec<filipino::FilipinoGrapheme> {
+    let input = input.to_lowercase();
+    let chars: Vec<char> = input.chars().collect();
+    let mut result = Vec::new();
+    let mut i = 0;
+
+    while i < chars.len() {
+        // Skip hyphens (used in syllabification)
+        if chars[i] == '-' {
+            i += 1;
+            continue;
+        }
+
+        // Check digraphs first (2 characters)
+        if i + 2 <= chars.len() {
+            if let Some(g) = filipino::match_digraph(chars[i], chars[i + 1]) {
+                result.push(g);
+                i += 2;
+                continue;
+            }
+        }
+
+        // Fall back to single character
+        result.push(filipino::FilipinoGrapheme::from_char(chars[i]));
         i += 1;
     }
 
@@ -47,6 +92,18 @@ pub fn tokenize(input: &str) -> Vec<SourceGrapheme> {
 /// # Returns
 ///
 /// Returns the reconstructed string.
-pub fn detokenize(graphemes: &[SourceGrapheme]) -> String {
-    graphemes.iter().map(|g| g.to_string()).collect()
+#[warn(unused)]
+fn detokenizer(graphemes: &[GraphemesSet]) -> String {
+    match graphemes.split_first() {
+        Some((first, rest)) => {
+            let mut current = match first {
+                GraphemesSet::Src(s) => s.to_string_rep(),
+                GraphemesSet::Fil(f) => f.to_string_rep(),
+            };
+
+            current.push_str(&detokenizer(rest));
+            current
+        }
+        None => String::new(),
+    }
 }

@@ -72,7 +72,7 @@ pub enum FilipinoGrapheme {
 
 impl FilipinoGrapheme {
     /// Convert the grapheme to its Filipino orthographic representation
-    pub fn as_str(&self) -> String {
+    pub fn to_string_rep(&self) -> String {
         match self {
             // Affricates
             FilipinoGrapheme::TS => "ts",
@@ -154,6 +154,39 @@ impl FilipinoGrapheme {
                     | FilipinoGrapheme::Passthrough(_)
             )
     }
+
+    pub fn from_char(c: char) -> FilipinoGrapheme {
+        match c {
+            'a' => FilipinoGrapheme::A,
+            'e' => FilipinoGrapheme::E,
+            'i' => FilipinoGrapheme::I,
+            'o' => FilipinoGrapheme::O,
+            'u' => FilipinoGrapheme::U,
+            'p' => FilipinoGrapheme::P,
+            'b' => FilipinoGrapheme::B,
+            't' => FilipinoGrapheme::T,
+            'd' => FilipinoGrapheme::D,
+            'k' => FilipinoGrapheme::K,
+            'g' => FilipinoGrapheme::G,
+            'm' => FilipinoGrapheme::M,
+            'n' => FilipinoGrapheme::N,
+            'h' => FilipinoGrapheme::H,
+            's' => FilipinoGrapheme::S,
+            'l' => FilipinoGrapheme::L,
+            'r' => FilipinoGrapheme::R,
+            'w' => FilipinoGrapheme::W,
+            'y' => FilipinoGrapheme::Y,
+            'f' => FilipinoGrapheme::F,
+            'z' => FilipinoGrapheme::Z,
+            'j' => FilipinoGrapheme::J,
+            'v' => FilipinoGrapheme::V,
+            ' ' => FilipinoGrapheme::Space,
+            c if c.is_ascii() && !c.is_alphanumeric() => {
+                FilipinoGrapheme::Passthrough(c.to_string())
+            }
+            _ => FilipinoGrapheme::Other,
+        }
+    }
 }
 
 /// Convert a `Vec<FilipinoGrapheme>` to a String
@@ -167,13 +200,28 @@ impl FilipinoGrapheme {
 /// # Returns
 ///
 /// Returns the string representation in Filipino orthography.
-pub fn phl_graphemes_to_string(graphemes: &[FilipinoGrapheme]) -> String {
+pub fn graphemes_to_string(graphemes: &[FilipinoGrapheme]) -> String {
     graphemes.iter().map(|p| p.to_string()).collect()
 }
 
+/// Match a two-character digraph to a Filipino grapheme
+pub fn match_digraph(c1: char, c2: char) -> Option<FilipinoGrapheme> {
+    match (c1, c2) {
+        ('n', 'g') => Some(FilipinoGrapheme::Ng),
+        ('n', 'y') => Some(FilipinoGrapheme::Ny),
+        ('t', 's') => Some(FilipinoGrapheme::TS),
+        ('d', 'y') => Some(FilipinoGrapheme::DY),
+        ('s', 'h') => Some(FilipinoGrapheme::SH),
+        ('s', 'y') => Some(FilipinoGrapheme::SY),
+        _ => None,
+    }
+}
+
+/// Match a single character to a Filipino grapheme
+
 impl std::fmt::Display for FilipinoGrapheme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.to_string_rep())
     }
 }
 
@@ -198,6 +246,6 @@ impl std::fmt::Display for FilipinoGrapheme {
 pub fn hyphenate(syllables: &[Vec<FilipinoGrapheme>]) -> String {
     syllables
         .iter()
-        .map(|syl| syl.iter().map(FilipinoGrapheme::as_str).join(""))
+        .map(|syl| syl.iter().map(FilipinoGrapheme::to_string_rep).join(""))
         .join("-")
 }
