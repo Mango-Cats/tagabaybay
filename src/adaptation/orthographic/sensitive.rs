@@ -77,8 +77,12 @@ fn sensitive_consonant(
         SourceGrapheme::D => handle_consonant_d(ctx),
         SourceGrapheme::G => handle_consonant_g(ctx),
         SourceGrapheme::S => handle_consonant_s(ctx),
-        SourceGrapheme::J => Some((vec![FilipinoGrapheme::DY], 1)),
-        SourceGrapheme::Q => Some((vec![FilipinoGrapheme::K], 1)),
+        SourceGrapheme::J => if config.allow_j_letter {
+            Some((vec![FilipinoGrapheme::J], 1))
+        } else {
+            Some((vec![FilipinoGrapheme::DY], 1))
+        },
+        SourceGrapheme::Q => Some((vec![FilipinoGrapheme::K, FilipinoGrapheme::W], 1)),
         _ => None,
     }
 }
@@ -744,8 +748,8 @@ fn handle_duplicates(
                 SourceGrapheme::Passthrough(_) | SourceGrapheme::Space | SourceGrapheme::Other
             )
         {
-            if let Some((graphemes, _)) = free_replacement(ctx, config) {
-                return Some((Vec::from(vec![graphemes]), 2));
+            if let Some((replacement, repl_length)) = free_replacement(ctx, config) {
+                return Some((replacement, repl_length));
             }
         }
     }

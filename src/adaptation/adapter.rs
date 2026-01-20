@@ -58,14 +58,20 @@ impl Adapter {
     }
 
     /// Toggle 'sh' sound
-    pub fn allow_sh_sound(mut self, value: bool) -> Self {
-        self.config.allow_sh_sound = value;
+    pub fn allow_sh_letter(mut self, value: bool) -> Self {
+        self.config.allow_sh_letter = value;
         self
     }
 
     /// Toggle 'z' sound
-    pub fn allow_z_sound(mut self, value: bool) -> Self {
-        self.config.allow_z_sound = value;
+    pub fn allow_z_letter(mut self, value: bool) -> Self {
+        self.config.allow_z_letter = value;
+        self
+    }
+
+    /// Toggle 'j' sound
+    pub fn allow_j_letter(mut self, value: bool) -> Self {
+        self.config.allow_j_letter = value;
         self
     }
 
@@ -179,7 +185,7 @@ impl Adapter {
 
             // Context-free orthographic cases (fallback)
             if let Some((free_repl, consumed)) = free_replacement(&ctx, &self.config) {
-                result.push(free_repl);
+                result.extend(free_repl);
                 ctx.index += consumed;
                 continue;
             }

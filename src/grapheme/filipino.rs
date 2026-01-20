@@ -53,6 +53,7 @@ pub enum FilipinoGrapheme {
     // Modern consonants sounds
     F, // /f/       - e.g., Filipino
     Z, // /z/       - e.g., Zig-Zag
+    J, // /j/       - e.g., Sabjek
 
     // Whitespace
     Space,
@@ -110,6 +111,7 @@ impl FilipinoGrapheme {
             // Modern consonant sounds
             FilipinoGrapheme::F => "f",
             FilipinoGrapheme::Z => "z",
+            FilipinoGrapheme::J => "j",
 
             // Whitespace
             FilipinoGrapheme::Space => " ",

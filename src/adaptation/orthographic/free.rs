@@ -25,57 +25,58 @@ use crate::grapheme::source::SourceGrapheme;
 pub fn free_replacement(
     ctx: &Cursor,
     config: &AdaptationConfig,
-) -> Option<(FilipinoGrapheme, usize)> {
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // this has no uppercase character
     let g = ctx.current_grapheme_low();
 
     match g {
         // Digraph replacements (digraph count as 1 grapheme)
-        SourceGrapheme::PH => Some((FilipinoGrapheme::F, 1)),
-        SourceGrapheme::PS => Some((FilipinoGrapheme::S, 1)),
-        SourceGrapheme::TH => Some((FilipinoGrapheme::T, 1)),
+        SourceGrapheme::PH => Some((vec![FilipinoGrapheme::F], 1)),
+        SourceGrapheme::PS => Some((vec![FilipinoGrapheme::S], 1)),
+        SourceGrapheme::TH => Some((vec![FilipinoGrapheme::T], 1)),
         SourceGrapheme::SH => {
-            if config.allow_sh_sound {
-                Some((FilipinoGrapheme::SH, 1))
+            if config.allow_sh_letter {
+                Some((vec![FilipinoGrapheme::SH], 1))
             } else {
-                Some((FilipinoGrapheme::S, 1))
+                Some((vec![FilipinoGrapheme::S], 1))
             }
         }
-        SourceGrapheme::EE => Some((FilipinoGrapheme::I, 1)),
-        SourceGrapheme::OO => Some((FilipinoGrapheme::U, 1)),
+        SourceGrapheme::EE => Some((vec![FilipinoGrapheme::I], 1)),
+        SourceGrapheme::OO => Some((vec![FilipinoGrapheme::U], 1)),
 
         // Consonants
-        SourceGrapheme::B => Some((FilipinoGrapheme::B, 1)),
-        SourceGrapheme::D => Some((FilipinoGrapheme::D, 1)),
-        SourceGrapheme::F => Some((FilipinoGrapheme::F, 1)),
-        SourceGrapheme::G => Some((FilipinoGrapheme::G, 1)),
-        SourceGrapheme::H => Some((FilipinoGrapheme::H, 1)),
-        SourceGrapheme::K => Some((FilipinoGrapheme::K, 1)),
-        SourceGrapheme::L => Some((FilipinoGrapheme::L, 1)),
-        SourceGrapheme::M => Some((FilipinoGrapheme::M, 1)),
-        SourceGrapheme::N => Some((FilipinoGrapheme::N, 1)),
-        SourceGrapheme::P => Some((FilipinoGrapheme::P, 1)),
-        SourceGrapheme::R => Some((FilipinoGrapheme::R, 1)),
-        SourceGrapheme::S => Some((FilipinoGrapheme::S, 1)),
-        SourceGrapheme::T => Some((FilipinoGrapheme::T, 1)),
-        SourceGrapheme::V => Some((FilipinoGrapheme::B, 1)),
-        SourceGrapheme::W => Some((FilipinoGrapheme::W, 1)),
-        SourceGrapheme::Y => Some((FilipinoGrapheme::Y, 1)),
+        SourceGrapheme::B => Some((vec![FilipinoGrapheme::B], 1)),
+        SourceGrapheme::D => Some((vec![FilipinoGrapheme::D], 1)),
+        SourceGrapheme::F => Some((vec![FilipinoGrapheme::F], 1)),
+        SourceGrapheme::G => Some((vec![FilipinoGrapheme::G], 1)),
+        SourceGrapheme::H => Some((vec![FilipinoGrapheme::H], 1)),
+        SourceGrapheme::K => Some((vec![FilipinoGrapheme::K], 1)),
+        SourceGrapheme::L => Some((vec![FilipinoGrapheme::L], 1)),
+        SourceGrapheme::M => Some((vec![FilipinoGrapheme::M], 1)),
+        SourceGrapheme::N => Some((vec![FilipinoGrapheme::N], 1)),
+        SourceGrapheme::P => Some((vec![FilipinoGrapheme::P], 1)),
+        SourceGrapheme::R => Some((vec![FilipinoGrapheme::R], 1)),
+        SourceGrapheme::S => Some((vec![FilipinoGrapheme::S], 1)),
+        SourceGrapheme::T => Some((vec![FilipinoGrapheme::T], 1)),
+        SourceGrapheme::V => Some((vec![FilipinoGrapheme::B], 1)),
+        SourceGrapheme::W => Some((vec![FilipinoGrapheme::W], 1)),
+        SourceGrapheme::Y => Some((vec![FilipinoGrapheme::Y], 1)),
         SourceGrapheme::Z => {
-            if config.allow_z_sound {
-                Some((FilipinoGrapheme::Z, 1))
+            if config.allow_z_letter {
+                Some((vec![FilipinoGrapheme::Z], 1))
             } else {
-                Some((FilipinoGrapheme::S, 1))
+                Some((vec![FilipinoGrapheme::S], 1))
             }
         }
 
         // Spanish
-        SourceGrapheme::Enye => Some((FilipinoGrapheme::N, 1)),
+        SourceGrapheme::Enye => Some((vec![FilipinoGrapheme::N], 1)),
 
         // Whitespace
-        SourceGrapheme::Space => Some((FilipinoGrapheme::Space, 1)),
+        SourceGrapheme::Space => Some((vec![FilipinoGrapheme::Space], 1)),
 
         // ASCII passthrough (digits, punctuation, etc.)
-        SourceGrapheme::Passthrough(c) => Some((FilipinoGrapheme::Passthrough(c.to_string()), 1)),
+        SourceGrapheme::Passthrough(c) => Some((vec![FilipinoGrapheme::Passthrough(c.to_string())], 1)),
 
         // Context-sensitive letters (handled in sensitive_replacement)
         SourceGrapheme::C
@@ -84,18 +85,16 @@ pub fn free_replacement(
         | SourceGrapheme::X
         | SourceGrapheme::CH => None,
 
-        // Basic vowel fallback (used when phonetic and sensitive rules don't apply)
-        // This is a last resort - phonetic rules should handle most vowels
-        SourceGrapheme::A => Some((FilipinoGrapheme::A, 1)),
-        SourceGrapheme::E => Some((FilipinoGrapheme::E, 1)),
-        SourceGrapheme::I => Some((FilipinoGrapheme::I, 1)),
-        SourceGrapheme::O => Some((FilipinoGrapheme::O, 1)),
-        SourceGrapheme::U => Some((FilipinoGrapheme::U, 1)),
+        // Vowels (unpredictable variants)
+        SourceGrapheme::A 
+        | SourceGrapheme::E
+        | SourceGrapheme::I
+        | SourceGrapheme::O
+        | SourceGrapheme::U => None,
 
         // Other characters (pass through as-is)
-        SourceGrapheme::Other => Some((FilipinoGrapheme::Other, 1)),
+        SourceGrapheme::Other => Some((vec![FilipinoGrapheme::Other], 1)),
 
-        // Uppercase variants should not reach here (normalized by to_lowercase)
         _ => None,
     }
 }

@@ -16,10 +16,12 @@
 pub struct AdaptationConfig {
     /// Whether to panic when an error occurs during loanword adaptation
     pub panic_at_error: bool,
-    /// Whether to allow the 'sh' sound (instead of just 's')
-    pub allow_sh_sound: bool,
+    /// Whether to allow the 'sh' sound (instead of 's')
+    pub allow_sh_letter: bool,
     /// Whether to allow the 'z' sound (instead of 's')
-    pub allow_z_sound: bool,
+    pub allow_z_letter: bool,
+    /// Whether to allow the 'j' shound (instead of 'dy', as in sabdyek == subject)
+    pub allow_j_letter: bool,
     /// Whether to use G2P for unpredictable variant graphemes.
     pub g2p_unpredictable_variants: bool,
 }
@@ -29,14 +31,16 @@ impl Default for AdaptationConfig {
     ///
     /// Default values:
     /// - `panic_at_error`: false (prints errors but continues)
-    /// - `allow_sh_sound`: false (converts sh → s)
-    /// - `allow_z_sound`: false (converts z → s)
+    /// - `allow_sh_letter`: true (converts sh → s)
+    /// - `allow_z_letter`: true (converts z → s)
+    /// - `allow_j_letter`: true (converts j -> j not dy)
     /// - `g2p_unpredictable_variants`: true (uses phonetic rules for unpredictable variant graphemes)
     fn default() -> Self {
         Self {
             panic_at_error: false,
-            allow_sh_sound: false,
-            allow_z_sound: false,
+            allow_sh_letter: true,
+            allow_z_letter: true,
+            allow_j_letter: true,
             g2p_unpredictable_variants: true,
         }
     }
@@ -69,8 +73,8 @@ impl AdaptationConfig {
     /// # Arguments
     ///
     /// * `value` - `true` to keep 'sh' sound, `false` to convert to 's'
-    pub fn set_sh_sound(mut self, value: bool) -> Self {
-        self.allow_sh_sound = value;
+    pub fn set_sh_letter(mut self, value: bool) -> Self {
+        self.allow_sh_letter = value;
         self
     }
 
@@ -82,8 +86,21 @@ impl AdaptationConfig {
     /// # Arguments
     ///
     /// * `value` - `true` to keep 'z' sound, `false` to convert to 's'
-    pub fn set_z_sound(mut self, value: bool) -> Self {
-        self.allow_z_sound = value;
+    pub fn set_z_letter(mut self, value: bool) -> Self {
+        self.allow_z_letter = value;
+        self
+    }
+
+    /// Set 'j' sound preservation
+    /// 
+    /// When enabled, 'j' letters are kept as the "j" sound. Otherwise,
+    /// they're converted to 'dy' (e.g., "budyet" -> "bajet" vs "badyet")
+    /// 
+    /// # Arguments
+    /// 
+    /// * `value` - `true` to keep 'j' should, false to convert to 'dy'
+    pub fn set_j_letter(mut self, value: bool) -> Self {
+        self.allow_j_letter = value;
         self
     }
 
