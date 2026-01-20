@@ -34,7 +34,6 @@
   - [VIII. Ang Pag-uulit ng Pantig](#viii-ang-pag-uulit-ng-pantig)
   - [IX. Ang Gamit ng Gitling](#ix-ang-gamit-ng-gitling)
 
-
 ## I. Ang Alfabetong Filipino
 
 Ang alfabetong Filipino ay binubuo ng **28 letra** na ganito ang ayos:
