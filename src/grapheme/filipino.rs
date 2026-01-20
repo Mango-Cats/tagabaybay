@@ -9,6 +9,8 @@
 /// - Special characters (spaces, punctuation)
 ///
 /// Each variant can be converted to Filipino orthography using `as_str()`.
+use itertools::Itertools;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FilipinoGrapheme {
     // Affricates
@@ -173,4 +175,29 @@ impl std::fmt::Display for FilipinoGrapheme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }
+}
+
+/// Convert syllables (Vec of grapheme Vecs) to a hyphenated string representation
+///
+/// # Arguments
+///
+/// * `syllables` - Slice of syllables, where each syllable is a Vec of FilipinoGrapheme
+///
+/// # Returns
+///
+/// Returns a hyphenated string like "buk-san" or "eks-tra-di-syon"
+///
+/// # Example
+///
+/// ```ignore
+/// use tagabaybay::grapheme::filipino::{syllables_to_string, FilipinoGrapheme::*};
+///
+/// let syllables = tokens![tokens![B, U, K], tokens![S, A, N]];
+/// assert_eq!(syllables_to_string(&syllables), "buk-san");
+/// ```
+pub fn hyphenate(syllables: &[Vec<FilipinoGrapheme>]) -> String {
+    syllables
+        .iter()
+        .map(|syl| syl.iter().map(FilipinoGrapheme::as_str).join(""))
+        .join("-")
 }
