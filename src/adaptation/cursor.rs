@@ -24,28 +24,6 @@ impl Cursor {
         }
     }
 
-    /// Construct cursor from a word using tokenization and phonemization
-    /// Handles multi-word inputs by phonemizing each word separately
-    pub fn from_word(
-        word: &str,
-        word_number: Option<usize>,
-        dataset_name: Option<&str>,
-        config: &AdapterConfig,
-    ) -> Result<Self, ErrorTypes> {
-        let graphemes = grapheme::tokenize::source_tokenizer(word);
-
-        // Handle multi-word inputs by phonemizing each word separately
-        let phonetic_str = phonemize_phrase(word, word_number, dataset_name, config)?;
-
-        let phonemes = tokenize_ipa(&phonetic_str);
-
-        Ok(Self {
-            graphemes,
-            phonemes,
-            index: 0,
-        })
-    }
-
     /// Current grapheme (preserves case)
     pub fn current_grapheme(&self) -> SourceGrapheme {
         self.graphemes[self.index].clone()
