@@ -7,11 +7,11 @@
 //      `<MMDDYY>_<HHMM>_overall.txt`
 
 use chrono::Local;
-use tagabaybay::adaptation::adapter::Adapter;
-use tagabaybay::configs::AdapterConfig;
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
+use tagabaybay::adaptation::adapter::Adapter;
+use tagabaybay::configs::AdapterConfig;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
@@ -22,6 +22,38 @@ const GOLD_STANDARDS: [&str; GOLD_COUNT] =
 const ACCEPT: f64 = 70.;
 const REPORT_DIR: &str = ".tests/report";
 
+// Character equivalence mappings for toggle-agnostic evaluation
+const CHAR_EQUIVALENCES: &[(&str, &str)] = &[
+    ("sh", "s"), // allow_sh_letter
+    ("z", "s"),  // allow_z_letter
+    ("j", "dy"), // allow_j_letter
+    ("v", "b"),  // allow_v_letter
+];
+
+// This makes comparisons agnostic to which toggle settings were used
+fn normalize_for_comparison(text: &str) -> String {
+    let mut normalized = text.to_lowercase();
+
+    let mut equivalences: Vec<_> = CHAR_EQUIVALENCES.iter().collect();
+    equivalences.sort_by_key(|(a, b)| std::cmp::Reverse(a.len().max(b.len())));
+
+    for &(variant1, variant2) in equivalences.iter() {
+        let canonical = if variant1 < variant2 {
+            variant1
+        } else {
+            variant2
+        };
+        let alternate = if variant1 < variant2 {
+            variant2
+        } else {
+            variant1
+        };
+
+        normalized = normalized.replace(alternate, canonical);
+    }
+
+    normalized
+}
 
 struct TestResult {
     input: String,
@@ -117,8 +149,12 @@ fn levenshtein_distance(a: &str, b: &str) -> usize {
 
 /// Get the edit operations (alignment) between two strings for token error tracking
 fn get_edit_operations(actual: &str, expected: &str) -> Vec<(Option<char>, Option<char>)> {
-    let a_chars: Vec<char> = actual.to_lowercase().chars().collect();
-    let e_chars: Vec<char> = expected.to_lowercase().chars().collect();
+    // Normalize for toggle-agnostic comparison
+    let actual_normalized = normalize_for_comparison(actual);
+    let expected_normalized = normalize_for_comparison(expected);
+
+    let a_chars: Vec<char> = actual_normalized.chars().collect();
+    let e_chars: Vec<char> = expected_normalized.chars().collect();
     let m = a_chars.len();
     let n = e_chars.len();
 
@@ -193,18 +229,18 @@ fn track_token_errors(
             "{}->{}",
             actual_char
                 .map(|c| c.to_string())
-                .unwrap_or_else(|| "∅".to_string()),
+                .unwrap_or_else(|| "#".to_string()),
             expected_char
                 .map(|c| c.to_string())
-                .unwrap_or_else(|| "∅".to_string())
+                .unwrap_or_else(|| "#".to_string())
         );
         let entry = token_errors.entry(key).or_insert(TokenError {
             expected: expected_char
                 .map(|c| c.to_string())
-                .unwrap_or_else(|| "∅".to_string()),
+                .unwrap_or_else(|| "#".to_string()),
             actual: actual_char
                 .map(|c| c.to_string())
-                .unwrap_or_else(|| "∅".to_string()),
+                .unwrap_or_else(|| "#".to_string()),
             count: 0,
             examples: vec![],
         });
@@ -245,10 +281,8 @@ fn evaluate_csv(path: &str) -> EvalReport {
     let mut total_token_edits: usize = 0;
     let mut total_tokens: usize = 0;
     let mut token_errors: HashMap<String, TokenError> = HashMap::new();
-    let adapter = Adapter::new_with_config(
-        AdapterConfig::new()
-            .set_g2p_unpredictable_variants(false)
-    );
+    let adapter =
+        Adapter::new_with_config(AdapterConfig::new().set_g2p_unpredictable_variants(false));
 
     for (i, line) in reader.lines().enumerate() {
         if i == 0 {
@@ -268,24 +302,31 @@ fn evaluate_csv(path: &str) -> EvalReport {
             .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
             .unwrap_or_default();
 
-        let actual_lower = actual.to_lowercase();
-        let expected_lower = expected.to_lowercase();
+        // Normalize both actual and expected for toggle-agnostic comparison
+        let actual_normalized = normalize_for_comparison(&actual);
+        let expected_normalized = normalize_for_comparison(expected);
 
-        // Calculate token-level edit distance
-        let edit_dist = levenshtein_distance(&actual_lower, &expected_lower);
+        // Calculate token-level edit distance on normalized strings
+        let edit_dist = levenshtein_distance(&actual_normalized, &expected_normalized);
         total_token_edits += edit_dist;
-        total_tokens += expected_lower.chars().count().max(1);
+        total_tokens += expected_normalized.chars().count().max(1);
 
-        // Track token errors for ranking
-        if actual_lower != expected_lower {
-            track_token_errors(&mut token_errors, &actual, expected, input, 3);
+        // Track token errors for ranking (on normalized strings)
+        if actual_normalized != expected_normalized {
+            track_token_errors(
+                &mut token_errors,
+                &actual_normalized,
+                &expected_normalized,
+                input,
+                3,
+            );
         }
 
         results.push(TestResult {
             input: input.to_string(),
             expected: expected.to_string(),
             actual: actual.clone(),
-            passed: actual_lower == expected_lower,
+            passed: actual_normalized == expected_normalized,
         });
     }
 
@@ -320,8 +361,12 @@ fn evaluate_csv(path: &str) -> EvalReport {
 }
 
 fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
-    let actual_chars: Vec<char> = actual.to_lowercase().chars().collect();
-    let expected_chars: Vec<char> = expected.to_lowercase().chars().collect();
+    // Use normalized versions for comparison
+    let actual_normalized = normalize_for_comparison(actual);
+    let expected_normalized = normalize_for_comparison(expected);
+
+    let actual_chars: Vec<char> = actual_normalized.chars().collect();
+    let expected_chars: Vec<char> = expected_normalized.chars().collect();
     let max_len = actual_chars.len().max(expected_chars.len());
 
     let mut highlighted_actual = String::new();
