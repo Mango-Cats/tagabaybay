@@ -11,7 +11,7 @@ fn main() {
     );
 
     for word in &words {
-        match adapter.adaptation(word, &adapter.config) {
+        match adapter.adaptation(word) {
             Ok(result) => {
                 println!("{} -> {}", word, graphemes_to_string(&result));
                 if let Some((syll, validity)) = syllabify(&result) {

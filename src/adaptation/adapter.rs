@@ -74,9 +74,8 @@ impl Adapter {
     pub fn adaptation(
         &self,
         input: &str,
-        config: &AdaptationConfig,
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
-        self.adapter_internal(input, None, None, config)
+        self.adapter_internal(input, None, None)
     }
 
     /// Adapt a list of words or phrases
@@ -108,12 +107,11 @@ impl Adapter {
         &self,
         word_list: &[&str],
         dataset_name: &str,
-        config: &AdaptationConfig,
     ) -> Vec<Result<Vec<FilipinoGrapheme>, ErrorTypes>> {
         word_list
             .iter()
             .enumerate()
-            .map(|(i, word)| self.adapter_internal(word, Some(i), Some(dataset_name), config))
+            .map(|(i, word)| self.adapter_internal(word, Some(i), Some(dataset_name)))
             .collect()
     }
 
@@ -122,8 +120,9 @@ impl Adapter {
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
-        config: &AdaptationConfig,
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
+        let config = &self.config;
+
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
         let mut ctx = match Cursor::from_word(word, word_number, dataset_name, config) {
             Ok(ctx) => ctx,

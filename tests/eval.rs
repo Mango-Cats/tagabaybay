@@ -11,7 +11,6 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use tagabaybay::adaptation::adapter::Adapter;
-use tagabaybay::configs::AdaptationConfig;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
@@ -240,7 +239,6 @@ fn evaluate_csv(path: &str) -> EvalReport {
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
     let adapter = Adapter::new();
-    let config = AdaptationConfig::new();
 
     let mut results: Vec<TestResult> = Vec::new();
     let mut total_token_edits: usize = 0;
@@ -261,7 +259,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
         let input = parts[0].trim();
         let expected = parts[1].trim();
         let actual = adapter
-            .adaptation(input, &config)
+            .adaptation(input)
             .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
             .unwrap_or_default();
 

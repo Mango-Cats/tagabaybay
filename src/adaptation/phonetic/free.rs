@@ -46,6 +46,7 @@ pub fn phonetic_replacements(
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
 
+    dbg!(&config.g2p_unpredictable_variants);
     // Only process unpredictable variants (vowels and Y) and if config allows it
     if !curr.is_unpredictable_variant() || !config.g2p_unpredictable_variants {
         return None;
