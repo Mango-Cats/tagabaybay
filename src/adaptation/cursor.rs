@@ -1,6 +1,6 @@
 use crate::configs::AdapterConfig;
 use crate::error::ErrorTypes;
-use crate::g2p::phonemize;
+use crate::g2py::phonemize;
 use crate::grapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::phoneme;

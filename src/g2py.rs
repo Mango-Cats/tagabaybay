@@ -4,7 +4,14 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 use std::sync::Mutex;
 
-/// Embedded Python G2P server script with inline dependencies (PEP 723)
+// Python G2P script with inline dependencies (PEP 723)
+// this will work because of PEP 723 but requires UV since UV will make
+// its own environment at runtime.
+// https://peps.python.org/pep-0723/
+// https://docs.astral.sh/uv/guides/scripts/#running-a-script-with-dependencies
+// -----
+// Uses Phonemizer from:
+// Bernard et al., (2021). Phonemizer: Text to Phones Transcription for Multiple Languages in Python. Journal of Open Source Software, 6(68), 3958, https://doi.org/10.21105/joss.03958
 const G2P_SCRIPT: &str = r#"# /// script
 # requires-python = ">=3.11"
 # dependencies = ["phonemizer"]
@@ -21,7 +28,7 @@ for line in sys.stdin:
     word = line.strip()
     if not word:
         print("", flush=True)
-    elif word == "QUIT":
+    elif word == "I_FED_YOU_EVERYTHING":
         break
     else:
         try:
@@ -89,11 +96,9 @@ impl G2PProcess {
     }
 
     fn phonemize(&mut self, word: &str) -> Result<String, std::io::Error> {
-        // Send word
         writeln!(self.stdin, "{}", word)?;
         self.stdin.flush()?;
 
-        // Read response
         let mut response = String::new();
         self.stdout.read_line(&mut response)?;
 
@@ -106,6 +111,14 @@ impl G2PProcess {
         }
 
         Ok(response.to_string())
+    }
+}
+
+impl Drop for G2PProcess {
+    fn drop(&mut self) {
+        // Send QUIT to gracefully shutdown Python server
+        let _ = writeln!(self.stdin, "I_FED_YOU_EVERYTHING");
+        let _ = self.stdin.flush();
     }
 }
 
