@@ -359,7 +359,7 @@ fn sensitive_digraph(
         }
 
         SourceGrapheme::SH => {
-            if config.allow_sh_letter && ctx.at_end() {
+            if config.allow_sh_letter {
                 Some((tokens![FilipinoGrapheme::SH], 1))
             } else if ctx.at_end() {
                 Some((tokens![FilipinoGrapheme::SY], 1))
@@ -564,32 +564,6 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y],
                 3, // Consume i, g, h
             ));
-        }
-    }
-
-    // Magic-e pattern: i + consonant + e at end = "ay" (like, file, wine, price, time)
-    // BUT NOT for "-ine" when it's a longer word (chemical suffix in drugs: morphine, cocaine, etc.)
-    // Short words like "wine", "fine", "dine" should still use magic-e
-    if let Some(n) = &next {
-        if n.is_consonant() && !n.is_digraph() {
-            if let Some(SourceGrapheme::E) = ctx.lookat_grapheme_low(2) {
-                if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-                    // For "-ine" ending, only apply magic-e for short words (5 or fewer graphemes)
-                    // This preserves "wine", "dine", "fine" but not "morphine", "caffeine"
-                    if *n == SourceGrapheme::N {
-                        if ctx.graphemes.len() <= 5 {
-                            return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1));
-                        }
-                        // Long word with -ine: don't apply magic-e (it's a drug suffix)
-                    } else {
-                        // "i" becomes "ay" in magic-e context
-                        return Some((
-                            tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y],
-                            1, // Just consume 'i', let consonant be processed next, then silent-e
-                        ));
-                    }
-                }
-            }
         }
     }
 
