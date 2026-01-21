@@ -1,16 +1,17 @@
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdaptationConfig;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
-use tagabaybay::syllabification::algorithm::syllabify;
 use tagabaybay::grapheme::filipino::hyphenate;
+use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
     let words = ["hello", "aspirin", "chocolate", "ibuprofen", "tetracycline"];
-    let adapter = Adapter::new();
-    let config = AdaptationConfig::new();
+    let adapter = Adapter::new_with_config(
+        AdaptationConfig::new().set_g2p_unpredictable_variants(false)
+    );
 
     for word in &words {
-        match adapter.adaptation(word, &config) {
+        match adapter.adaptation(word, &adapter.config) {
             Ok(result) => {
                 println!("{} -> {}", word, graphemes_to_string(&result));
                 if let Some((syll, validity)) = syllabify(&result) {

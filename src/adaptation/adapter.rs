@@ -34,7 +34,7 @@ use crate::grapheme::source::SourceGrapheme;
 ///
 /// ```
 pub struct Adapter {
-    config: AdaptationConfig,
+    pub config: AdaptationConfig,
 }
 
 impl Adapter {
@@ -46,7 +46,7 @@ impl Adapter {
     }
 
     /// Create a Adapter with a custom configuration
-    pub fn with_config(config: AdaptationConfig) -> Self {
+    pub fn new_with_config(config: AdaptationConfig) -> Self {
         Self { config }
     }
 
