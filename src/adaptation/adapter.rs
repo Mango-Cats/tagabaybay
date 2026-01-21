@@ -1,3 +1,5 @@
+use std::task::Context;
+
 use crate::adaptation::cursor::Cursor;
 use crate::adaptation::orthographic::free::free_replacement;
 use crate::adaptation::orthographic::sensitive::sensitive_replacement;
@@ -5,8 +7,11 @@ use crate::adaptation::orthographic::spelling::letter_to_phonetic;
 use crate::adaptation::phonetic::free::phonetic_replacements;
 use crate::configs::AdapterConfig;
 use crate::error::{AdaptationError, ErrorTypes};
+use crate::g2py::phonemize_phrase;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
+use crate::grapheme::tokenize::source_tokenizer;
+use crate::phoneme::tokenize::{tokenize_arpa, tokenize_ipa};
 
 /// Builder for adaptation with customizable configuration
 ///
@@ -118,13 +123,23 @@ impl Adapter {
         word_number: Option<usize>,
         dataset_name: Option<&str>,
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
+        // preapre variables here
         let config = &self.config;
-
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
-        let mut ctx = match Cursor::from_word(word, word_number, dataset_name, config) {
-            Ok(ctx) => ctx,
-            Err(e) => return Err(e),
+
+        let graphemes = source_tokenizer(word);
+        let phonetic_str = phonemize_phrase(word, word_number, dataset_name, config)?;
+
+        let phonemes = if config.use_ipa {
+            tokenize_ipa(&phonetic_str)
+        } else {
+            tokenize_arpa(&phonetic_str)
         };
+
+        let mut ctx = Cursor::new(&graphemes, &phonemes, 0);
+
+        dbg!(&ctx.graphemes);
+        dbg!(&ctx.phonemes);
 
         while ctx.index < ctx.len() {
             // Handle abbreviations and single letters (spelled out phonetically)

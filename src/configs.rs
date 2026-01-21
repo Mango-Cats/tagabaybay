@@ -1,3 +1,6 @@
+struct _ipa;
+struct _arpa;
+
 /// Configuration for the loanword adaptation process
 ///
 /// Controls various aspects of how Source text is converted to Filipino phonetics.
@@ -16,6 +19,8 @@
 pub struct AdapterConfig {
     /// Whether to panic when an error occurs during loanword adaptation
     pub panic_at_error: bool,
+    /// Whether the output of the phonemization step is in Arpabet or IPA
+    pub use_ipa: bool,
     /// Whether to allow the 'sh' sound (instead of 's')
     pub allow_sh_letter: bool,
     /// Whether to allow the 'z' sound (instead of 's')
@@ -40,6 +45,7 @@ impl Default for AdapterConfig {
     fn default() -> Self {
         Self {
             panic_at_error: false,
+            use_ipa: true,
             allow_sh_letter: true,
             allow_z_letter: true,
             allow_j_letter: true,
@@ -65,6 +71,21 @@ impl AdapterConfig {
     /// * `value` - `true` to panic on errors, `false` to continue
     pub fn set_panic_at_error(mut self, value: bool) -> Self {
         self.panic_at_error = value;
+        self
+    }
+
+    /// Set use ipa
+    ///
+    /// When enabled (TRUE), the adapter will use IPA transcription for the
+    /// phonimization step. If disabled (FALSE), it will use Arpabet.
+    ///
+    /// For Phonetisaurus (original phonemization) set to FALSE.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - `true` to use ipa, `false` to use arpabet
+    pub fn set_use_ipa(mut self, value: bool) -> Self {
+        self.use_ipa = value;
         self
     }
 
