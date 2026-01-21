@@ -5,7 +5,7 @@ use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
-    let words = ["hello", "aspirin", "chocolate", "ibuprofen", "tetracycline"];
+    let words = ["saccharin"];
     let adapter =
         Adapter::new_with_config(AdapterConfig::new().set_g2p_unpredictable_variants(false));
 

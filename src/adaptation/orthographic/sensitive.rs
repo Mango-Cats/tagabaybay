@@ -98,14 +98,30 @@ fn sensitive_consonant(
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match ctx.lookahead_grapheme_low(1) {
-        // 'ck' → just 'k' (check, back, trick)
+    let next = ctx.next_grapheme_low();
+    match next {
+        // cc -> just k
+        // handled at `handle_duplicates`
+
+        // ck → just k
+        // check, back, trick
+        // consume both
         Some(SourceGrapheme::K) => Some((tokens![FilipinoGrapheme::K], 2)),
-        // 'c' before ('e' | 'i' | 'y') becomes 's'
+
+        // c(e|i|y) -> just s
+        // cyst, cite, ceiling
+        // consume self
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
             Some((tokens![FilipinoGrapheme::S], 1))
         }
-        // default: 'k'
+
+        // cch -> just k
+        // saccharin
+        // consume self
+        Some(SourceGrapheme::CH) => Some((tokens![FilipinoGrapheme::K], 2)),
+
+        // default 'k'
+        // consume self
         _ => Some((tokens![FilipinoGrapheme::K], 1)),
     }
 }
@@ -120,13 +136,15 @@ fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    // 'x' at start becomes 's'
+    // ^x -> 's'
+    // consume self
     if ctx.at_start() {
-        Some((tokens![FilipinoGrapheme::S], 1))
-    } else {
-        // otherwise 'ks'
-        Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::S], 1))
-    }
+        return Some((tokens![FilipinoGrapheme::S], 1))
+    } 
+
+    // default 'ks'
+    // consume self
+    Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::S], 1))
 }
 
 /// Handle 'y' consonant patterns
@@ -253,10 +271,11 @@ fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // ge | gi | gy | gee
     match ctx.next_grapheme_low() {
         Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE) => {
-            // Check if NOT followed by s/c/k
             match ctx.lookahead_grapheme_low(2) {
+                // not ge(s|c|k)
                 Some(SourceGrapheme::S | SourceGrapheme::C | SourceGrapheme::K) => None,
                 _ => Some((
                     tokens![
