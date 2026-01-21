@@ -1,4 +1,5 @@
-use crate::error::PhonetizationError;
+use crate::configs::AdapterConfig;
+use crate::error::{ErrorTypes, PhonetizationError};
 use once_cell::sync::Lazy;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
@@ -166,4 +167,71 @@ pub fn phonemize(word: &str) -> Result<String, PhonetizationError> {
     process
         .phonemize(&word.to_lowercase())
         .map_err(|e| PhonetizationError::new(word.to_string(), None, Some(&e.to_string())))
+}
+
+/// Phonemize a phrase (potentially multiple words separated by spaces)
+/// Each word is phonemized separately, with '$' as separator between words
+/// Numbers and special tokens are passed through as-is
+pub fn phonemize_phrase(
+    phrase: &str,
+    word_number: Option<usize>,
+    dataset_name: Option<&str>,
+    config: &AdapterConfig,
+) -> Result<String, ErrorTypes> {
+    let words: Vec<&str> = phrase.split_whitespace().collect();
+
+    if words.is_empty() {
+        return Ok(String::new());
+    }
+
+    let mut phonetic_parts: Vec<String> = Vec::new();
+
+    for word_part in words {
+        let subparts: Vec<&str> = word_part.split('-').collect();
+        let mut subpart_phonetics: Vec<String> = Vec::new();
+
+        for subpart in &subparts {
+            if subpart
+                .chars()
+                .all(|c| c.is_ascii_digit() || c == '.' || c == '/' || c == '+')
+            {
+                subpart_phonetics.push(String::new()); // Empty phonemes for numbers
+                continue;
+            }
+
+            if subpart.is_empty() {
+                subpart_phonetics.push(String::new());
+                continue;
+            }
+
+            let clean_subpart: String = subpart
+                .chars()
+                .take_while(|c| c.is_ascii_alphabetic())
+                .collect();
+
+            if clean_subpart.is_empty() {
+                subpart_phonetics.push(String::new());
+                continue;
+            }
+
+            let phonetic_str = phonemize(&clean_subpart).map_err(|mut err| {
+                err.word_number = word_number;
+                err.dataset_name = dataset_name.map(str::to_string);
+
+                err.print_error();
+
+                if config.panic_at_error {
+                    panic!("Phonetization failed: {:?}", err);
+                }
+
+                ErrorTypes::Phonetization(err)
+            })?;
+
+            subpart_phonetics.push(phonetic_str);
+        }
+
+        phonetic_parts.push(subpart_phonetics.join("$"));
+    }
+
+    Ok(phonetic_parts.join("$"))
 }
