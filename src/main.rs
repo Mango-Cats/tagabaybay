@@ -6,9 +6,8 @@ use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
     let words = ["hello", "aspirin", "chocolate", "ibuprofen", "tetracycline"];
-    let adapter = Adapter::new_with_config(
-        AdapterConfig::new().set_g2p_unpredictable_variants(false)
-    );
+    let adapter =
+        Adapter::new_with_config(AdapterConfig::new().set_g2p_unpredictable_variants(false));
 
     for word in &words {
         match adapter.adaptation(word) {

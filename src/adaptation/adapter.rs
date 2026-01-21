@@ -71,10 +71,7 @@ impl Adapter {
     /// let adapter = Adapter::new();
     /// let result = adapter.adaptation("hello").unwrap();
     /// ```
-    pub fn adaptation(
-        &self,
-        input: &str,
-    ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
+    pub fn adaptation(&self, input: &str) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
         self.adapter_internal(input, None, None)
     }
 
