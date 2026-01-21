@@ -63,11 +63,13 @@ pub fn phonetic_replacements(
         .unwrap_or(false);
 
     // Convert ARPAbet phoneme to Filipino grapheme(s)
-    let (result, is_diphthong) = graphemize(&phoneme);
+    if let Some((result, is_diphthong)) = graphemize(&phoneme) {
+        let consumed = if is_diphthong && next_is_vowel { 2 } else { 1 };
 
-    let consumed = if is_diphthong && next_is_vowel { 2 } else { 1 };
-
-    Some((result, consumed))
+        Some((result, consumed))
+    } else {
+        panic!("cant convert!!!")
+    }
 }
 
 /// Count vowel graphemes before current position

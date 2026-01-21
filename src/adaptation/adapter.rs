@@ -1,5 +1,3 @@
-use std::task::Context;
-
 use crate::adaptation::cursor::Cursor;
 use crate::adaptation::orthographic::free::free_replacement;
 use crate::adaptation::orthographic::sensitive::sensitive_replacement;

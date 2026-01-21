@@ -1,6 +1,3 @@
-struct _ipa;
-struct _arpa;
-
 /// Configuration for the loanword adaptation process
 ///
 /// Controls various aspects of how Source text is converted to Filipino phonetics.

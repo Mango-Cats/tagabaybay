@@ -353,6 +353,7 @@ fn is_liquid_or_kw_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
 ///
 /// Includes liquid clusters (C+L/R), glide clusters (C+Y), and KW/TW clusters.
 /// Used for the 2-consonant case to determine if they should stay together.
+#[allow(dead_code)]
 fn is_liquid_or_glide_cluster(graphemes: &[FilipinoGrapheme], pos: usize) -> bool {
     if pos + 1 >= graphemes.len() {
         return false;

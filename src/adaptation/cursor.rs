@@ -1,10 +1,5 @@
-use crate::configs::AdapterConfig;
-use crate::error::ErrorTypes;
-use crate::g2py::phonemize_phrase;
-use crate::grapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::phoneme::symbols::ArpabetSymbols;
-use crate::phoneme::tokenize::tokenize_ipa;
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]

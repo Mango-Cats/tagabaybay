@@ -9,6 +9,7 @@ pub(super) static IPA_TO_ARPA: Lazy<HashMap<&'static str, ArpabetSymbols>> = Laz
         ("ɑ", ArpabetSymbols::AA),
         ("æ", ArpabetSymbols::AE),
         ("ʌ", ArpabetSymbols::AH),
+        ("ɐ", ArpabetSymbols::AH),
         ("ɔ", ArpabetSymbols::AO),
         ("aʊ", ArpabetSymbols::AW),
         ("aɪ", ArpabetSymbols::AY),

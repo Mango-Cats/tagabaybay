@@ -5,6 +5,7 @@
 //! (x at start→s, otherwise→ks), and digraph patterns.
 
 use crate::adaptation::cursor::Cursor;
+use crate::adaptation::orthographic::free;
 use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
@@ -62,10 +63,15 @@ fn sensitive_consonant(
     config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
+    let next = ctx.next_grapheme_low();
 
     // remove duplicates
-    if let Some(x) = handle_duplicates(ctx, config) {
-        return Some(x);
+    if let Some(next) = next {
+        if next == curr {
+            if let Some(replacement) = handle_duplicates(ctx, config) {
+                return Some(replacement);
+            }
+        }
     }
 
     match curr {
@@ -139,8 +145,8 @@ fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // ^x -> 's'
     // consume self
     if ctx.at_start() {
-        return Some((tokens![FilipinoGrapheme::S], 1))
-    } 
+        return Some((tokens![FilipinoGrapheme::S], 1));
+    }
 
     // default 'ks'
     // consume self
@@ -788,5 +794,10 @@ fn handle_duplicates(
         }
     }
 
-    free_replacement(ctx, config).map(|(replacement, _)| (replacement, consumed))
+    // don't care about the consumed count here
+    if let Some((repl, _)) = free_replacement(ctx, config) {
+        return Some((repl, consumed));
+    } else {
+        panic!("CANT HANDLE DUPLICATES")
+    }
 }

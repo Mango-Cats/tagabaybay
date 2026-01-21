@@ -84,15 +84,24 @@ pub fn free_replacement(
         }
 
         // Context-sensitive letters (handled in sensitive_replacement)
-        SourceGrapheme::C
-        | SourceGrapheme::J
-        | SourceGrapheme::Q
-        | SourceGrapheme::X
-        | SourceGrapheme::CH
-        | SourceGrapheme::SH => None,
+        // at the worse case, do a direct mapping
+        // this is also used by `handle_duplicates()` in `sensitive.rs`
+        // these should only be used there
+        SourceGrapheme::C => Some((tokens![FilipinoGrapheme::K], 1)),
+        SourceGrapheme::J => {
+            if config.allow_j_letter {
+                Some((tokens![FilipinoGrapheme::J], 1))
+            } else {
+                Some((tokens![FilipinoGrapheme::DY], 1))
+            }
+        }
+        SourceGrapheme::Q => Some((tokens![FilipinoGrapheme::K], 1)),
+        SourceGrapheme::X => Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::S], 1)),
+        SourceGrapheme::CH => Some((tokens![FilipinoGrapheme::TS], 1)),
+        SourceGrapheme::SH => Some((tokens![FilipinoGrapheme::SH], 1)),
 
         // Vowels (unpredictable variants)
-        // at the worst case, we simply do a direct mapping
+        // same comment with context-sensitive letters
         SourceGrapheme::A => Some((tokens![FilipinoGrapheme::A], 1)),
         SourceGrapheme::E => Some((tokens![FilipinoGrapheme::E], 1)),
         SourceGrapheme::I => Some((tokens![FilipinoGrapheme::I], 1)),
