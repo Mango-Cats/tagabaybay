@@ -1,3 +1,6 @@
+use std::io;
+use std::io::Write;
+
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::g2py::phonemize;
@@ -6,23 +9,32 @@ use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
-    let words = ["account"];
     let adapter =
         Adapter::new_with_config(AdapterConfig::new().set_g2p_unpredictable_variants(false));
 
-    for word in &words {
-        if let Ok(p) = phonemize(word) {
-            print!("{}\n", p);
+    loop {
+        print!("=? ");
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Error!");
+        let input = input.trim();
+        if input == "??" {
+            break;
         }
-        match adapter.adaptation(word) {
+        if let Ok(phonemes) = phonemize(&input) {
+            println!("* {phonemes}")
+        }
+
+        match adapter.adaptation(&input) {
             Ok(result) => {
-                println!("{} -> {}", word, graphemes_to_string(&result));
-                if let Some((syll, validity)) = syllabify(&result) {
+                println!("* {} -> {}", input, graphemes_to_string(&result));
+                if let Some((syll, is_valid)) = syllabify(&result) {
                     let hyph = hyphenate(&syll);
-                    println!("syllabification: {hyph} || {validity}\n")
+                    println!("* {} || {}\n", hyph, is_valid)
                 }
             }
-            Err(e) => println!("{}: ERROR {:?}", word, e),
+            Err(_) => (),
         }
+        println!("===============")
     }
 }
