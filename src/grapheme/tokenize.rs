@@ -93,7 +93,7 @@ pub fn filipino_tokenizer(input: &str) -> Vec<filipino::FilipinoGrapheme> {
 /// # Returns
 ///
 /// Returns the reconstructed string.
-#[warn(unused)]
+#[allow(dead_code)]
 fn detokenizer(graphemes: &[GraphemesSet]) -> String {
     match graphemes.split_first() {
         Some((first, rest)) => {
