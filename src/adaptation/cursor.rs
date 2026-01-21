@@ -1,4 +1,4 @@
-use crate::configs::AdaptationConfig;
+use crate::configs::AdapterConfig;
 use crate::error::ErrorTypes;
 use crate::g2p::phonemize;
 use crate::grapheme;
@@ -30,7 +30,7 @@ impl Cursor {
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
-        config: &AdaptationConfig,
+        config: &AdapterConfig,
     ) -> Result<Self, ErrorTypes> {
         let graphemes = grapheme::tokenize::source_tokenizer(word);
 
@@ -54,7 +54,7 @@ fn phonemize_phrase(
     phrase: &str,
     word_number: Option<usize>,
     dataset_name: Option<&str>,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Result<String, ErrorTypes> {
     let words: Vec<&str> = phrase.split_whitespace().collect();
 

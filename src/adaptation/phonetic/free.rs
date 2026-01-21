@@ -17,7 +17,7 @@
 
 use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
-use crate::configs::AdaptationConfig;
+use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::phoneme::symbols::ArpabetSymbols;
 
@@ -42,11 +42,10 @@ use crate::phoneme::symbols::ArpabetSymbols;
 ///     Example: crap -> crawp (isn't a -> aw too far given the context?)
 pub fn phonetic_replacements(
     ctx: &Cursor,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
 
-    dbg!(&config.g2p_unpredictable_variants);
     // Only process unpredictable variants (vowels and Y) and if config allows it
     if !curr.is_unpredictable_variant() || !config.g2p_unpredictable_variants {
         return None;

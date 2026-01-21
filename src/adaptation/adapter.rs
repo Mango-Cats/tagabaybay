@@ -3,7 +3,7 @@ use crate::adaptation::orthographic::free::free_replacement;
 use crate::adaptation::orthographic::sensitive::sensitive_replacement;
 use crate::adaptation::orthographic::spelling::letter_to_phonetic;
 use crate::adaptation::phonetic::free::phonetic_replacements;
-use crate::configs::AdaptationConfig;
+use crate::configs::AdapterConfig;
 use crate::error::{AdaptationError, ErrorTypes};
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
@@ -34,19 +34,19 @@ use crate::grapheme::source::SourceGrapheme;
 ///
 /// ```
 pub struct Adapter {
-    pub config: AdaptationConfig,
+    pub config: AdapterConfig,
 }
 
 impl Adapter {
     /// Create a new Adapter with default configuration
     pub fn new() -> Self {
         Self {
-            config: AdaptationConfig::default(),
+            config: AdapterConfig::default(),
         }
     }
 
     /// Create a Adapter with a custom configuration
-    pub fn new_with_config(config: AdaptationConfig) -> Self {
+    pub fn new_with_config(config: AdapterConfig) -> Self {
         Self { config }
     }
 

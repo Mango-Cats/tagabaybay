@@ -6,14 +6,14 @@
 /// # Examples
 ///
 /// ```
-/// use tagabaybay::consts::AdaptationConfig;
+/// use tagabaybay::consts::AdapterConfig;
 ///
-/// let config = AdaptationConfig::new()
+/// let config = AdapterConfig::new()
 ///     .with_sh_sound(true)
 ///     .with_z_sound(false);
 /// ```
 #[derive(Debug, Clone)]
-pub struct AdaptationConfig {
+pub struct AdapterConfig {
     /// Whether to panic when an error occurs during loanword adaptation
     pub panic_at_error: bool,
     /// Whether to allow the 'sh' sound (instead of 's')
@@ -28,7 +28,7 @@ pub struct AdaptationConfig {
     pub g2p_unpredictable_variants: bool,
 }
 
-impl Default for AdaptationConfig {
+impl Default for AdapterConfig {
     /// Create default configuration with conservative settings
     ///
     /// Default values:
@@ -49,7 +49,7 @@ impl Default for AdaptationConfig {
     }
 }
 
-impl AdaptationConfig {
+impl AdapterConfig {
     /// Create a new configuration with default values
     pub fn new() -> Self {
         Self::default()

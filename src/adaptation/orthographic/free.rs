@@ -4,7 +4,7 @@
 //! analysis of surrounding context.
 
 use crate::adaptation::cursor::Cursor;
-use crate::configs::AdaptationConfig;
+use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::tokens;
@@ -25,7 +25,7 @@ use crate::tokens;
 /// `consumed` is typically 1. Returns `None` for context-sensitive letters.
 pub fn free_replacement(
     ctx: &Cursor,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // this has no uppercase character
     let g = ctx.current_grapheme_low();
@@ -92,11 +92,12 @@ pub fn free_replacement(
         | SourceGrapheme::SH => None,
 
         // Vowels (unpredictable variants)
-        SourceGrapheme::A
-        | SourceGrapheme::E
-        | SourceGrapheme::I
-        | SourceGrapheme::O
-        | SourceGrapheme::U => None,
+        // at the worst case, we simply do a direct mapping
+        SourceGrapheme::A => Some((tokens![FilipinoGrapheme::A], 1)),
+        SourceGrapheme::E => Some((tokens![FilipinoGrapheme::E], 1)),
+        SourceGrapheme::I => Some((tokens![FilipinoGrapheme::I], 1)),
+        SourceGrapheme::O => Some((tokens![FilipinoGrapheme::O], 1)),
+        SourceGrapheme::U => Some((tokens![FilipinoGrapheme::U], 1)),
 
         // Other characters (pass through as-is)
         SourceGrapheme::Other => Some((tokens![FilipinoGrapheme::Other], 1)),

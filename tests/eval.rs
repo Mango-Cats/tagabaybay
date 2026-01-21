@@ -7,10 +7,11 @@
 //      `<MMDDYY>_<HHMM>_overall.txt`
 
 use chrono::Local;
+use tagabaybay::adaptation::adapter::Adapter;
+use tagabaybay::configs::AdapterConfig;
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
-use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
@@ -20,6 +21,7 @@ const GOLD_STANDARDS: [&str; GOLD_COUNT] =
 
 const ACCEPT: f64 = 70.;
 const REPORT_DIR: &str = ".tests/report";
+
 
 struct TestResult {
     input: String,
@@ -238,12 +240,15 @@ fn merge_token_errors(
 fn evaluate_csv(path: &str) -> EvalReport {
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
-    let adapter = Adapter::new();
 
     let mut results: Vec<TestResult> = Vec::new();
     let mut total_token_edits: usize = 0;
     let mut total_tokens: usize = 0;
     let mut token_errors: HashMap<String, TokenError> = HashMap::new();
+    let adapter = Adapter::new_with_config(
+        AdapterConfig::new()
+            .set_g2p_unpredictable_variants(false)
+    );
 
     for (i, line) in reader.lines().enumerate() {
         if i == 0 {

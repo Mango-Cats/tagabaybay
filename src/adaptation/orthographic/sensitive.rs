@@ -5,7 +5,7 @@
 //! (x at start→s, otherwise→ks), and digraph patterns.
 
 use crate::adaptation::cursor::Cursor;
-use crate::configs::AdaptationConfig;
+use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::tokens;
@@ -29,7 +29,7 @@ use super::free::free_replacement;
 /// Returns `None` if no rule applies (will print error).
 pub fn sensitive_replacement(
     ctx: &Cursor,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
 
@@ -59,7 +59,7 @@ pub fn sensitive_replacement(
 /// of graphemes processed. Returns `None` if no context-sensitive rule applies.
 fn sensitive_consonant(
     ctx: &Cursor,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
 
@@ -311,10 +311,11 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// Returns `Some((FilipinoGrapheme, consumed))` if a rule matches, `None` otherwise.
 fn sensitive_digraph(
     ctx: &Cursor,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
     let next = ctx.next_grapheme_low();
+    let prev = ctx.prev_grapheme_low();
 
     match curr {
         SourceGrapheme::CH => {
@@ -322,6 +323,12 @@ fn sensitive_digraph(
                 if next.is_consonant() {
                     return Some((tokens![FilipinoGrapheme::K], 1));
                 }
+            }
+
+            match prev {
+                // sch- as in schedule
+                Some(SourceGrapheme::S) => return Some((tokens![FilipinoGrapheme::K], 1)),
+                _ => {}
             }
 
             Some((tokens![FilipinoGrapheme::TS], 1))
@@ -749,7 +756,7 @@ fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// `None` otherwise.
 fn handle_duplicates(
     ctx: &Cursor,
-    config: &AdaptationConfig,
+    config: &AdapterConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
     let mut consumed = 1;
@@ -762,6 +769,5 @@ fn handle_duplicates(
         }
     }
 
-    free_replacement(ctx, config)
-        .map(|(replacement, _)| (replacement, consumed))
+    free_replacement(ctx, config).map(|(replacement, _)| (replacement, consumed))
 }
