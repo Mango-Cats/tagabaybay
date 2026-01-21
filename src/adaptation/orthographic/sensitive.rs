@@ -5,7 +5,6 @@
 //! (x at start→s, otherwise→ks), and digraph patterns.
 
 use crate::adaptation::cursor::Cursor;
-use crate::adaptation::orthographic::free;
 use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
