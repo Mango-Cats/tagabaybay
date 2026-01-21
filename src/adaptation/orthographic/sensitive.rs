@@ -752,20 +752,16 @@ fn handle_duplicates(
     config: &AdaptationConfig,
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
-    if let Some(next) = ctx.next_grapheme_low() {
-        if next == curr
-        // some symbol overload here: !matches!() is `NOT`matches!()
-        // matches!() returns type bool.
-        && !matches!(
-                curr,
-                SourceGrapheme::Passthrough(_) | SourceGrapheme::Space | SourceGrapheme::Other
-            )
-        {
-            if let Some((replacement, repl_length)) = free_replacement(ctx, config) {
-                return Some((replacement, repl_length));
-            }
+    let mut consumed = 1;
+
+    while let Some(next) = ctx.lookahead_grapheme_low(consumed as isize) {
+        if next == curr {
+            consumed += 1;
+        } else {
+            break;
         }
     }
 
-    None
+    free_replacement(ctx, config)
+        .map(|(replacement, _)| (replacement, consumed))
 }
