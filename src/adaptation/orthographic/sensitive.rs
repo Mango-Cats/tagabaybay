@@ -616,68 +616,76 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = ctx.next_grapheme_low();
-
-    // check for "one" pattern (o-n-e at end) → "own"
-    if let Some(SourceGrapheme::N) = next {
-        if let Some(SourceGrapheme::E) = ctx.lookat_grapheme_low(2) {
-            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
-                return Some((
-                    tokens![
-                        FilipinoGrapheme::O,
-                        FilipinoGrapheme::W,
-                        FilipinoGrapheme::N,
-                    ],
-                    3,
-                ));
+    match next {
+        // check for "one" pattern (o-n-e at end) → "own"
+        Some(SourceGrapheme::N) => {
+            if let Some(SourceGrapheme::E) = ctx.lookat_grapheme_low(2) {
+                if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+                    return Some((
+                        tokens![
+                            FilipinoGrapheme::O,
+                            FilipinoGrapheme::W,
+                            FilipinoGrapheme::N,
+                        ],
+                        3,
+                    ));
+                }
             }
-        }
-    }
 
-    // "ou" before consonant → "aw" (count, out, account, discount)
-    if let Some(SourceGrapheme::U) = next {
-        if let Some(after) = ctx.lookat_grapheme_low(2) {
-            if after.is_consonant() {
+            None
+        }
+
+        // "ou" before consonant → "aw" (count, out, account, discount)
+        Some(SourceGrapheme::U) => {
+            if let Some(after) = ctx.lookat_grapheme_low(2) {
+                if after.is_consonant() {
+                    return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
+                }
+            }
+            // "ou" at end → "aw" (you)
+            if ctx.position() + 1 == ctx.graphemes.len() - 1 {
                 return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
             }
-        }
-        // "ou" at end → "aw" (you)
-        if ctx.position() + 1 == ctx.graphemes.len() - 1 {
-            return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
-        }
-    }
 
-    // "oa" + consonant → "ow" (loan, road, coat)
-    if let Some(SourceGrapheme::A) = next {
-        if let Some(after) = ctx.lookat_grapheme_low(2) {
-            if after.is_consonant() {
-                return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::W], 2));
-            }
+            None
         }
-    }
+        // "oa" + consonant → "ow" (loan, road, coat)
+        Some(SourceGrapheme::A) => {
+            if let Some(after) = ctx.lookat_grapheme_low(2) {
+                if after.is_consonant() {
+                    return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::W], 2));
+                }
+            }
 
-    match next {
-        Some(vowel) if vowel.is_vowel() => {
-            // o + vowel -> oy + vowel (unless next is also a vowel)
-            match ctx.lookat_grapheme_low(2) {
-                Some(v) if v.is_vowel() => None,
-                _ => Some((
-                    tokens![
-                        FilipinoGrapheme::O,
-                        FilipinoGrapheme::Y,
-                        match vowel {
-                            SourceGrapheme::A => FilipinoGrapheme::A,
-                            SourceGrapheme::E => FilipinoGrapheme::E,
-                            SourceGrapheme::I => FilipinoGrapheme::I,
-                            SourceGrapheme::O => FilipinoGrapheme::O,
-                            SourceGrapheme::U => FilipinoGrapheme::U,
-                            _ => FilipinoGrapheme::Other,
-                        },
-                    ],
-                    2,
-                )),
-            }
+            None
         }
-        _ => None,
+
+        // "oi" -> "oy" (oil -> oyl)
+        Some(SourceGrapheme::I) => {
+            return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::Y], 2));
+        }
+
+        // o + vowel -> oy + vowel (unless next is also a vowel)
+        Some(vowel) if vowel.is_vowel() => match ctx.lookat_grapheme_low(2) {
+            Some(v) if v.is_vowel() => None,
+            _ => Some((
+                tokens![
+                    FilipinoGrapheme::O,
+                    FilipinoGrapheme::Y,
+                    match vowel {
+                        SourceGrapheme::A => FilipinoGrapheme::A,
+                        SourceGrapheme::E => FilipinoGrapheme::E,
+                        SourceGrapheme::I => FilipinoGrapheme::I,
+                        SourceGrapheme::O => FilipinoGrapheme::O,
+                        SourceGrapheme::U => FilipinoGrapheme::U,
+                        _ => FilipinoGrapheme::Other,
+                    },
+                ],
+                2,
+            )),
+        },
+
+        None | _ => return None,
     }
 }
 
