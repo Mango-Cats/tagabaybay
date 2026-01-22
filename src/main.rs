@@ -13,12 +13,12 @@ fn main() {
     let adapter = Adapter::new_with_config(config.clone());
 
     loop {
-        print!("=? ");
+        print!("? ");
         io::stdout().flush().unwrap();
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Error!");
         let input = input.trim();
-        if input == "??" {
+        if input == "qq" {
             break;
         }
         if let Ok(phonemes) = phonemize_to_ipa(&input, None, None, &config) {
@@ -27,14 +27,13 @@ fn main() {
 
         match adapter.adaptation(&input) {
             Ok(result) => {
-                println!("* {} -> {}", input, graphemes_to_string(&result));
+                println!("* {}\t-> {}", input, graphemes_to_string(&result));
                 if let Some((syll, is_valid)) = syllabify(&result) {
                     let hyph = hyphenate(&syll);
-                    println!("* {} || {}\n", hyph, is_valid)
+                    println!("* {}\t|| {}\n", hyph, is_valid)
                 }
             }
             Err(_) => (),
         }
-        println!("===============")
     }
 }
