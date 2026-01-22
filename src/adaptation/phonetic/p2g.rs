@@ -1,39 +1,54 @@
+//! Phoneme-to-Grapheme (P2G) conversion for Filipino adaptation.
+//!
+//! Converts IPA phonemes to their Filipino grapheme representations.
+//! This handles all sounds - vowels, consonants, and special cases.
+
 use crate::grapheme::filipino::FilipinoGrapheme;
-use crate::phoneme::symbols::ArpabetSymbols;
+use crate::phoneme::ipa::IPASymbol;
 use crate::tokens;
 
-/// Performs P2G (phoneme-to-grapheme) given a specific phoneme.
+/// Performs P2G (phoneme-to-grapheme) given a specific IPA phoneme.
 ///
 /// Returns (graphemes, is_diphthong) where is_diphthong indicates
 /// if this phoneme represents two sounds (and might consume two graphemes).
-pub fn graphemize(phoneme: &ArpabetSymbols) -> Option<(Vec<FilipinoGrapheme>, bool)> {
+///
+/// # Arguments
+///
+/// * `phoneme` - The IPA phoneme to convert
+///
+/// # Returns
+///
+/// `Some((Vec<FilipinoGrapheme>, bool))` where bool indicates if it's a diphthong
+pub fn graphemize(phoneme: &IPASymbol) -> Option<(Vec<FilipinoGrapheme>, bool)> {
     match phoneme {
-        // for A
-        ArpabetSymbols::AA => Some((tokens![FilipinoGrapheme::A], false)),
-        ArpabetSymbols::AE => Some((tokens![FilipinoGrapheme::A], false)),
-        ArpabetSymbols::AH => Some((tokens![FilipinoGrapheme::A], false)),
-        ArpabetSymbols::AO => Some((tokens![FilipinoGrapheme::O], false)),
-        ArpabetSymbols::AY => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], true)),
-        ArpabetSymbols::AW => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], true)),
+        // Monothongs
+        // A-like vowels
+        IPASymbol::OpenBackUnrounded => Some((tokens![FilipinoGrapheme::A], false)),
+        IPASymbol::NearOpenFront => Some((tokens![FilipinoGrapheme::A], false)),
+        IPASymbol::OpenMidBack => Some((tokens![FilipinoGrapheme::A], false)),
 
-        // for E
-        ArpabetSymbols::EH => Some((tokens![FilipinoGrapheme::E], false)),
-        ArpabetSymbols::ER => Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::R], false)),
+        // E-like vowels
+        IPASymbol::OpenMidFront => Some((tokens![FilipinoGrapheme::E], false)),
+        IPASymbol::Schwa => Some((tokens![FilipinoGrapheme::A], false)),
 
-        // for I
-        ArpabetSymbols::IH => Some((tokens![FilipinoGrapheme::I], false)),
-        ArpabetSymbols::IY => Some((tokens![FilipinoGrapheme::I], false)),
+        // I-like vowels
+        IPASymbol::NearCloseFront => Some((tokens![FilipinoGrapheme::I], false)),
+        IPASymbol::CloseFront => Some((tokens![FilipinoGrapheme::I], false)),
 
-        // for U
-        ArpabetSymbols::UW => Some((tokens![FilipinoGrapheme::U], false)),
-        ArpabetSymbols::UH => Some((tokens![FilipinoGrapheme::U], false)),
+        // O-like vowels
+        IPASymbol::OpenMidBackRounded => Some((tokens![FilipinoGrapheme::O], false)),
 
-        // for O
-        ArpabetSymbols::OW => Some((tokens![FilipinoGrapheme::O], true)),
-        ArpabetSymbols::OY => Some((tokens![FilipinoGrapheme::O], true)),
+        // U-like vowels
+        IPASymbol::NearCloseBack => Some((tokens![FilipinoGrapheme::U], false)),
+        IPASymbol::CloseBack => Some((tokens![FilipinoGrapheme::U], false)),
 
-        // for ai, ey (like bait)
-        ArpabetSymbols::EY => Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::Y], true)),
+        // Diphthongs
+        IPASymbol::DiphthongAU => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], true)),
+        IPASymbol::DiphthongAI => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], true)),
+        IPASymbol::DiphthongEI => Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::Y], true)),
+        IPASymbol::DiphthongOU => Some((tokens![FilipinoGrapheme::O], true)),
+        IPASymbol::DiphthongOI => Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::Y], true)),
+
         _ => None,
     }
 }
