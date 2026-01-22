@@ -1,25 +1,25 @@
 //! Phonetic vowel rules
 //!
-//! Handles vowel adaptation based on ARPAbet/IPA phonemes rather than
+//! Handles vowel adaptation based on IPA phonemes rather than
 //! orthographic patterns. This is useful when spelling doesn't reflect
 //! actual pronunciation.
 //!
 //! For example:
-//! - "make" is spelled with 'a' but pronounced /eɪ/ (AY in ARPAbet)
-//! - "women" is spelled with 'o' but pronounced /ɪ/ (IH in ARPAbet)
+//! - "make" is spelled with 'a' but pronounced /eɪ/
+//! - "women" is spelled with 'o' but pronounced /ɪ/
 //!
 //! ## The Alignment Problem
 //!
 //! Graphemes and phonemes don't have 1:1 correspondence:
-//! - "make" → graphemes: [m, a, k, e] vs phonemes: [M, EY, K]
-//! - The 'a' maps to EY, and 'e' is silent (no phoneme)
-//! - "knight" → graphemes: [k, n, i, g, h, t] vs phonemes: [N, AY, T]
+//! - "make" → graphemes: [m, a, k, e] vs phonemes: [m, eɪ, k]
+//! - The 'a' maps to eɪ, and 'e' is silent (no phoneme)
+//! - "knight" → graphemes: [k, n, i, g, h, t] vs phonemes: [n, aɪ, t]
 
 use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
-use crate::phoneme::symbols::ArpabetSymbols;
+use crate::phoneme::ipa::IpaSymbol;
 
 /// Handles phonetic replacement for vowels and Y based on G2P transcription.
 ///
@@ -97,6 +97,6 @@ fn vowels_before(ctx: &Cursor) -> usize {
 }
 
 /// Find the nth vowel phoneme in the phoneme sequence
-fn find_nth_vowel_phoneme(phonemes: &[ArpabetSymbols], n: usize) -> Option<ArpabetSymbols> {
+fn find_nth_vowel_phoneme(phonemes: &[IpaSymbol], n: usize) -> Option<IpaSymbol> {
     phonemes.iter().filter(|p| p.is_vowel()).nth(n).cloned()
 }
