@@ -42,6 +42,12 @@ pub fn graphemize(phoneme: &IPASymbol) -> Option<(Vec<FilipinoGrapheme>, bool)> 
         IPASymbol::NearCloseBack => Some((tokens![FilipinoGrapheme::U], false)),
         IPASymbol::CloseBack => Some((tokens![FilipinoGrapheme::U], false)),
 
+        // R-colored vowels
+        IPASymbol::RColoredMid => Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::R], false)),
+        IPASymbol::RColoredSchwa => {
+            Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::R], false))
+        }
+
         // Diphthongs
         IPASymbol::DiphthongAU => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], true)),
         IPASymbol::DiphthongAI => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], true)),
