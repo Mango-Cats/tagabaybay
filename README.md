@@ -105,17 +105,35 @@ Processing class at De La Salle University.
 See the [`legacy/`](legacy/) directory and its corresponding
 [`README`](legacy/README) for details.
 
+## Usage
+
+**Requirements:**
+
+1. **[uv](https://docs.astral.sh/uv/)** - Python package manager (handles phonemizer dependencies automatically). [GitHub](https://github.com/astral-sh/uv).
+2. **eSpeak-NG** - Speech synthesizer backend. [User Guide](https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md).
+
+**Important for Windows users:** You must set the `ESPEAK_LIB` environment variable to point to the eSpeak-NG DLL:
+
+```cmd
+:: Command Prompt
+set ESPEAK_LIB=<Your/Path/To/DLL>
+
+:: Or permanently via PowerShell
+[Environment]::SetEnvironmentVariable("ESPEAK_LIB", "<Your/Path/To/DLL>", "User")
+```
+
+**To run:**
+
+```cmd
+cargo r
+```
+
 ## License
 
 TagaBaybay is (as of December 15, 2025) is a private project, but it is distributed
 under the terms of Apache License Version 2.0.
 
 See [LICENSE](LICENSE) for details.
-
-## Dependencies
-
-- [`uv`](https://docs.astral.sh/uv/) for automatic script dependencies; see [PEP 723](https://peps.python.org/pep-0723/) and [uv page on running scripts](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies),
-- `eSpeak-NG` for G2P; [github.com/espeak-ng/espeak-ng](https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md).
 
 ## Citation
 
