@@ -3,6 +3,10 @@ use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]
 pub struct Cursor {
+    /// Only use this for printing
+    pub input_word: String,
+    pub input_pronunciation: String,
+    /// Use this for processing/adaptation
     pub graphemes: Vec<SourceGrapheme>,
     pub phonemes: Vec<IPASymbol>,
     pub index: usize,
@@ -10,8 +14,16 @@ pub struct Cursor {
 
 impl Cursor {
     /// Create a new cursor from graphemes and phonemes explicitly
-    pub fn new(graphemes: &[SourceGrapheme], phonemes: &[IPASymbol], index: usize) -> Self {
+    pub fn new(
+        input_word: &str,
+        input_pronunciation: &str,
+        graphemes: &[SourceGrapheme],
+        phonemes: &[IPASymbol],
+        index: usize,
+    ) -> Self {
         Self {
+            input_word: input_word.to_string(),
+            input_pronunciation: input_pronunciation.to_string(),
             graphemes: graphemes.to_vec(),
             phonemes: phonemes.to_vec(),
             index,

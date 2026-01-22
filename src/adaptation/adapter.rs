@@ -129,15 +129,17 @@ impl Adapter {
 
         let graphemes = source_tokenizer(word);
 
-        let phonemes = if config.use_ipa {
+        let (phon_str, phonemes) = if config.use_ipa {
             let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
-            tokenize_ipa(&phon_str)
+            let toks = tokenize_ipa(&phon_str);
+            (phon_str, toks)
         } else {
             let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
-            tokenize_arpa_to_ipa(&phon_str)
+            let toks = tokenize_arpa_to_ipa(&phon_str);
+            (phon_str, toks)
         };
 
-        let mut ctx = Cursor::new(&graphemes, &phonemes, 0);
+        let mut ctx = Cursor::new(word, &phon_str, &graphemes, &phonemes, 0);
 
         while ctx.index < ctx.len() {
             // Handle abbreviations and single letters (spelled out phonetically)

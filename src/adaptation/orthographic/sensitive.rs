@@ -778,7 +778,7 @@ fn handle_duplicates(
     // don't care about the consumed count here
     if let Some((repl, _)) = free_replacement(ctx, config) {
         return Some((repl, consumed));
-    } else {
-        panic!("CANT HANDLE DUPLICATES")
     }
+
+    None
 }

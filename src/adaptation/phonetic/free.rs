@@ -18,6 +18,7 @@
 use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
+use crate::error::PhonetizationError;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::phoneme::tokens::ipa::IPASymbol;
 
@@ -79,7 +80,12 @@ pub fn phonetic_replacements(
 
         Some((result, consumed))
     } else {
-        panic!("cant convert!!!")
+        let err = PhonetizationError::new(ctx.input_pronunciation.clone(), None, None);
+        err.print_error();
+        if config.panic_at_error {
+            panic!("Phonetization failed: {:?}", err);
+        }
+        None
     }
 }
 
