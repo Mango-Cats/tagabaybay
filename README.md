@@ -1,6 +1,6 @@
-# ᜆᜄᜊᜌ᜔ᜊᜌ᜔ / TagaBaybay 
+# ᜆᜄᜊᜌ᜔ᜊᜌ᜔ / TagaBaybay
 
-A loanword adaptation algorithm for Filipino loanwords. 
+A loanword adaptation algorithm for Filipino loanwords.
 Written in Rust.
 
 ## Project Team
@@ -8,35 +8,35 @@ Written in Rust.
 **Project Lead**: Zhean Robby Ganituen △◇ <br>
 **Faculty Supervisor**: Nathaniel Oco △◇ <br>
 **Project Members**:
+
 - Clarance Ivan Ang △
 - Roan Cedric Campo △
-- Justin Ethan Ching ◇
 - Erin Gabrielle Chua ◇
-- Jaztn Jacob Jimenez ◇
+- Jaztin Jacob Jimenez ◇
+- Justin Ethan Ching ◇
 - Clive Jarel Ang △
 
 \***Correspondence:** `zr.gntn AT gmail DOT com` <br>
 △ Part of the legacy project. <br>
 ◇ Part of the current project.
 
-
 ## Motivation
 
-**Code-switching**, refers to the alternation between two 
-or more languages within a single utterance. For example, 
+**Code-switching**, refers to the alternation between two
+or more languages within a single utterance. For example,
 we can use the loanword *directly*, as in:
 
-```
+```text
     Pupunta  ako  sa   paaralan  mamaya
     go.FUT   1SG  LOC  school    later
 
     "I will go to school later"
 ```
 
-Or, *adapt the loanword* using the Phonetics of the first 
+Or, *adapt the loanword* using the Phonetics of the first
 language (which, in this case, is Filipino).
 
-```
+```text
     Pakuha    nga  'yung  selpon     ko
     get.IMPV  EMP  DEF    cellphone  1SG.POSS
 
@@ -45,18 +45,19 @@ language (which, in this case, is Filipino).
 
 Despite its prevalence in everyday communication, relatively little
 attention has been given to NLP methodologies that operate on
-code-switched inputs. One central challenge in processing 
-code-switched Filipino speech is **loanword adaptation**: the 
-transformation of foreign lexical items into phonetic forms that 
-conform to Filipino pronunciation patterns. Loanword adaptation is 
-essential for speech-centered Filipino NLP tasks, including 
+code-switched inputs. One central challenge in processing
+code-switched Filipino speech is **loanword adaptation**: the
+transformation of foreign lexical items into phonetic forms that
+conform to Filipino pronunciation patterns. Loanword adaptation is
+essential for speech-centered Filipino NLP tasks, including
 text-to-speech synthesis and speech confusibility modeling.
 
-From a computational perspective, loanword adaptation can be viewed 
+From a computational perspective, loanword adaptation can be viewed
 as a transduction pipeline:
 $$\Sigma_s^* \mapsto \Phi_s^* \mapsto \Phi_F^* \mapsto \Sigma_F^*$$
 
 Where:
+
 - $\Sigma_s$ is the orthographic alphabet of the source language S.
 - $\Phi_s$ is the phoneme inventory of S.
 - $\Phi_F$ is the phoneme inventory of Filipino F.
@@ -70,18 +71,18 @@ adaptation function. The final mapping $\Phi_F^{\ast} \rightarrow \Sigma_F^{\ast
 is an optional P2G step that renders the adapted phoneme sequence in Filipino
 orthography.
 
-While G2P and P2G modeling have been extensively studied, 
-computational approaches to the phonological loanword adaptation 
-step remain comparatively underexplored, particularly in the 
+While G2P and P2G modeling have been extensively studied,
+computational approaches to the phonological loanword adaptation
+step remain comparatively underexplored, particularly in the
 context of code-switched speech.
 
 ## Algorithm
 
 > For more information, see [`docs/algorithm`](docs/algorithm.md).
 
-Our approach treats the process of loanword adaptation as a 
-mapping, specifically a procedural rule-based rewrite system. For 
-an input word $\omega$ in the source language $L_1$, the 
+Our approach treats the process of loanword adaptation as a
+mapping, specifically a procedural rule-based rewrite system. For
+an input word $\omega$ in the source language $L_1$, the
 algorithm $A$ maps $\omega$ to $A(\omega) \in \Sigma_F^*$.
 
 ### Implementation
@@ -92,16 +93,16 @@ The Algorithm is implemented in the Rust programming language.
 
 The Algorithm is compared against gold standards.
 
-See the [`gold/`](gold/) directory and its corresponding 
+See the [`gold/`](gold/) directory and its corresponding
 [`README`](gold/README.md) for details.
 
 ### Legacy
 
-This project was initially a final course project by Clarence, 
-Zhean, Roan, and Clive for Nathaniel Oco's Natural Language 
+This project was initially a final course project by Clarence,
+Zhean, Roan, and Clive for Nathaniel Oco's Natural Language
 Processing class at De La Salle University.
 
-See the [`legacy/`](legacy/) directory and its corresponding 
+See the [`legacy/`](legacy/) directory and its corresponding
 [`README`](legacy/README) for details.
 
 ## License
@@ -111,11 +112,17 @@ under the terms of Apache License Version 2.0.
 
 See [LICENSE](LICENSE) for details.
 
+## Dependencies
+
+- [`uv`](https://docs.astral.sh/uv/) for automatic script dependencies; see [PEP 723](https://peps.python.org/pep-0723/) and [uv page on running scripts](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies),
+- `eSpeak-NG` for G2P; [github.com/espeak-ng/espeak-ng](https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md).
+
 ## Citation
 
 If you use this software in your research, consider citing our work.
 
 BibTeX:
+
 ```bibtex
 @software{Ganituen_TagaBaybay,
     author = {Ganituen, Zhean Robby and Ang, Clarence Ivan and Campo, Roan Cedric and Ching, Justin Ethan and Erin Gabrielle, Chua and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Oco, Nathaniel},
