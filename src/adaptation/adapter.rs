@@ -138,9 +138,6 @@ impl Adapter {
 
         let mut ctx = Cursor::new(&graphemes, &phonemes, 0);
 
-        dbg!(&ctx.graphemes);
-        dbg!(&ctx.phonemes);
-
         while ctx.index < ctx.len() {
             // Handle abbreviations and single letters (spelled out phonetically)
             if ctx.current_grapheme().is_uppercase() {
