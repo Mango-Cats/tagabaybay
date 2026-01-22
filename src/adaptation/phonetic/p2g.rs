@@ -4,7 +4,7 @@
 //! This handles all sounds - vowels, consonants, and special cases.
 
 use crate::grapheme::filipino::FilipinoGrapheme;
-use crate::phoneme::ipa::IPASymbol;
+use crate::phoneme::tokens::ipa::IPASymbol;
 use crate::tokens;
 
 /// Performs P2G (phoneme-to-grapheme) given a specific IPA phoneme.

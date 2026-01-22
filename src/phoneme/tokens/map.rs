@@ -1,5 +1,6 @@
+use crate::phoneme::tokens::arpabet::ArpabetSymbols;
+
 use super::ipa::IPASymbol;
-use super::symbols::ArpabetSymbols;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
@@ -126,6 +127,8 @@ pub static ARPA_TO_IPA: Lazy<HashMap<ArpabetSymbols, IPASymbol>> = Lazy::new(|| 
 });
 
 /// IPA to ARPABET mapping (legacy, for backwards compatibility)
+/// Use this when using Phonetisaurus: see src/g2p/arpa
+#[allow(dead_code)]
 pub(super) static IPA_TO_ARPA: Lazy<HashMap<&'static str, ArpabetSymbols>> = Lazy::new(|| {
     HashMap::from([
         // Vowels

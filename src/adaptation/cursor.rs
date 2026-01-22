@@ -1,5 +1,4 @@
-use crate::grapheme::source::SourceGrapheme;
-use crate::phoneme::ipa::IPASymbol;
+use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]

@@ -19,7 +19,7 @@ use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
-use crate::phoneme::ipa::IPASymbol;
+use crate::phoneme::tokens::ipa::IPASymbol;
 
 /// Handles phonetic replacement for vowels and Y based on G2P transcription.
 ///

@@ -10,7 +10,8 @@ use crate::g2p::phonemize_to_ipa;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
-use crate::phoneme::tokenize::{tokenize_arpa_to_ipa, tokenize_ipa_to_symbols};
+use crate::phoneme::tokenizer::arpabet::tokenize_arpa_to_ipa;
+use crate::phoneme::tokenizer::ipa::tokenize_ipa;
 
 /// Builder for adaptation with customizable configuration
 ///
@@ -130,7 +131,7 @@ impl Adapter {
 
         let phonemes = if config.use_ipa {
             let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
-            tokenize_ipa_to_symbols(&phon_str)
+            tokenize_ipa(&phon_str)
         } else {
             let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
             tokenize_arpa_to_ipa(&phon_str)
