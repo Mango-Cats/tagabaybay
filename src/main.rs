@@ -3,7 +3,7 @@ use std::io::Write;
 
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
-use tagabaybay::g2py::phonemize_to_ipa;
+use tagabaybay::g2p::phonemize_to_ipa;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;

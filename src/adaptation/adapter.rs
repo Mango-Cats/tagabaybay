@@ -6,7 +6,7 @@ use crate::adaptation::phonetic::free::phonetic_replacements;
 use crate::configs::AdapterConfig;
 use crate::error::{AdaptationError, ErrorTypes};
 use crate::g2p::phonemize_to_arpa;
-use crate::g2py::phonemize_to_ipa;
+use crate::g2p::phonemize_to_ipa;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
