@@ -39,7 +39,7 @@
 use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
-use crate::error::PhonetizationError;
+use crate::error::{G2PError, G2PErrorKind};
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::phoneme::tokens::ipa::IPASymbol;
 
@@ -89,10 +89,15 @@ pub fn phonetic_replacements(
         };
         Some((result, consumed))
     } else {
-        let err = PhonetizationError::new(ctx.input_pronunciation.clone(), None, None);
+        let err = G2PError::with_input(
+            G2PErrorKind::TranscriptionFailed {
+                message: format!("no graphemization found for IPA symbol: {:?}", phoneme),
+            },
+            &ctx.input_pronunciation,
+        );
         err.print_error();
         if config.panic_at_error {
-            panic!("Phonetization failed: {:?}", err);
+            panic!("G2P failed: {:?}", err);
         }
         None
     }

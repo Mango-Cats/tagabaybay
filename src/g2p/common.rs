@@ -10,7 +10,7 @@
 //! properly handle word boundaries.
 
 use crate::configs::AdapterConfig;
-use crate::error::{ErrorTypes, PhonetizationError};
+use crate::error::{ErrorTypes, G2PError};
 
 /// Phonemize a phrase by processing each word and subpart.
 ///
@@ -34,7 +34,7 @@ use crate::error::{ErrorTypes, PhonetizationError};
 ///
 /// # Errors
 ///
-/// Returns [`ErrorTypes::Phonetization`] if any word fails to phonemize
+/// Returns [`ErrorTypes::G2P`] if any word fails to phonemize
 /// and `config.panic_at_error` is false.
 pub fn phonemize_phrase<F>(
     phrase: &str,
@@ -44,7 +44,7 @@ pub fn phonemize_phrase<F>(
     phonemize_fn: F,
 ) -> Result<String, ErrorTypes>
 where
-    F: Fn(&str) -> Result<String, PhonetizationError>,
+    F: Fn(&str) -> Result<String, G2PError>,
 {
     let words: Vec<&str> = phrase.split_whitespace().collect();
 
@@ -74,7 +74,7 @@ fn process_word_part<F>(
     phonemize_fn: &F,
 ) -> Result<String, ErrorTypes>
 where
-    F: Fn(&str) -> Result<String, PhonetizationError>,
+    F: Fn(&str) -> Result<String, G2PError>,
 {
     let subparts: Vec<&str> = word_part.split('-').collect();
     let mut subpart_phonetics: Vec<String> = Vec::new();
@@ -101,7 +101,7 @@ fn process_subpart<F>(
     phonemize_fn: &F,
 ) -> Result<String, ErrorTypes>
 where
-    F: Fn(&str) -> Result<String, PhonetizationError>,
+    F: Fn(&str) -> Result<String, G2PError>,
 {
     if subpart
         .chars()
@@ -129,9 +129,9 @@ where
         err.print_error();
 
         if config.panic_at_error {
-            panic!("Phonetization failed: {:?}", err);
+            panic!("G2P failed: {:?}", err);
         }
 
-        ErrorTypes::Phonetization(err)
+        ErrorTypes::G2P(err)
     })
 }

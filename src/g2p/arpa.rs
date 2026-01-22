@@ -25,7 +25,7 @@
 //! - [`g2p_common`]: Shared phrase processing utilities
 
 use crate::configs::AdapterConfig;
-use crate::error::{ErrorTypes, PhonetizationError};
+use crate::error::{ErrorTypes, G2PError, G2PErrorKind};
 use crate::g2p::common::phonemize_phrase;
 use once_cell::sync::Lazy;
 use phonetisaurus_g2p::PhonetisaurusModel;
@@ -61,10 +61,15 @@ static MODEL: Lazy<PhonetisaurusModel> = Lazy::new(|| {
 /// let phonemes = phonemize_internal("cat")?;
 /// // Returns something like "K$AE$T"
 /// ```
-fn phonemize_internal(word: &str) -> Result<String, PhonetizationError> {
-    let result = MODEL
-        .phonemize_word(&word.to_lowercase())
-        .map_err(|_| PhonetizationError::new(word.to_string(), None, None))?;
+fn phonemize_internal(word: &str) -> Result<String, G2PError> {
+    let result = MODEL.phonemize_word(&word.to_lowercase()).map_err(|e| {
+        G2PError::with_input(
+            G2PErrorKind::TranscriptionFailed {
+                message: format!("Phonetisaurus model error: {}", e),
+            },
+            word,
+        )
+    })?;
 
     // Convert non-alphabetic characters to phoneme boundary markers
     Ok(result
@@ -109,7 +114,7 @@ fn phonemize_internal(word: &str) -> Result<String, PhonetizationError> {
 /// # Error Handling
 ///
 /// If `config.panic_at_error` is `true`, panics on phonemization failure.
-/// Otherwise, returns an `ErrorTypes::Phonetization` error.
+/// Otherwise, returns an `ErrorTypes::G2P` error.
 pub fn phonemize_to_arpa(
     phrase: &str,
     word_number: Option<usize>,
