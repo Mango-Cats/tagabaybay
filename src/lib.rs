@@ -28,7 +28,7 @@
 pub mod adaptation;
 pub mod configs;
 pub mod error;
-// pub mod g2p;
+pub mod g2p;
 pub mod g2py;
 pub mod grapheme;
 pub mod phoneme;

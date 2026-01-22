@@ -155,7 +155,7 @@ static G2P: Lazy<Mutex<Option<G2PProcess>>> = Lazy::new(|| match G2PProcess::new
 /// let phonemes = phonemize("action")?;
 /// assert_eq!(phonemes, "ækʃən");
 /// ```
-pub fn phonemize(word: &str) -> Result<String, PhonetizationError> {
+fn phonemize_internal(word: &str) -> Result<String, PhonetizationError> {
     let mut guard = G2P
         .lock()
         .map_err(|_| PhonetizationError::new(word.to_string(), None, Some("G2P mutex poisoned")))?;
@@ -172,7 +172,7 @@ pub fn phonemize(word: &str) -> Result<String, PhonetizationError> {
 /// Phonemize a phrase (potentially multiple words separated by spaces)
 /// Each word is phonemized separately, with '$' as separator between words
 /// Numbers and special tokens are passed through as-is
-pub fn phonemize_phrase(
+pub fn phonemize_to_ipa(
     phrase: &str,
     word_number: Option<usize>,
     dataset_name: Option<&str>,
@@ -214,7 +214,7 @@ pub fn phonemize_phrase(
                 continue;
             }
 
-            let phonetic_str = phonemize(&clean_subpart).map_err(|mut err| {
+            let phonetic_str = phonemize_internal(&clean_subpart).map_err(|mut err| {
                 err.word_number = word_number;
                 err.dataset_name = dataset_name.map(str::to_string);
 

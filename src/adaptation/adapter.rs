@@ -5,7 +5,8 @@ use crate::adaptation::orthographic::spelling::letter_to_phonetic;
 use crate::adaptation::phonetic::free::phonetic_replacements;
 use crate::configs::AdapterConfig;
 use crate::error::{AdaptationError, ErrorTypes};
-use crate::g2py::phonemize_phrase;
+use crate::g2p::phonemize_to_arpa;
+use crate::g2py::phonemize_to_ipa;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
@@ -126,12 +127,13 @@ impl Adapter {
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
 
         let graphemes = source_tokenizer(word);
-        let phonetic_str = phonemize_phrase(word, word_number, dataset_name, config)?;
 
         let phonemes = if config.use_ipa {
-            tokenize_ipa(&phonetic_str)
+            let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
+            tokenize_ipa(&phon_str)
         } else {
-            tokenize_arpa(&phonetic_str)
+            let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
+            tokenize_arpa(&phon_str)
         };
 
         let mut ctx = Cursor::new(&graphemes, &phonemes, 0);

@@ -3,14 +3,14 @@ use std::io::Write;
 
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
-use tagabaybay::g2py::phonemize;
+use tagabaybay::g2py::phonemize_to_ipa;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
-    let adapter =
-        Adapter::new_with_config(AdapterConfig::new().set_g2p_unpredictable_variants(false));
+    let config = AdapterConfig::new().set_g2p_unpredictable_variants(false);
+    let adapter = Adapter::new_with_config(config.clone());
 
     loop {
         print!("=? ");
@@ -21,7 +21,7 @@ fn main() {
         if input == "??" {
             break;
         }
-        if let Ok(phonemes) = phonemize(&input) {
+        if let Ok(phonemes) = phonemize_to_ipa(&input, None, None, &config) {
             println!("* {phonemes}")
         }
 
