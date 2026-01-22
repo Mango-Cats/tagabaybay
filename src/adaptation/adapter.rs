@@ -55,6 +55,123 @@ impl Adapter {
         Self { config }
     }
 
+    fn adapter_internal(
+        &self,
+        word: &str,
+        word_number: Option<usize>,
+        dataset_name: Option<&str>,
+    ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
+        // Variable declarations
+        // --------------------
+        let config = &self.config;
+        let mut result: Vec<FilipinoGrapheme> = Vec::new();
+
+        let graphemes = source_tokenizer(word);
+
+        let (phon_str, phonemes) = if config.use_ipa {
+            let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
+            let toks = tokenize_ipa(&phon_str);
+            (phon_str, toks)
+        } else {
+            let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
+            let toks = tokenize_arpa_to_ipa(&phon_str);
+            (phon_str, toks)
+        };
+
+        let mut ctx = Cursor::new(word, &phon_str, &graphemes, &phonemes, 0);
+
+        // ========================
+        // = Adaptation algorithm =
+        // ========================
+        while ctx.index < ctx.len() {
+            #[cfg(feature = "debug-trace")]
+            println!("~ curr: {}", ctx.current_grapheme());
+
+            #[cfg(feature = "debug-trace")]
+            print!("@ abbr: ");
+            // ------------------------
+            // - abbreviations        -
+            // ------------------------
+            if ctx.current_grapheme().is_uppercase() {
+                if let Some((abbr_repl, consumed)) = detect_and_process_abbreviation(&ctx) {
+                    #[cfg(feature = "debug-trace")]
+                    println!("ACCEPT");
+                    result.extend(abbr_repl);
+                    ctx.index += consumed;
+                    continue;
+                }
+            }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
+
+            #[cfg(feature = "debug-trace")]
+            print!("@ sens: ");
+            // ------------------------
+            // - ortho sensitive      -
+            // ------------------------
+            if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
+                #[cfg(feature = "debug-trace")]
+                println!("ACCEPT");
+
+                result.extend(sens_repl);
+                ctx.index += consumed;
+                continue;
+            }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
+
+            #[cfg(feature = "debug-trace")]
+            print!("@ phon: ");
+            // ------------------------
+            // - phonetics            -
+            // ------------------------
+            // Handle unpredictable variants via phonetic replacements
+            // only if `sensitive_replacements` is none
+            // that is, even if it is unpredictable variants. Maybe there is a
+            // subset of patters where predicting it is possible.
+            if let Some((arpa_repl, consumed)) = phonetic_replacements(&ctx, &self.config) {
+                #[cfg(feature = "debug-trace")]
+                println!("ACCEPT");
+
+                result.extend(arpa_repl);
+                ctx.index += consumed;
+                continue;
+            }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
+
+            #[cfg(feature = "debug-trace")]
+            print!("@ free: ");
+            // ------------------------
+            // - ortho free           -
+            // ------------------------
+            if let Some((free_repl, consumed)) = free_replacement(&ctx, &self.config) {
+                #[cfg(feature = "debug-trace")]
+                println!("ACCEPT");
+
+                result.extend(free_repl);
+                ctx.index += consumed;
+                continue;
+            }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
+
+            // ------------------------
+            // - if none, error case  -
+            // ------------------------
+            let error =
+                AdaptationError::new(ctx.graphemes.to_vec(), ctx.index, word_number, dataset_name);
+            error.print_error();
+            if self.config.panic_at_error {
+                return Err(ErrorTypes::Adaptation(error));
+            }
+
+            ctx.index += 1;
+        }
+
+        Ok(result)
+    }
+
     /// Adapt an entire word or phrase
     ///
     /// Converts loanwords to their Filipino representation.
@@ -115,107 +232,6 @@ impl Adapter {
             .enumerate()
             .map(|(i, word)| self.adapter_internal(word, Some(i), Some(dataset_name)))
             .collect()
-    }
-
-    fn adapter_internal(
-        &self,
-        word: &str,
-        word_number: Option<usize>,
-        dataset_name: Option<&str>,
-    ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
-        // preapre variables here
-        let config = &self.config;
-        let mut result: Vec<FilipinoGrapheme> = Vec::new();
-
-        let graphemes = source_tokenizer(word);
-
-        let (phon_str, phonemes) = if config.use_ipa {
-            let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
-            let toks = tokenize_ipa(&phon_str);
-            (phon_str, toks)
-        } else {
-            let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
-            let toks = tokenize_arpa_to_ipa(&phon_str);
-            (phon_str, toks)
-        };
-
-        let mut ctx = Cursor::new(word, &phon_str, &graphemes, &phonemes, 0);
-
-        while ctx.index < ctx.len() {
-            // Handle abbreviations and single letters (spelled out phonetically)
-            #[cfg(feature = "debug-trace")]
-            println!("~ curr: {}", ctx.current_grapheme());
-            #[cfg(feature = "debug-trace")]
-            print!("@ abbr: ");
-            if ctx.current_grapheme().is_uppercase() {
-                if let Some((abbr_repl, consumed)) = detect_and_process_abbreviation(&ctx) {
-                    #[cfg(feature = "debug-trace")]
-                    println!("ACCEPT");
-                    result.extend(abbr_repl);
-                    ctx.index += consumed;
-                    continue;
-                }
-            }
-            #[cfg(feature = "debug-trace")]
-            println!("REJECT");
-
-            // Context-sensitive orthographic cases
-            #[cfg(feature = "debug-trace")]
-            print!("@ sens: ");
-            if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
-                #[cfg(feature = "debug-trace")]
-                println!("ACCEPT");
-
-                result.extend(sens_repl);
-                ctx.index += consumed;
-                continue;
-            }
-            #[cfg(feature = "debug-trace")]
-            println!("REJECT");
-
-            // Handle unpredictable variants via phonetic replacements
-            // only if `sensitive_replacements` is none
-            // that is, even if it is unpredictable variants. Maybe there is a
-            // subset of patters where predicting it is possible.
-            #[cfg(feature = "debug-trace")]
-            print!("@ phon: ");
-            if let Some((arpa_repl, consumed)) = phonetic_replacements(&ctx, &self.config) {
-                #[cfg(feature = "debug-trace")]
-                println!("ACCEPT");
-
-                result.extend(arpa_repl);
-                ctx.index += consumed;
-                continue;
-            }
-            #[cfg(feature = "debug-trace")]
-            println!("REJECT");
-
-            // Context-free orthographic cases (fallback)
-            #[cfg(feature = "debug-trace")]
-            print!("@ free: ");
-            if let Some((free_repl, consumed)) = free_replacement(&ctx, &self.config) {
-                #[cfg(feature = "debug-trace")]
-                println!("ACCEPT");
-
-                result.extend(free_repl);
-                ctx.index += consumed;
-                continue;
-            }
-            #[cfg(feature = "debug-trace")]
-            println!("REJECT");
-
-            // Could not process current grapheme -> handle error
-            let error =
-                AdaptationError::new(ctx.graphemes.to_vec(), ctx.index, word_number, dataset_name);
-            error.print_error();
-            if self.config.panic_at_error {
-                return Err(ErrorTypes::Adaptation(error));
-            }
-
-            ctx.index += 1;
-        }
-
-        Ok(result)
     }
 }
 
