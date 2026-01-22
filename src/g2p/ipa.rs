@@ -91,6 +91,17 @@ use std::sync::Mutex;
 /// When run via `uv run`, dependencies are installed automatically in an
 /// isolated environment.
 ///
+/// # Notes for Windows
+///
+/// Windows seems to have a problem with eSpeak where you need to set the library
+/// with the `dll` of eSpeak-NG. This is set in the `ESPEAK_LIB` environment
+/// variable.
+///
+/// Before running TagaBaybay ensure:
+/// ```cmd
+/// set ESPEAK_LIB=<PATH_TO_DLL>
+/// ```
+///
 /// # Protocol
 ///
 /// 1. Script prints "READY" when initialized
@@ -98,30 +109,40 @@ use std::sync::Mutex;
 /// 3. Writes IPA phonemes to stdout (one per line)
 /// 4. Prefixes errors with "ERROR:"
 /// 5. Exits on "CEXIT" (Clean EXIT) sentinel
-const G2P_SCRIPT: &str = r#"# /// script
-# requires-python = ">=3.11"
-# dependencies = ["phonemizer"]
-# ///
-import sys
-from phonemizer import phonemize
+const G2P_SCRIPT: &str = r#"
+    # /// script
+    # requires-python = ">=3.11"
+    # dependencies = ["phonemizer"]
+    # ///
+    import sys
+    import os
+    import platform
 
-def g2p(word):
-    return phonemize(word, language="en-us", backend="espeak", strip=True, with_stress=False).strip()
+    from phonemizer import phonemize
 
-sys.stdout.reconfigure(line_buffering=True)
-print("READY", flush=True)
-for line in sys.stdin:
-    word = line.strip()
-    if not word:
-        print("", flush=True)
-    elif word == "CEXIT":
-        break
-    else:
-        try:
-            print(g2p(word), flush=True)
-        except Exception as e:
-            print(f"ERROR:{e}", flush=True)
-"#;
+    if platform.system() == "Windows":
+        from phonemizer.backend.espeak.wrapper import EspeakWrapper
+        lib = os.environ.get("ESPEAK_LIB")
+        if lib:
+            EspeakWrapper.set_library(lib)
+        
+    def g2p(word):
+        return phonemize(word, language="en-us", backend="espeak", strip=True, with_stress=False).strip()
+
+    sys.stdout.reconfigure(line_buffering=True)
+    print("READY", flush=True)
+    for line in sys.stdin:
+        word = line.strip()
+        if not word:
+            print("", flush=True)
+        elif word == "CEXIT":
+            break
+        else:
+            try:
+                print(g2p(word), flush=True)
+            except Exception as e:
+                print(f"ERROR:{e}", flush=True)
+    "#;
 
 /// Persistent Python G2P subprocess.
 ///
