@@ -19,7 +19,7 @@ use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
-use crate::phoneme::ipa::IpaSymbol;
+use crate::phoneme::ipa::IPASymbol;
 
 /// Handles phonetic replacement for vowels and Y based on G2P transcription.
 ///
@@ -97,6 +97,6 @@ fn vowels_before(ctx: &Cursor) -> usize {
 }
 
 /// Find the nth vowel phoneme in the phoneme sequence
-fn find_nth_vowel_phoneme(phonemes: &[IpaSymbol], n: usize) -> Option<IpaSymbol> {
+fn find_nth_vowel_phoneme(phonemes: &[IPASymbol], n: usize) -> Option<IPASymbol> {
     phonemes.iter().filter(|p| p.is_vowel()).nth(n).cloned()
 }
