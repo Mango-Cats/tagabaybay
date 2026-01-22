@@ -48,13 +48,19 @@ pub fn phonetic_replacements(
 
     // Only process unpredictable variants (vowels and Y) and if config allows it
     if !curr.is_unpredictable_variant() || !config.g2p_unpredictable_variants {
+        #[cfg(feature = "debug-trace")]
+        println!("    [phon] not unpredictable variant or g2p disabled");
         return None;
     }
 
     // Adjust vowel index by counting non-silent vowels we've already seen
     let pre_vowels = vowels_before(ctx);
+    #[cfg(feature = "debug-trace")]
+    println!("    [phon] vowels_before={}", pre_vowels);
 
     let phoneme = find_nth_vowel_phoneme(&ctx.phonemes, pre_vowels)?;
+    #[cfg(feature = "debug-trace")]
+    println!("    [phon] matched phoneme={:?}", phoneme);
 
     // Check if next grapheme is also a vowel (might be consumed by diphthong)
     let next_is_vowel = ctx
@@ -65,6 +71,11 @@ pub fn phonetic_replacements(
     // Convert ARPAbet phoneme to Filipino grapheme(s)
     if let Some((result, is_diphthong)) = graphemize(&phoneme) {
         let consumed = if is_diphthong && next_is_vowel { 2 } else { 1 };
+        #[cfg(feature = "debug-trace")]
+        println!(
+            "    [phon] result={:?} diphthong={} consumed={}",
+            result, is_diphthong, consumed
+        );
 
         Some((result, consumed))
     } else {

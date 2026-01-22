@@ -9,7 +9,7 @@ use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
-    let config = AdapterConfig::new().set_g2p_unpredictable_variants(false);
+    let config = AdapterConfig::new();
     let adapter = Adapter::new_with_config(config.clone());
 
     loop {

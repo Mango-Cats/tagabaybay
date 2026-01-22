@@ -30,29 +30,99 @@ const CHAR_EQUIVALENCES: &[(&str, &str)] = &[
     ("v", "b"),  // allow_v_letter
 ];
 
-// This makes comparisons agnostic to which toggle settings were used
-fn normalize_for_comparison(text: &str) -> String {
-    let mut normalized = text.to_lowercase();
+fn evaluate_csv(path: &str) -> EvalReport {
+    // ===== LOOK HERE ==============================
+    //
+    // if you want to change the Adapter object
+    // like the configs, you probably want to look
+    // at the line below.
+    //
+    // ===== LOOK HERE ==============================
+    let config = AdapterConfig::new();
+    let adapter = Adapter::new_with_config(config.clone());
 
-    let mut equivalences: Vec<_> = CHAR_EQUIVALENCES.iter().collect();
-    equivalences.sort_by_key(|(a, b)| std::cmp::Reverse(a.len().max(b.len())));
+    let file = File::open(path).expect("Failed to open file");
+    let reader = BufReader::new(file);
 
-    for &(variant1, variant2) in equivalences.iter() {
-        let canonical = if variant1 < variant2 {
-            variant1
-        } else {
-            variant2
-        };
-        let alternate = if variant1 < variant2 {
-            variant2
-        } else {
-            variant1
-        };
+    let mut results: Vec<TestResult> = Vec::new();
+    let mut total_token_edits: usize = 0;
+    let mut total_tokens: usize = 0;
+    let mut token_errors: HashMap<String, TokenError> = HashMap::new();
 
-        normalized = normalized.replace(alternate, canonical);
+    for (i, line) in reader.lines().enumerate() {
+        if i == 0 {
+            continue; // Skip header
+        }
+
+        let line = line.unwrap();
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() < 2 {
+            continue;
+        }
+
+        let input = parts[0].trim();
+        let expected = parts[1].trim();
+        let actual = adapter
+            .adaptation(input)
+            .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
+            .unwrap_or_default();
+
+        // Normalize both actual and expected for toggle-agnostic comparison
+        let actual_normalized = normalize_for_comparison(&actual);
+        let expected_normalized = normalize_for_comparison(expected);
+
+        // Calculate token-level edit distance on normalized strings
+        let edit_dist = levenshtein_distance(&actual_normalized, &expected_normalized);
+        total_token_edits += edit_dist;
+        total_tokens += expected_normalized.chars().count().max(1);
+
+        // Track token errors for ranking (on normalized strings)
+        if actual_normalized != expected_normalized {
+            track_token_errors(
+                &mut token_errors,
+                &actual_normalized,
+                &expected_normalized,
+                input,
+                3,
+            );
+        }
+
+        results.push(TestResult {
+            input: input.to_string(),
+            expected: expected.to_string(),
+            actual: actual.clone(),
+            passed: actual_normalized == expected_normalized,
+        });
     }
 
-    normalized
+    let total = results.len();
+    let passed = results.iter().filter(|r| r.passed).count();
+    let failures: Vec<TestResult> = results.into_iter().filter(|r| !r.passed).collect();
+
+    let word_error_rate = if total > 0 {
+        ((total - passed) as f64 / total as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    let token_error_rate = if total_tokens > 0 {
+        (total_token_edits as f64 / total_tokens as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    EvalReport {
+        total,
+        passed,
+        failed: total - passed,
+        accuracy: (passed as f64 / total as f64) * 100.0,
+        word_error_rate,
+        token_error_rate,
+        total_token_edits,
+        total_tokens,
+        failures,
+        token_errors,
+    }
 }
 
 struct TestResult {
@@ -106,6 +176,31 @@ struct DatasetMetrics {
     wer: f64,
     ter: f64,
     report_file: String,
+}
+
+// This makes comparisons agnostic to which toggle settings were used
+fn normalize_for_comparison(text: &str) -> String {
+    let mut normalized = text.to_lowercase();
+
+    let mut equivalences: Vec<_> = CHAR_EQUIVALENCES.iter().collect();
+    equivalences.sort_by_key(|(a, b)| std::cmp::Reverse(a.len().max(b.len())));
+
+    for &(variant1, variant2) in equivalences.iter() {
+        let canonical = if variant1 < variant2 {
+            variant1
+        } else {
+            variant2
+        };
+        let alternate = if variant1 < variant2 {
+            variant2
+        } else {
+            variant1
+        };
+
+        normalized = normalized.replace(alternate, canonical);
+    }
+
+    normalized
 }
 
 /// Calculate Levenshtein edit distance between two strings
@@ -270,93 +365,6 @@ fn merge_token_errors(
                 entry.examples.push(example);
             }
         }
-    }
-}
-
-fn evaluate_csv(path: &str) -> EvalReport {
-    let file = File::open(path).expect("Failed to open file");
-    let reader = BufReader::new(file);
-
-    let mut results: Vec<TestResult> = Vec::new();
-    let mut total_token_edits: usize = 0;
-    let mut total_tokens: usize = 0;
-    let mut token_errors: HashMap<String, TokenError> = HashMap::new();
-    let adapter =
-        Adapter::new_with_config(AdapterConfig::new().set_g2p_unpredictable_variants(false));
-
-    for (i, line) in reader.lines().enumerate() {
-        if i == 0 {
-            continue; // Skip header
-        }
-
-        let line = line.unwrap();
-        let parts: Vec<&str> = line.split(',').collect();
-        if parts.len() < 2 {
-            continue;
-        }
-
-        let input = parts[0].trim();
-        let expected = parts[1].trim();
-        let actual = adapter
-            .adaptation(input)
-            .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
-            .unwrap_or_default();
-
-        // Normalize both actual and expected for toggle-agnostic comparison
-        let actual_normalized = normalize_for_comparison(&actual);
-        let expected_normalized = normalize_for_comparison(expected);
-
-        // Calculate token-level edit distance on normalized strings
-        let edit_dist = levenshtein_distance(&actual_normalized, &expected_normalized);
-        total_token_edits += edit_dist;
-        total_tokens += expected_normalized.chars().count().max(1);
-
-        // Track token errors for ranking (on normalized strings)
-        if actual_normalized != expected_normalized {
-            track_token_errors(
-                &mut token_errors,
-                &actual_normalized,
-                &expected_normalized,
-                input,
-                3,
-            );
-        }
-
-        results.push(TestResult {
-            input: input.to_string(),
-            expected: expected.to_string(),
-            actual: actual.clone(),
-            passed: actual_normalized == expected_normalized,
-        });
-    }
-
-    let total = results.len();
-    let passed = results.iter().filter(|r| r.passed).count();
-    let failures: Vec<TestResult> = results.into_iter().filter(|r| !r.passed).collect();
-
-    let word_error_rate = if total > 0 {
-        ((total - passed) as f64 / total as f64) * 100.0
-    } else {
-        0.0
-    };
-
-    let token_error_rate = if total_tokens > 0 {
-        (total_token_edits as f64 / total_tokens as f64) * 100.0
-    } else {
-        0.0
-    };
-
-    EvalReport {
-        total,
-        passed,
-        failed: total - passed,
-        accuracy: (passed as f64 / total as f64) * 100.0,
-        word_error_rate,
-        token_error_rate,
-        total_token_edits,
-        total_tokens,
-        failures,
-        token_errors,
     }
 }
 
