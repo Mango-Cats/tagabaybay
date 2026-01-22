@@ -109,40 +109,52 @@ use std::sync::Mutex;
 /// 3. Writes IPA phonemes to stdout (one per line)
 /// 4. Prefixes errors with "ERROR:"
 /// 5. Exits on "CEXIT" (Clean EXIT) sentinel
+///
+/// # Performance
+///
+/// Uses `EspeakBackend` directly instead of the `phonemize()` function.
+/// The backend is initialized once at startup and reused for all calls,
+/// avoiding repeated backend initialization overhead.
 const G2P_SCRIPT: &str = r#"
-    # /// script
-    # requires-python = ">=3.11"
-    # dependencies = ["phonemizer"]
-    # ///
-    import sys
-    import os
-    import platform
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["phonemizer"]
+# ///
+import sys
+import os
+import platform
 
-    from phonemizer import phonemize
+from phonemizer.backend import EspeakBackend
+from phonemizer.separator import Separator
 
-    if platform.system() == "Windows":
-        from phonemizer.backend.espeak.wrapper import EspeakWrapper
-        lib = os.environ.get("ESPEAK_LIB")
-        if lib:
-            EspeakWrapper.set_library(lib)
-        
-    def g2p(word):
-        return phonemize(word, language="en-us", backend="espeak", strip=True, with_stress=False).strip()
+if platform.system() == "Windows":
+    from phonemizer.backend.espeak.wrapper import EspeakWrapper
+    lib = os.environ.get("ESPEAK_LIB")
+    if lib:
+        EspeakWrapper.set_library(lib)
 
-    sys.stdout.reconfigure(line_buffering=True)
-    print("READY", flush=True)
-    for line in sys.stdin:
-        word = line.strip()
-        if not word:
-            print("", flush=True)
-        elif word == "CEXIT":
-            break
-        else:
-            try:
-                print(g2p(word), flush=True)
-            except Exception as e:
-                print(f"ERROR:{e}", flush=True)
-    "#;
+backend = EspeakBackend('en-us', with_stress=False)
+separator = Separator(phone=' ', word='')
+
+def g2p(word):
+    result = backend.phonemize([word], separator=separator, strip=True)
+    return result[0].replace(' ', '') if result else ''
+
+sys.stdout.reconfigure(line_buffering=True)
+print("READY", flush=True)
+
+for line in sys.stdin:
+    word = line.strip()
+    if not word:
+        print("", flush=True)
+    elif word == "CEXIT":
+        break
+    else:
+        try:
+            print(g2p(word), flush=True)
+        except Exception as e:
+            print(f"ERROR:{e}", flush=True)
+"#;
 
 /// Persistent Python G2P subprocess.
 ///
