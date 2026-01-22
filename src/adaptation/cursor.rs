@@ -1,17 +1,17 @@
 use crate::grapheme::source::SourceGrapheme;
-use crate::phoneme::symbols::ArpabetSymbols;
+use crate::phoneme::ipa::IpaSymbol;
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]
 pub struct Cursor {
     pub graphemes: Vec<SourceGrapheme>,
-    pub phonemes: Vec<ArpabetSymbols>,
+    pub phonemes: Vec<IpaSymbol>,
     pub index: usize,
 }
 
 impl Cursor {
     /// Create a new cursor from graphemes and phonemes explicitly
-    pub fn new(graphemes: &[SourceGrapheme], phonemes: &[ArpabetSymbols], index: usize) -> Self {
+    pub fn new(graphemes: &[SourceGrapheme], phonemes: &[IpaSymbol], index: usize) -> Self {
         Self {
             graphemes: graphemes.to_vec(),
             phonemes: phonemes.to_vec(),
@@ -70,12 +70,12 @@ impl Cursor {
     }
 
     /// Current phoneme
-    pub fn current_phoneme(&self) -> Option<ArpabetSymbols> {
+    pub fn current_phoneme(&self) -> Option<IpaSymbol> {
         self.phonemes.get(self.index).cloned()
     }
 
     /// Previous phoneme
-    pub fn prev_phoneme(&self) -> Option<ArpabetSymbols> {
+    pub fn prev_phoneme(&self) -> Option<IpaSymbol> {
         if self.index > 0 {
             Some(self.phonemes[self.index - 1].clone())
         } else {
@@ -84,12 +84,12 @@ impl Cursor {
     }
 
     /// Next phoneme
-    pub fn next_phoneme(&self) -> Option<ArpabetSymbols> {
+    pub fn next_phoneme(&self) -> Option<IpaSymbol> {
         self.phonemes.get(self.index + 1).cloned()
     }
 
     /// Look ahead n phonemes
-    pub fn lookat_phoneme(&self, n: isize) -> Option<ArpabetSymbols> {
+    pub fn lookat_phoneme(&self, n: isize) -> Option<IpaSymbol> {
         let idx = self.index.checked_add_signed(n)?;
         self.phonemes.get(idx).cloned()
     }

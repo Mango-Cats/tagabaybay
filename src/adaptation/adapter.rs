@@ -10,7 +10,7 @@ use crate::g2p::phonemize_to_ipa;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
-use crate::phoneme::tokenize::{tokenize_arpa, tokenize_ipa};
+use crate::phoneme::tokenize::{tokenize_arpa_to_ipa, tokenize_ipa_to_symbols};
 
 /// Builder for adaptation with customizable configuration
 ///
@@ -130,10 +130,10 @@ impl Adapter {
 
         let phonemes = if config.use_ipa {
             let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
-            tokenize_ipa(&phon_str)
+            tokenize_ipa_to_symbols(&phon_str)
         } else {
             let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
-            tokenize_arpa(&phon_str)
+            tokenize_arpa_to_ipa(&phon_str)
         };
 
         let mut ctx = Cursor::new(&graphemes, &phonemes, 0);
