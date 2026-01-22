@@ -14,6 +14,27 @@
 //! - "make" → graphemes: [m, a, k, e] vs phonemes: [m, eɪ, k]
 //! - The 'a' maps to eɪ, and 'e' is silent (no phoneme)
 //! - "knight" → graphemes: [k, n, i, g, h, t] vs phonemes: [n, aɪ, t]
+//!
+//! ### Solution
+//!
+//! Since we only perform G2P on vowels, we can check how many vowels
+//! are before the index we're processing (let this be N). And, skipping
+//! N IPA vowel symbols, the first one MUST be the vowel we're looking at.
+//!
+//! ### Example
+//!
+//! Consider the example:
+//! ```text
+//! ctx.input_word =            eggplant
+//! ctx.input_pronunciation=    ɛɡ.plænt
+//! ctx.index =                 5   
+//! ctx.current =               a
+//! ```
+//! then, N = 1 (there is only 1 vowel before 'a' -- 'e'). So,
+//! skip the N = 1 vowel phonemes in `ctx.input_pronunciations`,
+//! which skips the /ɛ/ symbol. So, we're left with /ɡ.plænt/.
+//! The first (also, in this case, only) vowel pronunciation left must
+//! be the IPA transcription of 'a'. In this case, /æ/.
 
 use super::p2g::graphemize;
 use crate::adaptation::cursor::Cursor;
@@ -47,37 +68,25 @@ pub fn phonetic_replacements(
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
 
-    // Only process unpredictable variants (vowels and Y) and if config allows it
     if !curr.is_unpredictable_variant() || !config.g2p_unpredictable_variants {
-        #[cfg(feature = "debug-trace")]
-        println!("    [phon] not unpredictable variant or g2p disabled");
         return None;
     }
 
-    // Adjust vowel index by counting non-silent vowels we've already seen
+    // Alignment see section (### Solution) in top-level documentation
     let pre_vowels = vowels_before(ctx);
-    #[cfg(feature = "debug-trace")]
-    println!("    [phon] vowels_before={}", pre_vowels);
-
     let phoneme = find_nth_vowel_phoneme(&ctx.phonemes, pre_vowels)?;
-    #[cfg(feature = "debug-trace")]
-    println!("    [phon] matched phoneme={:?}", phoneme);
 
-    // Check if next grapheme is also a vowel (might be consumed by diphthong)
-    let next_is_vowel = ctx
+    let next_is_unpredictable_variant = ctx
         .next_grapheme_low()
         .map(|g| g.is_unpredictable_variant())
         .unwrap_or(false);
 
-    // Convert ARPAbet phoneme to Filipino grapheme(s)
     if let Some((result, is_diphthong)) = graphemize(&phoneme) {
-        let consumed = if is_diphthong && next_is_vowel { 2 } else { 1 };
-        #[cfg(feature = "debug-trace")]
-        println!(
-            "    [phon] result={:?} diphthong={} consumed={}",
-            result, is_diphthong, consumed
-        );
-
+        let consumed = if is_diphthong && next_is_unpredictable_variant {
+            2
+        } else {
+            1
+        };
         Some((result, consumed))
     } else {
         let err = PhonetizationError::new(ctx.input_pronunciation.clone(), None, None);

@@ -131,7 +131,7 @@ impl Adapter {
             // subset of patters where predicting it is possible.
             if let Some((arpa_repl, consumed)) = phonetic_replacements(&ctx, &self.config) {
                 #[cfg(feature = "debug-trace")]
-                println!("ACCEPT");
+                println!("ACCEPT with {:?} ", arpa_repl,);
 
                 result.extend(arpa_repl);
                 ctx.index += consumed;
