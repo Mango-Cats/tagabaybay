@@ -54,23 +54,21 @@ text-to-speech synthesis and speech confusibility modeling.
 
 From a computational perspective, loanword adaptation can be viewed 
 as a transduction pipeline:
-$$
-    \Sigma_s^* \mapsto \Phi_s^* \mapsto \Phi_F^* \mapsto \Sigma_F^*
-$$
-Where:
-	$\Sigma_s$ is the orthographic alphabet of the source language 
-    S.
-	$\Phi_s$ is the phoneme inventory of S.
-	$\Phi_F$ is the phoneme inventory of Filipino F.
-	$\Sigma_F$ is the orthographic alphabet of F.
+$$\Sigma_s^* \mapsto \Phi_s^* \mapsto \Phi_F^* \mapsto \Sigma_F^*$$
 
-The mapping $\Sigma_s^* \mapsto \Phi_s^*$ is G2P in $S$. In the 
-context of Filipino loanword adaptation, since the source language 
-is usually English, Spanish, or Chinese, this is a surjection due 
-to homophones. The mapping $\Phi_s^* \mapsto \Phi_F^*$ is the core 
-loanword adaptation function. The final mapping  $\Phi_F^* \mapsto 
-\Sigma_F^*$ is an optional P2G function step that renders the 
-adapted phoneme sequence in Filipino orthography.
+Where:
+- $\Sigma_s$ is the orthographic alphabet of the source language S.
+- $\Phi_s$ is the phoneme inventory of S.
+- $\Phi_F$ is the phoneme inventory of Filipino F.
+- $\Sigma_F$ is the orthographic alphabet of F.
+
+The mapping $\Sigma_s^{\ast} \mapsto \Phi_s^{\ast}$ is G2P in $S$.
+In the context of Filipino loanword adaptation, since the source language
+is usually English, Spanish, or Chinese, this is a surjection due to homophones.
+The mapping $\Phi_s^{\ast} \rightarrow \Phi_F^{\ast}$ is the core loanword
+adaptation function. The final mapping $\Phi_F^{\ast} \rightarrow \Sigma_F^{\ast}$
+is an optional P2G step that renders the adapted phoneme sequence in Filipino
+orthography.
 
 While G2P and P2G modeling have been extensively studied, 
 computational approaches to the phonological loanword adaptation 
@@ -94,8 +92,8 @@ The Algorithm is implemented in the Rust programming language.
 
 The Algorithm is compared against gold standards.
 
-See the [`gold/`](gold/) directory and its corresponding [`README`]
-(gold/README.md) for details.
+See the [`gold/`](gold/) directory and its corresponding 
+[`README`](gold/README.md) for details.
 
 ### Legacy
 
