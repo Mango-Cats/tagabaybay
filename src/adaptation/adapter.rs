@@ -140,37 +140,66 @@ impl Adapter {
 
         while ctx.index < ctx.len() {
             // Handle abbreviations and single letters (spelled out phonetically)
+            #[cfg(feature = "debug-trace")]
+            println!("~ curr: {}", ctx.current_grapheme());
+            #[cfg(feature = "debug-trace")]
+            print!("@ abbr: ");
             if ctx.current_grapheme().is_uppercase() {
                 if let Some((abbr_repl, consumed)) = detect_and_process_abbreviation(&ctx) {
+                    #[cfg(feature = "debug-trace")]
+                    println!("ACCEPT");
                     result.extend(abbr_repl);
                     ctx.index += consumed;
                     continue;
                 }
             }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
 
             // Context-sensitive orthographic cases
+            #[cfg(feature = "debug-trace")]
+            print!("@ sens: ");
             if let Some((sens_repl, consumed)) = sensitive_replacement(&ctx, &self.config) {
+                #[cfg(feature = "debug-trace")]
+                println!("ACCEPT");
+
                 result.extend(sens_repl);
                 ctx.index += consumed;
                 continue;
             }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
 
             // Handle unpredictable variants via phonetic replacements
             // only if `sensitive_replacements` is none
             // that is, even if it is unpredictable variants. Maybe there is a
             // subset of patters where predicting it is possible.
+            #[cfg(feature = "debug-trace")]
+            print!("@ phon: ");
             if let Some((arpa_repl, consumed)) = phonetic_replacements(&ctx, &self.config) {
+                #[cfg(feature = "debug-trace")]
+                println!("ACCEPT");
+
                 result.extend(arpa_repl);
                 ctx.index += consumed;
                 continue;
             }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
 
             // Context-free orthographic cases (fallback)
+            #[cfg(feature = "debug-trace")]
+            print!("@ free: ");
             if let Some((free_repl, consumed)) = free_replacement(&ctx, &self.config) {
+                #[cfg(feature = "debug-trace")]
+                println!("ACCEPT");
+
                 result.extend(free_repl);
                 ctx.index += consumed;
                 continue;
             }
+            #[cfg(feature = "debug-trace")]
+            println!("REJECT");
 
             // Could not process current grapheme -> handle error
             let error =
