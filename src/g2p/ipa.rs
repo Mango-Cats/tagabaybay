@@ -127,6 +127,9 @@ import sys
 import os
 import platform
 
+sys.stdin.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
+
 from phonemizer.backend import EspeakBackend
 from phonemizer.separator import Separator
 
@@ -143,7 +146,6 @@ def g2p(word):
     result = backend.phonemize([word], separator=separator, strip=True)
     return result[0].replace(' ', '') if result else ''
 
-sys.stdout.reconfigure(line_buffering=True)
 print("READY", flush=True)
 
 for line in sys.stdin:
