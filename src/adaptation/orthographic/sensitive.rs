@@ -443,6 +443,16 @@ fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
     }
 
+    if let Some(SourceGrapheme::U) = next {
+    // "aught" → "uf" sound (cough, rough, tough)
+        if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
+            if let Some(SourceGrapheme::T) = ctx.lookat_grapheme_low(4) {
+                return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::T], 5));
+            }
+            return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::F], 4));
+        }
+    }
+
     // Magic-e pattern: a + consonant + e at end = "ey" (make, cake, save)
     if let Some(n) = &next {
         if n.is_consonant() && !n.is_digraph() {
@@ -637,6 +647,11 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 
         // "ou" before consonant → "aw" (count, out, account, discount)
         Some(SourceGrapheme::U) => {
+            // "ough" → "uf" sound (cough, rough, tough)
+            if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
+                return Some((tokens![FilipinoGrapheme::U, FilipinoGrapheme::F], 4));
+            }
+
             if let Some(after) = ctx.lookat_grapheme_low(2) {
                 if after.is_consonant() {
                     return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
