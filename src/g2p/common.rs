@@ -41,10 +41,10 @@ pub fn phonemize_phrase<F>(
     word_number: Option<usize>,
     dataset_name: Option<&str>,
     config: &AdapterConfig,
-    phonemize_fn: F,
+    mut phonemize_fn: F,
 ) -> Result<String, ErrorTypes>
 where
-    F: Fn(&str) -> Result<String, G2PError>,
+    F: FnMut(&str) -> Result<String, G2PError>,
 {
     let words: Vec<&str> = phrase.split_whitespace().collect();
 
@@ -55,8 +55,13 @@ where
     let mut phonetic_parts: Vec<String> = Vec::new();
 
     for word_part in words {
-        let subpart_result =
-            process_word_part(word_part, word_number, dataset_name, config, &phonemize_fn)?;
+        let subpart_result = process_word_part(
+            word_part,
+            word_number,
+            dataset_name,
+            config,
+            &mut phonemize_fn,
+        )?;
         phonetic_parts.push(subpart_result);
     }
 
@@ -71,10 +76,10 @@ fn process_word_part<F>(
     word_number: Option<usize>,
     dataset_name: Option<&str>,
     config: &AdapterConfig,
-    phonemize_fn: &F,
+    phonemize_fn: &mut F,
 ) -> Result<String, ErrorTypes>
 where
-    F: Fn(&str) -> Result<String, G2PError>,
+    F: FnMut(&str) -> Result<String, G2PError>,
 {
     let subparts: Vec<&str> = word_part.split('-').collect();
     let mut subpart_phonetics: Vec<String> = Vec::new();
@@ -98,10 +103,10 @@ fn process_subpart<F>(
     word_number: Option<usize>,
     dataset_name: Option<&str>,
     config: &AdapterConfig,
-    phonemize_fn: &F,
+    phonemize_fn: &mut F,
 ) -> Result<String, ErrorTypes>
 where
-    F: Fn(&str) -> Result<String, G2PError>,
+    F: FnMut(&str) -> Result<String, G2PError>,
 {
     if subpart
         .chars()

@@ -12,4 +12,4 @@ pub mod ipa;
 // Re-export public APIs for convenience
 pub use arpa::phonemize_to_arpa;
 pub use common::phonemize_phrase;
-pub use ipa::phonemize_to_ipa;
+pub use ipa::G2Py;

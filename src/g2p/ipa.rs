@@ -3,15 +3,15 @@
 //! This module provides IPA phoneme transcription by spawning a persistent
 //! Python subprocess that uses the `phonemizer` library with espeak-ng.
 //!
-//!  # Usage
+//! # Usage
 //!
 //! ```ignore
-//! use tagabaybay::g2py::phonemize_to_ipa;
-//! use tagabaybay::configs::AdapterConfig;
+//! use tagabaybay::g2p::ipa::G2Py;
 //!
-//! let config = AdapterConfig::default();
-//! let phonemes = phonemize_to_ipa("action", None, None, &config)?;
+//! let mut g2p = G2Py::new()?;
+//! let phonemes = g2p.phonemize("action")?;
 //! // Returns IPA like "ækʃən"
+//! // When `g2p` is dropped, the temp script file is automatically deleted.
 //! ```
 //!
 //! # Non-Rust Requirements
@@ -30,16 +30,8 @@
 //!                        stdout           [b]        
 //! ```
 //!
-//! The Python subprocess is spawned lazily on first use and kept alive
-//! for the lifetime of the program, avoiding repeated startup overhead.
-//!
-//! At the start the Python subprocess [b] is spawn and kept alive for
-//! the lifetime of the program. That is, while TagaBaybay is running
-//! a Python file (the subprocess) is also running. This subprocess is
-//! the phonemization algorithm using Phonemizer from Bernard et al.,
-//! (2021). Whenever the Rust function phonemize() is called, it
-//! throws the input word via stdin which is consumed by the Python
-//! process which then throws back its corresponding IPA transcription.
+//! The Python subprocess is spawned on creation of `G2Py` and kept alive
+//! until the `G2Py` is dropped, avoiding repeated startup overhead.
 //!
 //! ## PEP 723 and UV
 //!
@@ -62,7 +54,7 @@
 //! IMPORTANT. Which is why an important dependency of this file is UV.
 //! This is PANIC when UV is NOT AVAILABLE.
 //!
-//! All of which are removed when the program dies.
+//! All of which are removed when the `G2Py` is dropped.
 //!
 //! # References
 //!
@@ -80,10 +72,8 @@
 use crate::configs::AdapterConfig;
 use crate::error::{ErrorTypes, G2PError, G2PErrorKind};
 use crate::g2p::common::phonemize_phrase;
-use once_cell::sync::Lazy;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
-use std::sync::Mutex;
 
 /// Embedded Python script for G2P conversion.
 ///
@@ -161,27 +151,31 @@ for line in sys.stdin:
             print(f"ERROR:{e}", flush=True)
 "#;
 
-/// Persistent Python G2P subprocess.
+/// IPA G2P (Grapheme-to-Phoneme) converter using a Python subprocess.
 ///
-/// Manages a long-running Python process that performs phonemization.
-/// The process is spawned lazily and reused for all subsequent calls,
-/// avoiding the overhead of repeated process creation.
+/// This struct owns a persistent Python subprocess that performs phonemization.
+/// When dropped, it sends a clean exit signal to the subprocess and deletes
+/// the temporary Python script file.
 ///
-/// # Fields
+/// # Example
 ///
-/// * `_child` - The spawned child process (kept for lifetime management)
-/// * `stdin` - Write channel for sending words to phonemize
-/// * `stdout` - Read channel for receiving phonemized results
-/// * `_temp_file` - Path to the temporary Python script file
-struct G2PProcess {
+/// ```ignore
+/// use tagabaybay::g2p::ipa::G2Py;
+///
+/// let mut g2p = G2Py::new()?;
+/// let ipa = g2p.phonemize("hello")?;
+/// println!("{}", ipa); // "həloʊ"
+/// // Temp file is automatically deleted when `g2p` goes out of scope
+/// ```
+pub struct G2Py {
     _child: Child,
     stdin: ChildStdin,
     stdout: BufReader<ChildStdout>,
-    _temp_file: std::path::PathBuf,
+    temp_file: std::path::PathBuf,
 }
 
-impl G2PProcess {
-    /// Spawn a new Python G2P subprocess.
+impl G2Py {
+    /// Create a new IPA G2P subprocess.
     ///
     /// Writes the embedded Python script to a temp file and spawns it
     /// via `uv run`, which handles dependency installation automatically.
@@ -189,27 +183,27 @@ impl G2PProcess {
     /// # Errors
     ///
     /// Returns a `G2PError` if:
-    /// - `uv` is not installed (`G2PErrorKind::UvNotFound`)
+    /// - `uv` is not installed (`G2PErrorKind::UVNotFound`)
     /// - eSpeak-NG is not found (`G2PErrorKind::EspeakNotFound`)
     /// - The Python process fails to start (`G2PErrorKind::ServerUnavailable`)
     /// - The process doesn't send the "READY" signal (`G2PErrorKind::ServerUnavailable`)
-    fn new() -> Result<Self, G2PError> {
-        let temp_dir = std::env::temp_dir();
-        let script_path = temp_dir.join("tagabaybay_g2p.py");
+    pub fn new() -> Result<Self, G2PError> {
+        let script_path =
+            std::env::temp_dir().join(format!("tagabaybay_g2p_{}.py", std::process::id()));
         std::fs::write(&script_path, G2P_SCRIPT).map_err(|e| {
             G2PError::new(G2PErrorKind::ServerUnavailable {
                 reason: format!("failed to write G2P script: {}", e),
             })
         })?;
 
-        // Check for uv availability
         if !Command::new("uv")
             .arg("--version")
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
         {
-            return Err(G2PError::new(G2PErrorKind::UvNotFound));
+            let _ = std::fs::remove_file(&script_path);
+            return Err(G2PError::new(G2PErrorKind::UVNotFound));
         }
 
         let program = "uv";
@@ -222,30 +216,32 @@ impl G2PProcess {
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| {
+                let _ = std::fs::remove_file(&script_path);
                 G2PError::new(G2PErrorKind::ServerUnavailable {
                     reason: format!("failed to spawn G2P process: {}", e),
                 })
             })?;
 
         let stdin = child.stdin.take().ok_or_else(|| {
+            let _ = std::fs::remove_file(&script_path);
             G2PError::new(G2PErrorKind::ServerUnavailable {
                 reason: "failed to open stdin pipe".to_string(),
             })
         })?;
         let stdout = BufReader::new(child.stdout.take().ok_or_else(|| {
+            let _ = std::fs::remove_file(&script_path);
             G2PError::new(G2PErrorKind::ServerUnavailable {
                 reason: "failed to open stdout pipe".to_string(),
             })
         })?);
 
-        let mut process = G2PProcess {
+        let mut process = G2Py {
             _child: child,
             stdin,
             stdout,
-            _temp_file: script_path,
+            temp_file: script_path,
         };
 
-        // Wait for the Python process to signal readiness
         let mut ready_line = String::new();
         process.stdout.read_line(&mut ready_line).map_err(|e| {
             G2PError::new(G2PErrorKind::ServerUnavailable {
@@ -255,7 +251,6 @@ impl G2PProcess {
 
         let ready_line = ready_line.trim();
 
-        // Check for specific error conditions
         if ready_line.contains("espeak") && ready_line.contains("not") {
             let hint = if cfg!(target_os = "windows") {
                 "set ESPEAK_LIB=C:\\Program Files\\eSpeak NG\\libespeak-ng.dll".to_string()
@@ -277,7 +272,7 @@ impl G2PProcess {
         Ok(process)
     }
 
-    /// Phonemize a single word via the Python subprocess.
+    /// Phonemize a single word to IPA.
     ///
     /// Sends the word to the Python process and reads the IPA result.
     ///
@@ -290,8 +285,9 @@ impl G2PProcess {
     /// Returns a `G2PError` if:
     /// - Communication with the subprocess fails (`G2PErrorKind::ServerUnavailable`)
     /// - The Python process reports an error (`G2PErrorKind::TranscriptionFailed`)
-    fn phonemize(&mut self, word: &str) -> Result<String, G2PError> {
-        writeln!(self.stdin, "{}", word).map_err(|e| {
+    pub fn phonemize(&mut self, word: &str) -> Result<String, G2PError> {
+        let word_lower = word.to_lowercase();
+        writeln!(self.stdin, "{}", word_lower).map_err(|e| {
             G2PError::with_input(
                 G2PErrorKind::ServerUnavailable {
                     reason: format!("failed to write to G2P process: {}", e),
@@ -299,6 +295,7 @@ impl G2PProcess {
                 word,
             )
         })?;
+
         self.stdin.flush().map_err(|e| {
             G2PError::with_input(
                 G2PErrorKind::ServerUnavailable {
@@ -340,128 +337,45 @@ impl G2PProcess {
 
         Ok(response.to_string())
     }
+
+    /// Phonemize a phrase (may contain spaces or hyphens) to IPA.
+    ///
+    /// Words are separated by `$` in the output.
+    ///
+    /// # Arguments
+    ///
+    /// * `phrase` - Input text (may contain multiple words)
+    /// * `word_number` - Optional line number for error reporting
+    /// * `dataset_name` - Optional dataset identifier for error context
+    /// * `config` - Adapter configuration controlling error behavior
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(String)` - IPA phonemes with `$` word separators
+    /// * `Err(ErrorTypes)` - If phonemization fails
+    pub fn phonemize_phrase(
+        &mut self,
+        phrase: &str,
+        word_number: Option<usize>,
+        dataset_name: Option<&str>,
+        config: &AdapterConfig,
+    ) -> Result<String, ErrorTypes> {
+        phonemize_phrase(phrase, word_number, dataset_name, config, |word| {
+            self.phonemize(word).map_err(|mut e| {
+                e.word_number = word_number;
+                e.dataset_name = dataset_name.map(String::from);
+                e
+            })
+        })
+    }
 }
 
-impl Drop for G2PProcess {
-    /// Sends the sentinel value to trigger a clean exit in the Python script.
+impl Drop for G2Py {
+    /// Sends the sentinel value to trigger a clean exit in the Python script
+    /// and deletes the temporary Python script file.
     fn drop(&mut self) {
         let _ = writeln!(self.stdin, "CEXIT");
         let _ = self.stdin.flush();
+        let _ = std::fs::remove_file(&self.temp_file);
     }
-}
-
-/// Result of G2P process initialization.
-///
-/// Stores either the successfully initialized process or the error
-/// that occurred during initialization, allowing for better error reporting.
-enum G2PInitResult {
-    Ok(G2PProcess),
-    Err(G2PError),
-}
-
-/// Global lazily-initialized G2P process.
-///
-/// The process is created on first use and protected by a mutex for
-/// thread-safe access. Stores the initialization result to provide
-/// detailed error information on subsequent access attempts.
-static G2P: Lazy<Mutex<G2PInitResult>> = Lazy::new(|| match G2PProcess::new() {
-    Ok(process) => Mutex::new(G2PInitResult::Ok(process)),
-    Err(e) => {
-        e.print_error();
-        Mutex::new(G2PInitResult::Err(e))
-    }
-});
-
-/// Convert a single word to IPA phonemes using the Python backend.
-///
-/// Thread-safe wrapper around the global G2P process.
-///
-/// # Arguments
-///
-/// * `word` - A single word (no spaces or hyphens) to phonemize
-///
-/// # Returns
-///
-/// IPA phoneme string (e.g., "ækʃən" for "action").
-///
-/// # Errors
-///
-/// Returns a `G2PError` if:
-/// - The G2P mutex is poisoned (`G2PErrorKind::MutexPoisoned`)
-/// - The G2P server failed to initialize (returns the original init error)
-/// - The Python process returns an error (`G2PErrorKind::TranscriptionFailed`)
-///
-/// # Example
-///
-/// ```ignore
-/// let phonemes = phonemize_internal("action")?;
-/// assert_eq!(phonemes, "ækʃən");
-/// ```
-fn phonemize_internal(word: &str) -> Result<String, G2PError> {
-    let mut guard = G2P
-        .lock()
-        .map_err(|_| G2PError::with_input(G2PErrorKind::MutexPoisoned, word))?;
-
-    match &mut *guard {
-        G2PInitResult::Ok(process) => process.phonemize(&word.to_lowercase()),
-        G2PInitResult::Err(init_error) => {
-            // Return a clone of the initialization error with the current input context
-            Err(G2PError::with_input(init_error.kind.clone(), word))
-        }
-    }
-}
-
-/// Phonemize a phrase to IPA phonemes.
-///
-/// Processes multi-word phrases and hyphenated compounds, returning
-/// IPA phonemes with `$` separating word boundaries.
-///
-/// # Arguments
-///
-/// * `phrase` - Input text (may contain multiple words separated by spaces)
-/// * `word_number` - Optional line number for error reporting
-/// * `dataset_name` - Optional dataset identifier for error context
-/// * `config` - Adapter configuration controlling error behavior
-///
-/// # Returns
-///
-/// * `Ok(String)` - IPA phonemes with `$` word separators
-/// * `Err(ErrorTypes)` - If phonemization fails
-///
-/// # Example
-///
-/// ```ignore
-/// let config = AdapterConfig::default();
-///
-/// // Single word
-/// let result = phonemize_to_ipa("action", None, None, &config)?;
-/// // Returns "ækʃən"
-///
-/// // Multi-word phrase  
-/// let result = phonemize_to_ipa("hello world", None, None, &config)?;
-/// // Returns "həloʊ$wɜːld"
-///
-/// // Hyphenated compound
-/// let result = phonemize_to_ipa("self-care", None, None, &config)?;
-/// // Returns "sɛlf$kɛɹ"
-/// ```
-///
-/// # Error Handling
-///
-/// If `config.panic_at_error` is `true`, panics on phonemization failure.
-/// Otherwise, returns an `ErrorTypes::Phonetization` error.
-pub fn phonemize_to_ipa(
-    phrase: &str,
-    word_number: Option<usize>,
-    dataset_name: Option<&str>,
-    config: &AdapterConfig,
-) -> Result<String, ErrorTypes> {
-    phonemize_phrase(phrase, word_number, dataset_name, config, |word| {
-        phonemize_internal(word).map_err(|mut e| {
-            // Add context to the error
-            e.word_number = word_number;
-            e.dataset_name = dataset_name.map(String::from);
-            e
-        })
-    })
 }

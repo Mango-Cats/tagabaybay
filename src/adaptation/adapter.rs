@@ -5,8 +5,8 @@ use crate::adaptation::orthographic::spelling::letter_to_phonetic;
 use crate::adaptation::phonetic::free::phonetic_replacements;
 use crate::configs::AdapterConfig;
 use crate::error::{AdaptationError, ErrorTypes};
+use crate::g2p::G2Py;
 use crate::g2p::phonemize_to_arpa;
-use crate::g2p::phonemize_to_ipa;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
@@ -40,23 +40,33 @@ use crate::phoneme::tokenizer::ipa::tokenize_ipa;
 /// ```
 pub struct Adapter {
     pub config: AdapterConfig,
+    ipa_g2p: Option<G2Py>,
 }
 
 impl Adapter {
     /// Create a new Adapter with default configuration
     pub fn new() -> Self {
-        Self {
-            config: AdapterConfig::default(),
-        }
+        let config = AdapterConfig::default();
+        let ipa_g2p = if config.use_ipa {
+            G2Py::new().ok()
+        } else {
+            None
+        };
+        Self { config, ipa_g2p }
     }
 
     /// Create a Adapter with a custom configuration
     pub fn new_with_config(config: AdapterConfig) -> Self {
-        Self { config }
+        let ipa_g2p = if config.use_ipa {
+            G2Py::new().ok()
+        } else {
+            None
+        };
+        Self { config, ipa_g2p }
     }
 
     fn adapter_internal(
-        &self,
+        &mut self,
         word: &str,
         word_number: Option<usize>,
         dataset_name: Option<&str>,
@@ -69,7 +79,14 @@ impl Adapter {
         let graphemes = source_tokenizer(word);
 
         let (phon_str, phonemes) = if config.use_ipa {
-            let phon_str = phonemize_to_ipa(word, word_number, dataset_name, config)?;
+            let g2p = self.ipa_g2p.as_mut().ok_or_else(|| {
+                ErrorTypes::G2P(crate::error::G2PError::new(
+                    crate::error::G2PErrorKind::ServerUnavailable {
+                        reason: "IPA G2P not initialized".to_string(),
+                    },
+                ))
+            })?;
+            let phon_str = g2p.phonemize_phrase(word, word_number, dataset_name, config)?;
             let toks = tokenize_ipa(&phon_str);
             (phon_str, toks)
         } else {
@@ -193,7 +210,7 @@ impl Adapter {
     /// let adapter = Adapter::new();
     /// let result = adapter.adaptation("hello").unwrap();
     /// ```
-    pub fn adaptation(&self, input: &str) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
+    pub fn adaptation(&mut self, input: &str) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
         self.adapter_internal(input, None, None)
     }
 
@@ -223,7 +240,7 @@ impl Adapter {
     /// let results = adapter.adapt_batch(&words, "test_dataset", config);
     /// ```
     pub fn adapt_batch(
-        &self,
+        &mut self,
         word_list: &[&str],
         dataset_name: &str,
     ) -> Vec<Result<Vec<FilipinoGrapheme>, ErrorTypes>> {

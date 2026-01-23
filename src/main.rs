@@ -3,14 +3,15 @@ use std::io::Write;
 
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
-use tagabaybay::g2p::phonemize_to_ipa;
+use tagabaybay::g2p::G2Py;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
     let config = AdapterConfig::new();
-    let adapter = Adapter::new_with_config(config.clone());
+    let mut adapter = Adapter::new_with_config(config.clone());
+    let mut ipa_g2p = G2Py::new().ok();
 
     loop {
         print!("? ");
@@ -21,8 +22,10 @@ fn main() {
         if input == "qq" {
             break;
         }
-        if let Ok(phonemes) = phonemize_to_ipa(&input, None, None, &config) {
-            println!("* {phonemes}")
+        if let Some(ref mut g2p) = ipa_g2p {
+            if let Ok(phonemes) = g2p.phonemize_phrase(&input, None, None, &config) {
+                println!("* {phonemes}")
+            }
         }
 
         match adapter.adaptation(&input) {
@@ -36,4 +39,6 @@ fn main() {
             Err(_) => (),
         }
     }
+    // When main exits, `ipa_g2p` and `adapter` are dropped,
+    // which cleans up the Python subprocess and deletes the temp script file.
 }
