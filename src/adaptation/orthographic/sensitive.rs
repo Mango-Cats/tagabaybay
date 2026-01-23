@@ -699,7 +699,7 @@ fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 
     if let Some(SourceGrapheme::U) = next {
-    // "aught" → "ot" (cough, rough, tough)
+    // "aught" → "ot" (caught, naught, daughter)
         if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
             if let Some(SourceGrapheme::T) = ctx.lookat_grapheme_low(4) {
                 return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::T], 5));
