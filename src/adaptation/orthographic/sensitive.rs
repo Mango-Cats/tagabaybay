@@ -747,7 +747,7 @@ fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     if let Some(SourceGrapheme::I) = next {
         // "eigh" → "ey" (eight, neighbour, weight)
         if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
-                return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::F], 4));
+                return Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::Y], 4));
         }
         return Some((tokens![FilipinoGrapheme::I], 2));
     }
