@@ -911,11 +911,6 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 
         // "ou" before consonant → "aw" (count, out, account, discount)
         Some(SourceGrapheme::U) => {
-            // "ough" → "uf" (cough, rough, tough)
-            if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
-                return Some((tokens![FilipinoGrapheme::U, FilipinoGrapheme::F], 4));
-            }
-
             if let Some(after) = ctx.lookat_grapheme_low(2) {
                 if after.is_consonant() {
                     return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
