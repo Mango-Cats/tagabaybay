@@ -77,11 +77,14 @@ fn sensitive_consonant(
         SourceGrapheme::B => handle_consonant_b(ctx),
         SourceGrapheme::C => handle_consonant_c(ctx),
         SourceGrapheme::D => handle_consonant_d(ctx),
+        SourceGrapheme::F => handle_consonant_f(ctx),
         SourceGrapheme::G => handle_consonant_g(ctx),
+        SourceGrapheme::K => handle_consonant_k(ctx),
         SourceGrapheme::L => handle_consonant_l(ctx),
         SourceGrapheme::M => handle_consonant_m(ctx),
         SourceGrapheme::N => handle_consonant_n(ctx),
         SourceGrapheme::P => handle_consonant_p(ctx),
+        SourceGrapheme::R => handle_consonant_r(ctx),
         SourceGrapheme::S => handle_consonant_s(ctx),   
         SourceGrapheme::T => handle_consonant_t(ctx),
         SourceGrapheme::V => handle_consonant_v(ctx),
@@ -184,6 +187,29 @@ fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
+/// Handle 'f' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
+fn handle_consonant_f(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-fed" → "-ft" (surfed, scoffed, bluffed)
+    match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
+            tokens![
+                FilipinoGrapheme::F,
+                FilipinoGrapheme::T
+            ],
+            3,
+        )),
+        _ => None,
+    }
+}
+
 /// Handle 'g' consonant patterns
 ///
 /// # Arguments
@@ -219,6 +245,29 @@ fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 )),
             }
         }
+        _ => None,
+    }
+}
+
+/// Handle 'k' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
+fn handle_consonant_k(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-ked" → "-kt" (walked, baked, kicked)
+    match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
+            tokens![
+                FilipinoGrapheme::K,
+                FilipinoGrapheme::T
+            ],
+            3,
+        )),
         _ => None,
     }
 }
@@ -292,29 +341,6 @@ fn handle_consonant_n(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 }
 
-/// Handle 's' consonant patterns
-///
-/// # Arguments
-///
-/// * `ctx` - Cursor containing the grapheme sequence and current position
-///
-/// # Returns
-///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match (ctx.prev_grapheme_low(), ctx.next_grapheme_low()) {
-        (Some(SourceGrapheme::EE | SourceGrapheme::OO), Some(SourceGrapheme::E)) => {
-            match ctx.lookat_grapheme_low(2) {
-                Some(SourceGrapheme::B | SourceGrapheme::D) => {
-                    Some((tokens![FilipinoGrapheme::S], 2))
-                }
-                _ => None,
-            }
-        }
-        _ => None,
-    }
-}
-
 /// Handle 'p' consonant patterns
 ///
 /// # Arguments
@@ -334,6 +360,57 @@ fn handle_consonant_p(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             ],
             3,
         )),
+        _ => None,
+    }
+}
+
+/// Handle 'r' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
+fn handle_consonant_r(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-red" → "-rd" (offered, entered, altered)
+    match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
+            tokens![
+                FilipinoGrapheme::R,
+                FilipinoGrapheme::D
+            ],
+            3,
+        )),
+        _ => None,
+    }
+}
+
+/// Handle 's' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
+fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-sed" → "-st" (crossed, missed, passed)
+    if let (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) = (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        return Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::T], 3));
+    }
+
+    match (ctx.prev_grapheme_low(), ctx.next_grapheme_low()) {
+        (Some(SourceGrapheme::EE | SourceGrapheme::OO), Some(SourceGrapheme::E)) => {
+            match ctx.lookat_grapheme_low(2) {
+                Some(SourceGrapheme::B | SourceGrapheme::D) => {
+                    Some((tokens![FilipinoGrapheme::S], 2))
+                }
+                _ => None,
+            }
+        }
         _ => None,
     }
 }
