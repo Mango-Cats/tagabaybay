@@ -76,12 +76,12 @@ fn sensitive_consonant(
     match curr {
         SourceGrapheme::B => handle_consonant_b(ctx),
         SourceGrapheme::C => handle_consonant_c(ctx),
-        SourceGrapheme::X => handle_consonant_x(ctx),
-        SourceGrapheme::Y => handle_consonant_y(ctx),
-        SourceGrapheme::T => handle_consonant_t(ctx),
         SourceGrapheme::D => handle_consonant_d(ctx),
         SourceGrapheme::G => handle_consonant_g(ctx),
-        SourceGrapheme::S => handle_consonant_s(ctx),
+        SourceGrapheme::S => handle_consonant_s(ctx),   
+        SourceGrapheme::T => handle_consonant_t(ctx),
+        SourceGrapheme::X => handle_consonant_x(ctx),
+        SourceGrapheme::Y => handle_consonant_y(ctx),
         SourceGrapheme::J => {
             if config.allow_j_letter {
                 Some((tokens![FilipinoGrapheme::J], 1))
@@ -151,118 +151,6 @@ fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         // default 'k'
         // consume self
         _ => Some((tokens![FilipinoGrapheme::K], 1)),
-    }
-}
-
-/// Handle 'x' consonant patterns
-///
-/// # Arguments
-///
-/// * `ctx` - Cursor containing the grapheme sequence and current position
-///
-/// # Returns
-///
-/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
-fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    // ^x -> 's'
-    // consume self
-    if ctx.at_start() {
-        return Some((tokens![FilipinoGrapheme::S], 1));
-    }
-
-    // default 'ks'
-    // consume self
-    Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::S], 1))
-}
-
-/// Handle 'y' consonant patterns
-///
-/// # Arguments
-///
-/// * `ctx` - Cursor containing the grapheme sequence and current position
-///
-/// # Returns
-///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    let prev = ctx.prev_grapheme_low();
-    let next = ctx.next_grapheme_low();
-
-    // Check for patterns where 'y' represents long I sound (AY)
-    // Common in medical/scientific terms: cy-, hy-, my-, dy-, py-, ty- followed by consonant
-    match (&prev, &next) {
-        // "cy" + consonant = "say" (cyanide, cycle, doxycycline)
-        // This pattern works for cy- anywhere in the word
-        (Some(SourceGrapheme::C), Some(n)) if n.is_consonant() => {
-            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
-        }
-        // "hy" + consonant = "hay" (hydro, hydrogen)
-        (Some(SourceGrapheme::H), Some(n)) if n.is_consonant() => {
-            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
-        }
-        // "my" + consonant = "may" (mycin compounds)
-        (Some(SourceGrapheme::M), Some(n)) if n.is_consonant() => {
-            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
-        }
-        // "dy" + consonant (not after vowel) = "day" (dynamic)
-        (Some(SourceGrapheme::D), Some(n)) if n.is_consonant() => {
-            // Check if there's a vowel before 'd'
-            let before_d = ctx.lookat_grapheme_low(-2);
-            match before_d {
-                Some(v) if v.is_vowel() => Some((tokens![FilipinoGrapheme::I], 1)),
-                _ => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1)),
-            }
-        }
-        // "py" + consonant = "pay" (pyrantel, pyrazinamide)
-        (Some(SourceGrapheme::P), Some(n)) if n.is_consonant() => {
-            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
-        }
-        // "ty" + consonant = "tay" (type)
-        (Some(SourceGrapheme::T), Some(n)) if n.is_consonant() => {
-            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
-        }
-        // 'y' after ('s' | 'l' | 'x') becomes 'i'
-        // Note: 'x' already produces 'ks', so 'y' after it is just 'i'
-        (Some(SourceGrapheme::S | SourceGrapheme::L | SourceGrapheme::X), _) => {
-            Some((tokens![FilipinoGrapheme::I], 1))
-        }
-        // 'y' before 's' or 'l' becomes 'i'
-        (_, Some(SourceGrapheme::S | SourceGrapheme::L)) => Some((tokens![FilipinoGrapheme::I], 1)),
-        // 'y' not preceded by 'a' becomes 'i'
-        (Some(g), _) if *g != SourceGrapheme::A => Some((tokens![FilipinoGrapheme::I], 1)),
-        (None, _) => Some((tokens![FilipinoGrapheme::I], 1)), // 'y' at start becomes 'i'
-        // 'y' preceded by 'a' - just emit 'y' (A already processed)
-        (Some(SourceGrapheme::A), _) => Some((tokens![FilipinoGrapheme::Y], 1)),
-        _ => None,
-    }
-}
-
-/// Handle 't' consonant patterns
-///
-/// # Arguments
-///
-/// * `ctx` - Cursor containing the grapheme sequence and current position
-///
-/// # Returns
-///
-/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
-fn handle_consonant_t(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    match (ctx.prev_grapheme_low(), ctx.next_grapheme_low()) {
-        // 'th' + (a|o) -> 'tay/toy'
-        (Some(SourceGrapheme::H), Some(SourceGrapheme::A | SourceGrapheme::O)) => Some((
-            tokens![
-                FilipinoGrapheme::T,
-                FilipinoGrapheme::A,
-                FilipinoGrapheme::Y,
-                match ctx.next_grapheme_low() {
-                    Some(SourceGrapheme::A) => FilipinoGrapheme::A,
-                    Some(SourceGrapheme::O) => FilipinoGrapheme::O,
-                    _ => FilipinoGrapheme::Other,
-                },
-            ],
-            2,
-        )),
-        _ => None,
     }
 }
 
@@ -347,6 +235,118 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 _ => None,
             }
         }
+        _ => None,
+    }
+}
+
+/// Handle 't' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
+fn handle_consonant_t(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    match (ctx.prev_grapheme_low(), ctx.next_grapheme_low()) {
+        // 'th' + (a|o) -> 'tay/toy'
+        (Some(SourceGrapheme::H), Some(SourceGrapheme::A | SourceGrapheme::O)) => Some((
+            tokens![
+                FilipinoGrapheme::T,
+                FilipinoGrapheme::A,
+                FilipinoGrapheme::Y,
+                match ctx.next_grapheme_low() {
+                    Some(SourceGrapheme::A) => FilipinoGrapheme::A,
+                    Some(SourceGrapheme::O) => FilipinoGrapheme::O,
+                    _ => FilipinoGrapheme::Other,
+                },
+            ],
+            2,
+        )),
+        _ => None,
+    }
+}
+
+/// Handle 'x' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
+fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // ^x -> 's'
+    // consume self
+    if ctx.at_start() {
+        return Some((tokens![FilipinoGrapheme::S], 1));
+    }
+
+    // default 'ks'
+    // consume self
+    Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::S], 1))
+}
+
+/// Handle 'y' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
+fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    let prev = ctx.prev_grapheme_low();
+    let next = ctx.next_grapheme_low();
+
+    // Check for patterns where 'y' represents long I sound (AY)
+    // Common in medical/scientific terms: cy-, hy-, my-, dy-, py-, ty- followed by consonant
+    match (&prev, &next) {
+        // "cy" + consonant = "say" (cyanide, cycle, doxycycline)
+        // This pattern works for cy- anywhere in the word
+        (Some(SourceGrapheme::C), Some(n)) if n.is_consonant() => {
+            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
+        }
+        // "hy" + consonant = "hay" (hydro, hydrogen)
+        (Some(SourceGrapheme::H), Some(n)) if n.is_consonant() => {
+            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
+        }
+        // "my" + consonant = "may" (mycin compounds)
+        (Some(SourceGrapheme::M), Some(n)) if n.is_consonant() => {
+            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
+        }
+        // "dy" + consonant (not after vowel) = "day" (dynamic)
+        (Some(SourceGrapheme::D), Some(n)) if n.is_consonant() => {
+            // Check if there's a vowel before 'd'
+            let before_d = ctx.lookat_grapheme_low(-2);
+            match before_d {
+                Some(v) if v.is_vowel() => Some((tokens![FilipinoGrapheme::I], 1)),
+                _ => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1)),
+            }
+        }
+        // "py" + consonant = "pay" (pyrantel, pyrazinamide)
+        (Some(SourceGrapheme::P), Some(n)) if n.is_consonant() => {
+            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
+        }
+        // "ty" + consonant = "tay" (type)
+        (Some(SourceGrapheme::T), Some(n)) if n.is_consonant() => {
+            Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1))
+        }
+        // 'y' after ('s' | 'l' | 'x') becomes 'i'
+        // Note: 'x' already produces 'ks', so 'y' after it is just 'i'
+        (Some(SourceGrapheme::S | SourceGrapheme::L | SourceGrapheme::X), _) => {
+            Some((tokens![FilipinoGrapheme::I], 1))
+        }
+        // 'y' before 's' or 'l' becomes 'i'
+        (_, Some(SourceGrapheme::S | SourceGrapheme::L)) => Some((tokens![FilipinoGrapheme::I], 1)),
+        // 'y' not preceded by 'a' becomes 'i'
+        (Some(g), _) if *g != SourceGrapheme::A => Some((tokens![FilipinoGrapheme::I], 1)),
+        (None, _) => Some((tokens![FilipinoGrapheme::I], 1)), // 'y' at start becomes 'i'
+        // 'y' preceded by 'a' - just emit 'y' (A already processed)
+        (Some(SourceGrapheme::A), _) => Some((tokens![FilipinoGrapheme::Y], 1)),
         _ => None,
     }
 }
