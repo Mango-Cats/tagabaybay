@@ -12,7 +12,7 @@ pub enum ErrorTypes {
 #[derive(Debug, Clone)]
 pub enum G2PErrorKind {
     /// uv package manager is not installed
-    UvNotFound,
+    UVNotFound,
     /// eSpeak-NG library not found (especially the DLL on Windows)
     EspeakNotFound {
         /// Platform-specific hint for resolution
@@ -84,7 +84,7 @@ impl G2PError {
     /// Print the error with context (for debugging)
     pub fn print_error(&self) {
         match &self.kind {
-            G2PErrorKind::UvNotFound => {
+            G2PErrorKind::UVNotFound => {
                 println!("error: uv package manager not found");
                 println!("  help: install uv from https://docs.astral.sh/uv/");
                 println!("  help: on Linux/macOS: curl -LsSf https://astral.sh/uv/install.sh | sh");
@@ -127,7 +127,7 @@ impl G2PError {
 impl fmt::Display for G2PError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.kind {
-            G2PErrorKind::UvNotFound => write!(f, "uv package manager not found"),
+            G2PErrorKind::UVNotFound => write!(f, "uv package manager not found"),
             G2PErrorKind::EspeakNotFound { hint } => {
                 write!(f, "eSpeak-NG not found: {}", hint)
             }
