@@ -444,7 +444,7 @@ fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 
     if let Some(SourceGrapheme::U) = next {
-    // "aught" → "uf" sound (cough, rough, tough)
+    // "aught" → "ot" (cough, rough, tough)
         if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
             if let Some(SourceGrapheme::T) = ctx.lookat_grapheme_low(4) {
                 return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::T], 5));
@@ -487,9 +487,13 @@ fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     if ctx.at_end() {
         return Some((tokens![], 1));
     }
-
+    
     // "ei" → "i" (receive, ceiling)
     if let Some(SourceGrapheme::I) = next {
+        // "eigh" → "ey" (eight, neighbour, weight)
+        if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
+                return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::F], 4));
+        }
         return Some((tokens![FilipinoGrapheme::I], 2));
     }
 
@@ -647,7 +651,7 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 
         // "ou" before consonant → "aw" (count, out, account, discount)
         Some(SourceGrapheme::U) => {
-            // "ough" → "uf" sound (cough, rough, tough)
+            // "ough" → "uf" (cough, rough, tough)
             if let (Some(SourceGrapheme::G), Some(SourceGrapheme::H)) = (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
                 return Some((tokens![FilipinoGrapheme::U, FilipinoGrapheme::F], 4));
             }
