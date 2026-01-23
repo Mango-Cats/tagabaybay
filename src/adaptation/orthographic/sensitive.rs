@@ -81,6 +81,7 @@ fn sensitive_consonant(
         SourceGrapheme::L => handle_consonant_l(ctx),
         SourceGrapheme::M => handle_consonant_m(ctx),
         SourceGrapheme::N => handle_consonant_n(ctx),
+        SourceGrapheme::P => handle_consonant_p(ctx),
         SourceGrapheme::S => handle_consonant_s(ctx),   
         SourceGrapheme::T => handle_consonant_t(ctx),
         SourceGrapheme::V => handle_consonant_v(ctx),
@@ -113,6 +114,7 @@ fn handle_consonant_b(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
         (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
             tokens![
+                FilipinoGrapheme::B,
                 FilipinoGrapheme::D
             ],
             3,
@@ -194,7 +196,7 @@ fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // "-ged" → "-d" (engaged, managed, damaged)
     if let (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) = (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
-        return Some((tokens![FilipinoGrapheme::D], 3));
+        return Some((tokens![FilipinoGrapheme::G, FilipinoGrapheme::D], 3));
     }
 
     // ge | gi | gy | gee
@@ -235,6 +237,7 @@ fn handle_consonant_l(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
         (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
             tokens![
+                FilipinoGrapheme::L,
                 FilipinoGrapheme::D
             ],
             3,
@@ -257,6 +260,7 @@ fn handle_consonant_m(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
         (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
             tokens![
+                FilipinoGrapheme::M,
                 FilipinoGrapheme::D
             ],
             3,
@@ -279,6 +283,7 @@ fn handle_consonant_n(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
         (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
             tokens![
+                FilipinoGrapheme::N,
                 FilipinoGrapheme::D
             ],
             3,
@@ -306,6 +311,29 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 _ => None,
             }
         }
+        _ => None,
+    }
+}
+
+/// Handle 'p' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
+fn handle_consonant_p(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-ped" → "-t" (helped, skipped, leaped)
+    match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
+            tokens![
+                FilipinoGrapheme::P,
+                FilipinoGrapheme::T
+            ],
+            3,
+        )),
         _ => None,
     }
 }
@@ -353,6 +381,7 @@ fn handle_consonant_v(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
         (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
             tokens![
+                FilipinoGrapheme::V,
                 FilipinoGrapheme::D
             ],
             3,
@@ -392,6 +421,11 @@ fn handle_consonant_x(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-yed" → "-d" (played, stayed, prayed)
+    if let (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) = (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        return Some((tokens![FilipinoGrapheme::D], 3));
+    }
+
     let prev = ctx.prev_grapheme_low();
     let next = ctx.next_grapheme_low();
 
@@ -458,6 +492,7 @@ fn handle_consonant_z(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
         (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) => Some((
             tokens![
+                FilipinoGrapheme::Z,
                 FilipinoGrapheme::D
             ],
             3,
@@ -680,6 +715,11 @@ fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-ied" → "-d"
+    if let (Some(SourceGrapheme::E), Some(SourceGrapheme::D)) = (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+        return Some((tokens![FilipinoGrapheme::D], 3));
+    }
+
     let next = ctx.next_grapheme_low();
 
     // check for "ide" pattern (i-d-e at end) → "ayd"
