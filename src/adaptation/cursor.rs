@@ -13,9 +13,16 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
         let phoneme = if index > 0 && *grapheme == g[index - 1] {
             None
         } else if p_index < p.len() {
-            let ph = Some(p[p_index].clone());
+            let ph = p[p_index].clone();
+            dbg!(ph.clone());
             p_index += 1;
-            ph
+
+            if ph == IPASymbol::TriangularColon || ph == IPASymbol::RegularColon {
+                None
+            } else {
+                Some(ph)
+            }
+
         } else {
             None
         };

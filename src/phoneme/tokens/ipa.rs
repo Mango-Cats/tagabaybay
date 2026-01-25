@@ -127,6 +127,12 @@ pub enum IPASymbol {
     // CONSONANTS - Tap/Flap
     /// /ɾ/ - Alveolar tap (better in American English, Filipino r)
     AlveolarTap,
+
+    // MISCALLANEOUS - Not exactly sure what to name it rn
+    /// /ː/ - Triangular colon implies that the previous phoneme has a long sound
+    TriangularColon,
+    /// /:/ - Regular colon implies that the previous phoneme has a long sound
+    RegularColon,
 }
 
 impl IPASymbol {
@@ -194,6 +200,10 @@ impl IPASymbol {
 
             // Tap
             IPASymbol::AlveolarTap => "ɾ",
+
+            // Miscellaneous
+            IPASymbol::TriangularColon => "ː",
+            IPASymbol::RegularColon => ":",
         }
     }
 
