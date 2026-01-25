@@ -27,6 +27,7 @@ pub enum SourceGrapheme {
     // Tetragraphs
     AUGH,
     OUGH,
+    EIGH,
 
     // Vowels
     A,
@@ -120,6 +121,7 @@ impl SourceGrapheme {
             // Tetragraphs
             SourceGrapheme::AUGH => "augh".to_string(),
             SourceGrapheme::OUGH => "ough".to_string(),
+            SourceGrapheme::EIGH => "eigh".to_string(),
 
             // Vowels
             SourceGrapheme::A => "a".to_string(),
@@ -431,6 +433,7 @@ pub fn match_tetragraph(s: &str) -> Option<SourceGrapheme> {
     match s.to_lowercase().as_str() {
         "augh" => Some(SourceGrapheme::AUGH),
         "ough" => Some(SourceGrapheme::OUGH),
+        "eigh" => Some(SourceGrapheme::EIGH),
 
         _ => None,
     }

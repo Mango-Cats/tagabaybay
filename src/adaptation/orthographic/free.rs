@@ -43,6 +43,7 @@ pub fn free_replacement(
 
         // Tetragraph replacements (tetragraph count as 1 grapheme)
         SourceGrapheme::AUGH => Some((tokens![FilipinoGrapheme::O], 1)),
+        SourceGrapheme::EIGH => Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::Y], 1)),
 
         // Consonants
         SourceGrapheme::B => Some((tokens![FilipinoGrapheme::B], 1)),

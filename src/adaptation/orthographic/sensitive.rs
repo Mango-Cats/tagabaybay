@@ -79,6 +79,7 @@ fn sensitive_consonant(
         SourceGrapheme::D => handle_consonant_d(ctx),
         SourceGrapheme::F => handle_consonant_f(ctx),
         SourceGrapheme::G => handle_consonant_g(ctx),
+        SourceGrapheme::H => handle_consonant_h(ctx),
         SourceGrapheme::K => handle_consonant_k(ctx),
         SourceGrapheme::L => handle_consonant_l(ctx),
         SourceGrapheme::M => handle_consonant_m(ctx),
@@ -245,6 +246,30 @@ fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 )),
             }
         }
+        _ => None,
+    }
+}
+
+/// Handle 'h' consonant patterns
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+///
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
+fn handle_consonant_h(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "heigh-" → "hay-" (height, heightened)
+    match ctx.lookat_grapheme_low(1) {
+        Some(SourceGrapheme::EIGH) => Some((
+            tokens![
+                FilipinoGrapheme::H,
+                FilipinoGrapheme::A,
+                FilipinoGrapheme::Y
+            ],
+            2,
+        )),
         _ => None,
     }
 }
@@ -756,10 +781,6 @@ fn handle_vowel_e(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     
     // "ei" → "i" (receive, ceiling)
     if let Some(SourceGrapheme::I) = next {
-        // "eigh" → "ey" (eight, neighbour, weight)
-        if let Some(SourceGrapheme::GH) = ctx.lookat_grapheme_low(2) {
-                return Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::Y], 3));
-        }
         return Some((tokens![FilipinoGrapheme::I], 2));
     }
 
