@@ -26,6 +26,7 @@ pub enum SourceGrapheme {
     ORE,
     IGH,
     DGE,
+    QUE,
 
     // Tetragraphs
     AUGH,
@@ -123,6 +124,7 @@ impl SourceGrapheme {
             SourceGrapheme::ORE => "ore".to_string(),
             SourceGrapheme::IGH => "igh".to_string(),
             SourceGrapheme::DGE => "dge".to_string(),
+            SourceGrapheme::QUE => "que".to_string(),
 
             // Tetragraphs
             SourceGrapheme::AUGH => "augh".to_string(),
@@ -292,6 +294,30 @@ impl SourceGrapheme {
                 | SourceGrapheme::SH
                 | SourceGrapheme::EE
                 | SourceGrapheme::OO
+                | SourceGrapheme::ED
+                | SourceGrapheme::GH
+                | SourceGrapheme::WH
+        )
+    }
+
+    /// Check if this grapheme represents a trigraph
+    pub fn is_trigraph(&self) -> bool {
+        matches!(
+            self,
+            SourceGrapheme::ORE
+                | SourceGrapheme::IGH
+                | SourceGrapheme::DGE
+                | SourceGrapheme::QUE
+        )
+    }
+
+    /// Check if this grapheme represents a trigraph
+    pub fn is_tetragraph(&self) -> bool {
+        matches!(
+            self,
+            SourceGrapheme::AUGH
+                | SourceGrapheme::OUGH
+                | SourceGrapheme::EIGH
         )
     }
 
@@ -462,6 +488,7 @@ pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
         "ore" => Some(SourceGrapheme::ORE),
         "igh" => Some(SourceGrapheme::IGH),
         "dge" => Some(SourceGrapheme::DGE),
+        "que" => Some(SourceGrapheme::QUE),
 
         _ => None,
     }

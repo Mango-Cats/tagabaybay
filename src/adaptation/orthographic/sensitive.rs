@@ -33,7 +33,9 @@ pub fn sensitive_replacement(
 ) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let curr = ctx.current_grapheme_low();
 
-    if curr.is_digraph() {
+    if curr.is_trigraph() {
+        sensitive_trigraph(ctx)
+    } else if curr.is_digraph() {
         sensitive_digraph(ctx, config)
     } else if curr.is_consonant() {
         sensitive_consonant(ctx, config)
@@ -609,6 +611,33 @@ fn handle_consonant_z(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             ],
             2,
         )),
+        _ => None,
+    }
+}
+
+/// Trigraph-specific context-sensitive rules
+///
+/// # Arguments
+///
+/// * `ctx` - Cursor containing the grapheme sequence and current position
+
+/// # Returns
+///
+/// Returns `Some((FilipinoGrapheme, consumed))` if a rule matches, `None` otherwise.
+fn sensitive_trigraph(
+    ctx: &Cursor
+) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    let curr = ctx.current_grapheme_low();
+
+    match curr {
+        SourceGrapheme:: QUE => {
+            if ctx.position() == ctx.graphemes.len() - 1 {
+                return Some((tokens![FilipinoGrapheme::K], 1));
+            }
+
+            Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::W], 1))
+        }
+
         _ => None,
     }
 }
