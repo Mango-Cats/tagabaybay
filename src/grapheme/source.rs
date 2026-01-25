@@ -18,6 +18,8 @@ pub enum SourceGrapheme {
     SH,
     EE,
     OO,
+    ED,
+    GH,
 
     // Vowels
     A,
@@ -102,6 +104,8 @@ impl SourceGrapheme {
             SourceGrapheme::SH => "sh".to_string(),
             SourceGrapheme::EE => "ee".to_string(),
             SourceGrapheme::OO => "oo".to_string(),
+            SourceGrapheme::ED => "ed".to_string(),
+            SourceGrapheme::GH => "gh".to_string(),
 
             // Vowels
             SourceGrapheme::A => "a".to_string(),
@@ -425,6 +429,8 @@ pub fn match_digraph(s: &str) -> Option<SourceGrapheme> {
         "sh" => Some(SourceGrapheme::SH),
         "ee" => Some(SourceGrapheme::EE),
         "oo" => Some(SourceGrapheme::OO),
+        "ed" => Some(SourceGrapheme::ED),
+        "gh" => Some(SourceGrapheme::GH),
 
         _ => None,
     }
