@@ -21,6 +21,9 @@ pub enum SourceGrapheme {
     ED,
     GH,
 
+    // Trigraphs
+    ORE,
+
     // Vowels
     A,
     E,
@@ -106,6 +109,7 @@ impl SourceGrapheme {
             SourceGrapheme::OO => "oo".to_string(),
             SourceGrapheme::ED => "ed".to_string(),
             SourceGrapheme::GH => "gh".to_string(),
+            SourceGrapheme::ORE => "ore".to_string(),
 
             // Vowels
             SourceGrapheme::A => "a".to_string(),
@@ -402,11 +406,13 @@ impl SourceGrapheme {
 }
 
 /// Match a 3-character string to a trigraph
-// pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
-//     match s.to_lowercase().as_str() {
-//         _ => None,
-//     }
-// }
+pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
+    match s.to_lowercase().as_str() {
+        "ore" => Some(SourceGrapheme::ORE),
+
+        _ => None,
+    }
+}
 
 /// Match a 2-character string to a digraph grapheme
 ///
