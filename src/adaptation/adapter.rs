@@ -1,4 +1,5 @@
 use crate::adaptation::cursor::Cursor;
+use crate::adaptation::cursor::phoneme_grapheme_alignment;
 use crate::adaptation::orthographic::free::free_replacement;
 use crate::adaptation::orthographic::sensitive::sensitive_replacement;
 use crate::adaptation::orthographic::spelling::letter_to_phonetic;

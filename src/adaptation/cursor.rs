@@ -1,4 +1,41 @@
-use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
+use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol, phoneme::tokens::arpabet::ArpabetSymbols};
+
+//for debugging
+use crate::{grapheme::filipino::graphemes_to_string, phoneme::tokenizer::ipa::detokenize_ipa};
+
+type AlignedString = Vec<(SourceGrapheme, Option<IPASymbol>)>;
+
+pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> AlignedString {
+    let mut res = Vec::new();
+    
+    for (index, grapheme) in g.iter().enumerate() {
+        let phoneme = if index < p.len(){
+            if index > 0 && *grapheme == g[index - 1] {
+                None
+            } else {
+                Some(p[index].clone())  
+            }
+        } else {
+            None
+        };
+
+        res.push((grapheme.clone(), phoneme));
+    };
+
+    //printing purposes
+    for (index, (grapheme, phoneme_opt)) in res.iter().enumerate() {
+        let grapheme_str = grapheme.clone();
+        let phoneme_str = match phoneme_opt {
+            Some(ipa) => detokenize_ipa(&[ipa.clone()]),
+            None => String::from("None"),
+        };
+
+        println!("{}: {} -> {}", index, grapheme_str, phoneme_str);
+
+    };
+
+    res
+}
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.
 #[derive(Debug, Clone)]
