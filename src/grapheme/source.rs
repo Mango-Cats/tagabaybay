@@ -24,6 +24,7 @@ pub enum SourceGrapheme {
 
     // Trigraphs
     ORE,
+    IGH,
 
     // Tetragraphs
     AUGH,
@@ -119,6 +120,7 @@ impl SourceGrapheme {
 
             // Trigraphs
             SourceGrapheme::ORE => "ore".to_string(),
+            SourceGrapheme::IGH => "igh".to_string(),
 
             // Tetragraphs
             SourceGrapheme::AUGH => "augh".to_string(),
@@ -456,6 +458,7 @@ pub fn match_tetragraph(s: &str) -> Option<SourceGrapheme> {
 pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
     match s.to_lowercase().as_str() {
         "ore" => Some(SourceGrapheme::ORE),
+        "igh" => Some(SourceGrapheme::IGH),
 
         _ => None,
     }

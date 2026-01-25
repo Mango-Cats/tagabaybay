@@ -872,14 +872,6 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
     }
 
-    // "igh" → "ay" (high, light, night, flight)
-    if let Some(SourceGrapheme::GH) = next {
-            return Some((
-                tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y],
-                2, // Consume i, gh
-            ));
-    }
-
     // regular i + vowel patterns
     match next {
         Some(SourceGrapheme::A) => Some((
