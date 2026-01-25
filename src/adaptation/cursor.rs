@@ -1,20 +1,21 @@
 use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol, phoneme::tokens::arpabet::ArpabetSymbols};
 
 //for debugging
-use crate::{grapheme::filipino::graphemes_to_string, phoneme::tokenizer::ipa::detokenize_ipa};
+use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
 
 type AlignedString = Vec<(SourceGrapheme, Option<IPASymbol>)>;
 
 pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> AlignedString {
     let mut res = Vec::new();
+    let mut p_index = 0;
     
     for (index, grapheme) in g.iter().enumerate() {
-        let phoneme = if index < p.len(){
-            if index > 0 && *grapheme == g[index - 1] {
-                None
-            } else {
-                Some(p[index].clone())  
-            }
+        let phoneme = if index > 0 && *grapheme == g[index - 1] {
+            None
+        } else if p_index < p.len() {
+            let ph = Some(p[p_index].clone());
+            p_index += 1;
+            ph
         } else {
             None
         };
