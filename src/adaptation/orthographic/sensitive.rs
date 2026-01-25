@@ -742,17 +742,6 @@ fn handle_vowel_a(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
     }
 
-    if let Some(SourceGrapheme::U) = next {
-        if let Some(SourceGrapheme::GH) = ctx.lookat_grapheme_low(2) {
-            // "aught" → "ot" (caught, naught, daughter)
-            if let Some(SourceGrapheme::T) = ctx.lookat_grapheme_low(3) {
-                return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::T], 4));
-            }
-            // "augh" → "af"
-            return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::F], 3));
-        }
-    }
-
     // Magic-e pattern: a + consonant + e at end = "ey" (make, cake, save)
     if let Some(n) = &next {
         if n.is_consonant() && !n.is_digraph() {

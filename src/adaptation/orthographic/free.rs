@@ -37,6 +37,7 @@ pub fn free_replacement(
         SourceGrapheme::TH => Some((tokens![FilipinoGrapheme::T], 1)),
         SourceGrapheme::EE => Some((tokens![FilipinoGrapheme::I], 1)),
         SourceGrapheme::OO => Some((tokens![FilipinoGrapheme::U], 1)),
+        SourceGrapheme::GH => Some((tokens![FilipinoGrapheme::G], 1)),
 
         // Trigraph replacements (trigraph count as 1 grapheme)
         SourceGrapheme::ORE => Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::R], 1)),
