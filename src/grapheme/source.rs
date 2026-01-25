@@ -24,6 +24,10 @@ pub enum SourceGrapheme {
     // Trigraphs
     ORE,
 
+    // Tetragraphs
+    AUGH,
+    OUGH,
+
     // Vowels
     A,
     E,
@@ -109,7 +113,13 @@ impl SourceGrapheme {
             SourceGrapheme::OO => "oo".to_string(),
             SourceGrapheme::ED => "ed".to_string(),
             SourceGrapheme::GH => "gh".to_string(),
+
+            // Trigraphs
             SourceGrapheme::ORE => "ore".to_string(),
+
+            // Tetragraphs
+            SourceGrapheme::AUGH => "augh".to_string(),
+            SourceGrapheme::OUGH => "ough".to_string(),
 
             // Vowels
             SourceGrapheme::A => "a".to_string(),
@@ -405,7 +415,39 @@ impl SourceGrapheme {
     }
 }
 
+/// Match a 4-character string to a tetragraph
+/// Recognizes tetragraphs (four-letter combinations that represent
+/// a single sound or pattern).
+/// 
+/// # Arguments
+///
+/// * `s` - A 4-character string to match (case-insensitive)
+///
+/// # Returns
+///
+/// Returns `Some(SourceGrapheme)` if the string matches a known tetragraph.
+/// Returns `None` if no match is found.
+pub fn match_tetragraph(s: &str) -> Option<SourceGrapheme> {
+    match s.to_lowercase().as_str() {
+        "augh" => Some(SourceGrapheme::AUGH),
+        "ough" => Some(SourceGrapheme::OUGH),
+
+        _ => None,
+    }
+}
+
 /// Match a 3-character string to a trigraph
+/// Recognizes trigraphs (three-letter combinations that represent
+/// a single sound or pattern).
+/// 
+/// # Arguments
+///
+/// * `s` - A 3-character string to match (case-insensitive)
+///
+/// # Returns
+///
+/// Returns `Some(SourceGrapheme)` if the string matches a known trigraph.
+/// Returns `None` if no match is found.
 pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
     match s.to_lowercase().as_str() {
         "ore" => Some(SourceGrapheme::ORE),

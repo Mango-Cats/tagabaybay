@@ -282,6 +282,16 @@ fn handle_consonant_k(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_l(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+
+    // "laugh" → "laf" (laugh, laughter, laughing)
+    // check if word starts with "l" since that's the only time "augh" will be "af"
+    if ctx.position() == 0 {
+        if let Some(SourceGrapheme::AUGH) = ctx.lookat_grapheme_low(1) {
+            return Some((tokens![FilipinoGrapheme::L, FilipinoGrapheme::A, FilipinoGrapheme::F], 2));
+        }
+
+    }
+
     // "-led" → "-ld" (called, pulled, rolled)
     match ctx.lookat_grapheme_low(1) {
         Some(SourceGrapheme::ED) => Some((
