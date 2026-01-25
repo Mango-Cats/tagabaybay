@@ -221,9 +221,9 @@ fn handle_consonant_f(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    // "-ged" → "-gd" (engaged, managed, damaged)
+    // "-ged" → "-jd" (engaged, managed, damaged)
     if let Some(SourceGrapheme::ED) = ctx.lookat_grapheme_low(1) {
-        return Some((tokens![FilipinoGrapheme::G, FilipinoGrapheme::D], 2));
+        return Some((tokens![FilipinoGrapheme::J, FilipinoGrapheme::D], 2));
     }
 
     // ge | gi | gy | gee
