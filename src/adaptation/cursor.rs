@@ -3,7 +3,7 @@ use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
 //for debugging
 use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
 
-type AlignedString = Vec<(SourceGrapheme, Option<IPASymbol>)>;
+type AlignedString = Vec<(SourceGrapheme, Vec<Option<IPASymbol>>)>;
 
 pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> AlignedString {
     let mut res = Vec::new();
@@ -11,14 +11,14 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
     
     for (index, grapheme) in g.iter().enumerate() {
         let phoneme = if index > 0 && *grapheme == g[index - 1] {
-            None
+            vec![None]
          // Cases when vowels are next to each other, make the 2nd vowel None / silent? unless case of OO or EE. oh my god this logic is so cheeks
         } else if index > 0 && 
         ((*grapheme).is_vowel() && (*grapheme != SourceGrapheme::OO || *grapheme != SourceGrapheme::EE)) && 
         (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) &&
-        //fix this logic ie. queue
+        //fix this logic ie. queueueueueue
         g[index - 2].is_consonant() {
-            None
+            vec![None]
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
             
@@ -29,23 +29,34 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
 
             // Case where X is encountered, since X is ks 
             
-            Some(ph)
+            vec![Some(ph)]
         } else {
-            None
+            vec![None]
         };
 
         res.push((grapheme.clone(), phoneme));
     };
 
+    // Case where g.len() is shorter than p.len() -> append the remaining phonemes left behind to the corresponding index in p of the last grapheme
+    // ok -> oʊkeɪ, so (O, oʊ), (K, keɪ)
+    if p_index < p.len() {
+        while p_index < p.len() {
+            let remaining_phonemes = p[p_index].clone();
+            res.last_mut().unwrap().1.push(Some(remaining_phonemes));
+            p_index += 1;
+        }
+    }
+
     //printing purposes
-    for (index, (grapheme, phoneme_opt)) in res.iter().enumerate() {
+    for (index, (grapheme, phoneme_vec)) in res.iter().enumerate() {
         let grapheme_str = grapheme.clone();
-        let phoneme_str = match phoneme_opt {
+        let phoneme_strs: Vec<String> = phoneme_vec.iter()
+        .map(|p_opt| match p_opt {
             Some(ipa) => detokenize_ipa(&[ipa.clone()]),
             None => String::from("None"),
-        };
-
-        println!("{}: {} -> {}", index, grapheme_str, phoneme_str);
+        })
+        .collect();
+    println!("{}: {} -> ({})", index, grapheme_str, phoneme_strs.join(", "));
 
     };
 
