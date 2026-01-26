@@ -16,6 +16,7 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
         } else if index > 0 && 
         ((*grapheme).is_vowel() && (*grapheme != SourceGrapheme::OO || *grapheme != SourceGrapheme::EE)) && 
         (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) &&
+        //fix this logic ie. queue
         g[index - 2].is_consonant() {
             None
         } else if p_index < p.len() {
@@ -26,12 +27,8 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
 
             p_index += 1;
 
-            // Case where ː or : is encountered, maybe make it for cases like "au" or "aw" where no dipthong exists for that
-            // if ph == IPASymbol::TriangularColon || ph == IPASymbol::RegularColon {
-            //     None
-            // } else {
-            //     Some(ph)
-            // }
+            // Case where X is encountered, since X is ks 
+            
             Some(ph)
         } else {
             None
