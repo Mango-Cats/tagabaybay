@@ -12,8 +12,9 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
     for (index, grapheme) in g.iter().enumerate() {
         let phoneme = if index > 0 && *grapheme == g[index - 1] {
             vec![None]
+        } 
          // Cases when vowels are next to each other, make the 2nd vowel None / silent? unless case of OO or EE. oh my god this logic is so cheeks
-        } else if index > 0 && 
+        else if index > 0 && 
         ((*grapheme).is_vowel() && (*grapheme != SourceGrapheme::OO || *grapheme != SourceGrapheme::EE)) && 
         (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) &&
         //fix this logic ie. queueueueueue
@@ -27,9 +28,16 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
 
             p_index += 1;
 
-            // Case where X is encountered, since X is ks 
-            
-            vec![Some(ph)]
+            // Case where X is encountered, combines k and s to make [Some(k), Some(s)] smt like that (can be expanded)
+            if *grapheme == SourceGrapheme::X {
+                let next_ph = p[p_index].clone();
+                p_index += 1;
+                vec![Some(ph), Some(next_ph)]
+            } else {
+                vec![Some(ph)]
+            }
+
+            // vec![Some(ph)]
         } else {
             vec![None]
         };
@@ -56,7 +64,7 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
             None => String::from("None"),
         })
         .collect();
-    println!("{}: {} -> ({})", index, grapheme_str, phoneme_strs.join(", "));
+    println!("{}: {} -> {}", index, grapheme_str, phoneme_strs.join(""));
 
     };
 
