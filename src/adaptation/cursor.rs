@@ -12,8 +12,10 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
     for (index, grapheme) in g.iter().enumerate() {
         let phoneme = if index > 0 && *grapheme == g[index - 1] {
             None
-         // Case of "ou" where the ou in c/ou/ld is represented by ʊ, or in shr/ou/d where the ou is dipthong aʊ
-        } else if index > 0 && *grapheme == SourceGrapheme::U && g[index - 1] == SourceGrapheme::O {
+         // Cases when vowels are next to each other, make the 2nd vowel None / silent? unless case of OO or EE. oh my god this logic is so cheeks
+        } else if index > 0 && 
+        ((*grapheme).is_vowel() && (*grapheme != SourceGrapheme::OO || *grapheme != SourceGrapheme::EE)) && 
+        (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) {
             None
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
