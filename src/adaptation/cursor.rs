@@ -15,7 +15,8 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
          // Cases when vowels are next to each other, make the 2nd vowel None / silent? unless case of OO or EE. oh my god this logic is so cheeks
         } else if index > 0 && 
         ((*grapheme).is_vowel() && (*grapheme != SourceGrapheme::OO || *grapheme != SourceGrapheme::EE)) && 
-        (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) {
+        (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) &&
+        g[index - 2].is_consonant() {
             None
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
@@ -25,12 +26,13 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
 
             p_index += 1;
 
-            // Case where ː or : is encountered
-            if ph == IPASymbol::TriangularColon || ph == IPASymbol::RegularColon {
-                None
-            } else {
-                Some(ph)
-            }
+            // Case where ː or : is encountered, maybe make it for cases like "au" or "aw" where no dipthong exists for that
+            // if ph == IPASymbol::TriangularColon || ph == IPASymbol::RegularColon {
+            //     None
+            // } else {
+            //     Some(ph)
+            // }
+            Some(ph)
         } else {
             None
         };
