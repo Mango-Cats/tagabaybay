@@ -1,4 +1,4 @@
-use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol, phoneme::tokens::arpabet::ArpabetSymbols};
+use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
 
 //for debugging
 use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
@@ -12,17 +12,23 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
     for (index, grapheme) in g.iter().enumerate() {
         let phoneme = if index > 0 && *grapheme == g[index - 1] {
             None
+         // Case of "ou" where the ou in c/ou/ld is represented by ʊ, or in shr/ou/d where the ou is dipthong aʊ
+        } else if index > 0 && *grapheme == SourceGrapheme::U && g[index - 1] == SourceGrapheme::O {
+            None
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
-            dbg!(ph.clone());
+            
+            // debug
+            // dbg!(ph.clone());
+
             p_index += 1;
 
+            // Case where ː or : is encountered
             if ph == IPASymbol::TriangularColon || ph == IPASymbol::RegularColon {
                 None
             } else {
                 Some(ph)
             }
-
         } else {
             None
         };
