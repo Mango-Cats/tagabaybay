@@ -602,11 +602,11 @@ fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_z(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    // "-zed" → "-zd" (realized, legalized, recognized)
+    // "-zed" → "-sd" (realized, legalized, recognized)
     match ctx.next_grapheme_low() {
         Some(SourceGrapheme::ED) => Some((
             tokens![
-                FilipinoGrapheme::Z,
+                FilipinoGrapheme::S,
                 FilipinoGrapheme::D
             ],
             2,
