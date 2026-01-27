@@ -712,6 +712,14 @@ fn sensitive_digraph(
             Some((tokens![FilipinoGrapheme::G, FilipinoGrapheme::N], 1))
         }
 
+        SourceGrapheme::SE => {
+            if ctx.position() == ctx.graphemes.len() - 1 {
+                return Some((tokens![FilipinoGrapheme::S], 1))
+            }
+
+            Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::E], 1))
+        }
+
         _ => None,
     }
 }
@@ -956,6 +964,21 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     let next = ctx.next_grapheme_low();
     match next {
+        Some(SourceGrapheme::SE) => {
+            if ctx.position() + 1 == ctx.graphemes.len() - 1 {
+                return Some((
+                    tokens![
+                        FilipinoGrapheme::O,
+                        FilipinoGrapheme::W,
+                        FilipinoGrapheme::S,
+                    ],
+                    2,
+                ));
+            }
+
+            None
+        }
+
         // check for "one" pattern (o-n-e at end) → "own"
         Some(SourceGrapheme::N) => {
             if let Some(SourceGrapheme::E) = ctx.lookat_grapheme_low(2) {
@@ -988,6 +1011,7 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 
             None
         }
+
         // "oa" + consonant → "ow" (loan, road, coat)
         Some(SourceGrapheme::A) => {
             if let Some(after) = ctx.lookat_grapheme_low(2) {

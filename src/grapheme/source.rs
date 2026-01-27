@@ -25,6 +25,7 @@ pub enum SourceGrapheme {
     KN,
     GN,
     WR,
+    SE,
 
     // Trigraphs
     ORE,
@@ -127,6 +128,7 @@ impl SourceGrapheme {
             SourceGrapheme::KN => "kn".to_string(),
             SourceGrapheme::GN => "gn".to_string(),
             SourceGrapheme::WR => "wr".to_string(),
+            SourceGrapheme::SE => "se".to_string(),
 
             // Trigraphs
             SourceGrapheme::ORE => "ore".to_string(),
@@ -309,6 +311,7 @@ impl SourceGrapheme {
                 | SourceGrapheme::KN
                 | SourceGrapheme::GN
                 | SourceGrapheme::WR
+                | SourceGrapheme::SE
         )
     }
 
@@ -534,6 +537,7 @@ pub fn match_digraph(s: &str) -> Option<SourceGrapheme> {
         "kn" => Some(SourceGrapheme::KN),
         "gn" => Some(SourceGrapheme::GN),
         "wr" => Some(SourceGrapheme::WR),
+        "se" => Some(SourceGrapheme::SE),
 
         _ => None,
     }
