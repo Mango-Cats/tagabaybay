@@ -20,9 +20,7 @@ pub fn phoneme_grapheme_alignment(
             vec![None]
         } else if is_double_vowel(&ctx) {
             vec![None]
-        } 
-        // CK if ! end of string
-        else if index < g.len() && *grapheme == SourceGrapheme::K && g[index - 1] == SourceGrapheme::C {
+        } else if is_case_ck(&ctx) {
             vec![None]
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
@@ -86,6 +84,19 @@ fn is_double_vowel(ctx: &Cursor) -> bool {
         if let Some(before_prev) = ctx.lookat_grapheme(-2) {
             return before_prev.is_consonant();
         }
+    }
+
+    false
+}
+
+/// ck sound/phoneme is just denoted as just k, so just map it to the start of c,k which is c ? or should it be k
+fn is_case_ck(ctx: &Cursor) -> bool {
+    if ctx.current_grapheme() != SourceGrapheme::K {
+        return false;
+    }
+
+    if let Some(prev) = ctx.prev_grapheme() {
+        return prev == SourceGrapheme::C
     }
 
     false
