@@ -7,8 +7,6 @@ use tagabaybay::g2p::G2Py;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
-
-//testing
 use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 use tagabaybay::grapheme::tokenize::source_tokenizer;
 
