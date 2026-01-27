@@ -5,59 +5,111 @@ use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
 
 type AlignedString = Vec<(SourceGrapheme, Vec<Option<IPASymbol>>)>;
 
-pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> AlignedString {
-    let mut res = Vec::new();
+// note to self: pls fix these conditionals bru 😭
+pub fn phoneme_grapheme_alignment(
+    p: Vec<IPASymbol>, 
+    g: Vec<SourceGrapheme>, 
+) -> AlignedString {
+    let mut result = Vec::new();
     let mut p_index = 0;
     
     for (index, grapheme) in g.iter().enumerate() {
-        let phoneme = if index > 0 && *grapheme == g[index - 1] {
+        let ctx = Cursor::new("", "", &g, &p, index);
+
+        let phoneme = if is_duplicate_grapheme(&ctx) {
+            vec![None]
+        } else if is_double_vowel(&ctx) {
             vec![None]
         } 
-         // Cases when vowels are next to each other, make the 2nd vowel None / silent? unless case of OO or EE. oh my god this logic is so cheeks
-         // note to self: make like some rule list or something holy 😭
-        else if index > 0 && 
-        ((*grapheme).is_vowel() && (*grapheme != SourceGrapheme::OO || *grapheme != SourceGrapheme::EE)) && 
-        (g[index - 1].is_vowel() && (g[index - 1] != SourceGrapheme::OO || g[index - 1] != SourceGrapheme::EE)) {
-            vec![None]
-        } else if index < g.len() && *grapheme == SourceGrapheme::K && g[index - 1] == SourceGrapheme::C {
+        // CK if ! end of string
+        else if index < g.len() && *grapheme == SourceGrapheme::K && g[index - 1] == SourceGrapheme::C {
             vec![None]
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
+            let next_ph = ctx.next_phoneme();
+            let prev_ph = ctx.prev_phoneme();
             
             // debug
             // dbg!(ph.clone());
 
             p_index += 1;
 
-            // Case where X is encountered, combines k and s to make [Some(k), Some(s)] smt like that (can be expanded)
+            // Case where X is encountered, combines k and s to make [Some(k), Some(s)] smt like that (can be expanded) and j case, for the yuuuu sound
             if *grapheme == SourceGrapheme::X {
-                let next_ph = p[p_index].clone();
                 p_index += 1;
-                vec![Some(ph), Some(next_ph)]
+                vec![Some(ph), next_ph]
             } else {
                 vec![Some(ph)]
             }
-
-            // vec![Some(ph)]
         } else {
             vec![None]
         };
-
-        res.push((grapheme.clone(), phoneme));
+        result.push((grapheme.clone(), phoneme));
     };
 
+    handle_leftover_phonemes(&mut result, p, p_index);
+
+    print_aligned_string(&result);
+
+    result
+}
+
+/// handling grapheme cases ?
+fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
+    if let Some(prev) = ctx.prev_grapheme(){
+        ctx.prev_grapheme() == Some(prev)
+    } else {
+        false
+    }
+}
+
+/// remeber to add special case for U A grapheme combo
+fn is_double_vowel(ctx: &Cursor) -> bool {
+    let current = ctx.current_grapheme();
+
+    if !current.is_vowel() {
+        return false;
+    }
+
+    if current == SourceGrapheme::OO || current == SourceGrapheme::EE {
+        return false;
+    }
+
+    if let Some(prev) = ctx.prev_grapheme() {
+        if prev == SourceGrapheme::OO || prev == SourceGrapheme::EE || !prev.is_vowel() {
+            return false;
+        }
+
+        if let Some(before_prev) = ctx.lookat_grapheme(-2) {
+            return before_prev.is_consonant();
+        }
+    }
+
+    false
+}
+
+/// handling phoneme cases 
+// fn handle_phonemes(ctx: &Cursor) -> Vec<Option<IPASymbol>> {
+
+// }
+
+fn handle_leftover_phonemes(result: &mut AlignedString, p: Vec<IPASymbol>, mut p_index: usize) {
     // Case where g.len() is shorter than p.len() -> append the remaining phonemes left behind to the corresponding index in p of the last grapheme
     // ok -> oʊkeɪ, so (O, oʊ), (K, keɪ)
     if p_index < p.len() {
         while p_index < p.len() {
             let remaining_phonemes = p[p_index].clone();
-            res.last_mut().unwrap().1.push(Some(remaining_phonemes));
+            result.last_mut().unwrap().1.push(Some(remaining_phonemes));
             p_index += 1;
         }
     }
+}
 
+/// temp printing func
+/// 
+fn print_aligned_string(result: &AlignedString) {
     //printing purposes
-    for (index, (grapheme, phoneme_vec)) in res.iter().enumerate() {
+    for (index, (grapheme, phoneme_vec)) in result.iter().enumerate() {
         let grapheme_str = grapheme.clone();
         let phoneme_strs: Vec<String> = phoneme_vec.iter()
         .map(|p_opt| match p_opt {
@@ -68,16 +120,6 @@ pub fn phoneme_grapheme_alignment(p: Vec<IPASymbol>, g: Vec<SourceGrapheme>) -> 
     println!("{}: {} -> {}", index, grapheme_str, phoneme_strs.join(""));
 
     };
-
-    res
-}
-
-fn skip_grapheme() {
-
-}
-
-fn skip_phoneme() {
-
 }
 
 /// A cursor over a word, tracking both graphemes and phonetic transcription.

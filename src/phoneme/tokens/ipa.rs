@@ -99,8 +99,6 @@ pub enum IPASymbol {
     VoicelessPostalveolarAffricate,
     /// /dʒ/ - Voiced postalveolar affricate (jug)
     VoicedPostalveolarAffricate,
-    // /kj/ - ky sound (cue, calculator)
-    PalatizedValarPlosive,
 
     // CONSONANTS - Nasals
     /// /m/ - Bilabial nasal (map)
@@ -185,7 +183,6 @@ impl IPASymbol {
             // Affricates
             IPASymbol::VoicelessPostalveolarAffricate => "tʃ",
             IPASymbol::VoicedPostalveolarAffricate => "dʒ",
-            IPASymbol::PalatizedValarPlosive => "kj",
 
             // Nasals
             IPASymbol::BilabialNasal => "m",

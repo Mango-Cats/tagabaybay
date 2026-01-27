@@ -19,7 +19,6 @@ pub static IPA_STR_TO_SYMBOL: Lazy<HashMap<&'static str, IPASymbol>> = Lazy::new
         // Affricates (2 chars)
         ("tʃ", IPASymbol::VoicelessPostalveolarAffricate),
         ("dʒ", IPASymbol::VoicedPostalveolarAffricate),
-        ("kj", IPASymbol::PalatizedValarPlosive),
         // Monophthong vowels
         ("ɑ", IPASymbol::OpenBackUnrounded),
         ("æ", IPASymbol::NearOpenFront),
