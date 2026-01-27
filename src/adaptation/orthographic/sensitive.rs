@@ -720,6 +720,26 @@ fn sensitive_digraph(
             Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::E], 1))
         }
 
+        SourceGrapheme::SC => {
+            let next = ctx.next_grapheme_low();
+
+            match next {
+                Some(SourceGrapheme::A) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::K, FilipinoGrapheme::A], 2)),
+                Some(SourceGrapheme::E) => {
+                    match (ctx.lookat_grapheme_low(2), ctx.lookat_grapheme_low(3)) {
+                        (Some(SourceGrapheme::N), Some(SourceGrapheme::E)) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::I, FilipinoGrapheme::N], 4)),
+
+                        _ => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::E], 2))
+                    }
+                },
+                Some(SourceGrapheme::I) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::A, FilipinoGrapheme::Y], 2)),
+                Some(SourceGrapheme::O) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::K, FilipinoGrapheme::O], 2)),
+                Some(SourceGrapheme::U) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::K, FilipinoGrapheme::U], 2)),
+
+                _ => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::K], 1)),
+            }
+        }
+
         _ => None,
     }
 }
