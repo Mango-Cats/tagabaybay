@@ -1,6 +1,4 @@
 use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
-
-//for debugging
 use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
 
 type AlignedString = Vec<(SourceGrapheme, Vec<Option<IPASymbol>>)>;
@@ -13,7 +11,7 @@ pub fn phoneme_grapheme_alignment(
     let mut result = Vec::new();
     let mut p_index = 0;
     
-    for (index, grapheme) in g.iter().enumerate() {
+    for (index , grapheme) in g.iter().enumerate() {
         let ctx = Cursor::new("", "", &g, &p, index);
 
         let phoneme = if is_duplicate_grapheme(&ctx) {
@@ -21,6 +19,8 @@ pub fn phoneme_grapheme_alignment(
         } else if is_double_vowel(&ctx) {
             vec![None]
         } else if is_case_ck(&ctx) {
+            vec![None]
+        } else if is_case_gh(&ctx) {
             vec![None]
         } else if p_index < p.len() {
             handle_phonemes(&ctx, &p, &mut p_index)
@@ -85,6 +85,22 @@ fn is_case_ck(ctx: &Cursor) -> bool {
 
     if let Some(prev) = ctx.prev_grapheme() {
         return prev == SourceGrapheme::C
+    }
+
+    false
+}
+
+fn is_case_gh(ctx: &Cursor) -> bool {
+    if ctx.current_grapheme() == SourceGrapheme::H {
+        if let Some(prev) = ctx.prev_grapheme() {
+            return prev == SourceGrapheme::G;
+        }
+    }
+
+    if ctx.current_grapheme() == SourceGrapheme::G {
+        if let Some(next) = ctx.next_grapheme() {
+            return next == SourceGrapheme::H;
+        }
     }
 
     false
