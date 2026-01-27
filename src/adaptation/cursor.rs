@@ -23,27 +23,15 @@ pub fn phoneme_grapheme_alignment(
         } else if is_case_ck(&ctx) {
             vec![None]
         } else if p_index < p.len() {
-            let ph = p[p_index].clone();
-            
-            // debug
-            // dbg!(ph.clone());
-
-            p_index += 1;
-
-            // Case where X is encountered, combines k and s to make [Some(k), Some(s)] smt like that (can be expanded) and j case, for the yuuuu sound
-            if *grapheme == SourceGrapheme::X {
-                p_index += 1;
-                vec![Some(ph), Some(p[p_index].clone())]
-            } else {
-                vec![Some(ph)]
-            }
+            handle_phonemes(&ctx, &p, &mut p_index)
         } else {
             vec![None]
         };
+
         result.push((grapheme.clone(), phoneme));
     };
 
-    handle_leftover_phonemes(&mut result, p, p_index);
+    handle_leftover_phonemes(&mut result, &p, p_index);
 
     print_aligned_string(&result);
 
@@ -103,11 +91,30 @@ fn is_case_ck(ctx: &Cursor) -> bool {
 }
 
 /// handling phoneme cases 
-// fn handle_phonemes(ctx: &Cursor) -> Vec<Option<IPASymbol>> {
+fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec<Option<IPASymbol>> {
+    let current_grapheme = ctx.current_grapheme();
+    let ph = p[*p_index].clone();
+    *p_index += 1;
 
-// }
+    // Case where X is encountered, combines k and s to make [Some(k), Some(s)] smt like that (can be expanded) and j case, for the yuuuu sound
+    if *p_index < p.len() {
+        let next_ph = p[*p_index].clone();
 
-fn handle_leftover_phonemes(result: &mut AlignedString, p: Vec<IPASymbol>, mut p_index: usize) {
+        if current_grapheme == SourceGrapheme::X {
+            *p_index += 1;
+            vec![Some(ph), Some(next_ph)]
+        } else if next_ph == IPASymbol::PalatalApproximant {
+            *p_index += 1;
+            vec![Some(ph), Some(next_ph)]
+        } else {
+            vec![Some(ph)]
+        }
+    } else {
+        vec![Some(ph)]
+    }
+}
+
+fn handle_leftover_phonemes(result: &mut AlignedString, p: &Vec<IPASymbol>, mut p_index: usize) {
     // Case where g.len() is shorter than p.len() -> append the remaining phonemes left behind to the corresponding index in p of the last grapheme
     // ok -> oʊkeɪ, so (O, oʊ), (K, keɪ)
     if p_index < p.len() {
