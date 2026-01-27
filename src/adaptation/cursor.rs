@@ -26,8 +26,6 @@ pub fn phoneme_grapheme_alignment(
             vec![None]
         } else if p_index < p.len() {
             let ph = p[p_index].clone();
-            let next_ph = ctx.next_phoneme();
-            let prev_ph = ctx.prev_phoneme();
             
             // debug
             // dbg!(ph.clone());
@@ -37,7 +35,7 @@ pub fn phoneme_grapheme_alignment(
             // Case where X is encountered, combines k and s to make [Some(k), Some(s)] smt like that (can be expanded) and j case, for the yuuuu sound
             if *grapheme == SourceGrapheme::X {
                 p_index += 1;
-                vec![Some(ph), next_ph]
+                vec![Some(ph), Some(p[p_index].clone())]
             } else {
                 vec![Some(ph)]
             }
@@ -57,7 +55,7 @@ pub fn phoneme_grapheme_alignment(
 /// handling grapheme cases ?
 fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
     if let Some(prev) = ctx.prev_grapheme(){
-        ctx.prev_grapheme() == Some(prev)
+        ctx.current_grapheme() == prev
     } else {
         false
     }
@@ -77,6 +75,11 @@ fn is_double_vowel(ctx: &Cursor) -> bool {
 
     if let Some(prev) = ctx.prev_grapheme() {
         if prev == SourceGrapheme::OO || prev == SourceGrapheme::EE || !prev.is_vowel() {
+            return false;
+        }
+
+        // Case for UA, ie. aqua aq/wa/
+        if prev == SourceGrapheme::U && current == SourceGrapheme::A {
             return false;
         }
 
