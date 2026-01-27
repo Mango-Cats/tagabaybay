@@ -740,6 +740,14 @@ fn sensitive_digraph(
             }
         }
 
+        SourceGrapheme::ZE => {
+            if ctx.position() == ctx.graphemes.len() - 1 {
+                return Some((tokens![FilipinoGrapheme::S], 1))
+            }
+
+            Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::E], 1))
+        }
+
         _ => None,
     }
 }
@@ -919,9 +927,8 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     }
 
     // "ise|ize" -> "ays"
-    if let Some(SourceGrapheme::S | SourceGrapheme::Z) = next {
-        if let Some(SourceGrapheme::E) = ctx.lookat_grapheme_low(2) {
-            if ctx.position() + 2 == ctx.graphemes.len() - 1 {
+    if let Some(SourceGrapheme::SE | SourceGrapheme::ZE) = next {
+            if ctx.position() + 1 == ctx.graphemes.len() - 1 {
                 return Some((
                     tokens![
                         FilipinoGrapheme::A,
@@ -930,7 +937,6 @@ fn handle_vowel_i(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                     ],
                     3,
                 ));
-            }
         }
     }
 
