@@ -18,9 +18,7 @@ pub fn phoneme_grapheme_alignment(
             vec![None]
         } else if is_double_vowel(&ctx) {
             vec![None]
-        } else if is_case_ck(&ctx) {
-            vec![None]
-        } else if is_case_gh(&ctx) {
+        } else if is_case_ck(&ctx) || is_case_gh(&ctx) || is_case_ld(&ctx, &p, p_index) {
             vec![None]
         } else if p_index < p.len() {
             handle_phonemes(&ctx, &p, &mut p_index)
@@ -39,6 +37,8 @@ pub fn phoneme_grapheme_alignment(
 }
 
 /// handling grapheme cases ?
+/// 
+/// 
 fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
     if let Some(prev) = ctx.prev_grapheme(){
         ctx.current_grapheme() == prev
@@ -47,7 +47,7 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
     }
 }
 
-/// remeber to add special case for U A grapheme combo
+/// remeber to add special case for U A grapheme combo, Done !
 fn is_double_vowel(ctx: &Cursor) -> bool {
     let current = ctx.current_grapheme();
 
@@ -100,6 +100,18 @@ fn is_case_gh(ctx: &Cursor) -> bool {
     if ctx.current_grapheme() == SourceGrapheme::G {
         if let Some(next) = ctx.next_grapheme() {
             return next == SourceGrapheme::H;
+        }
+    }
+
+    false
+}
+
+fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
+    if ctx.current_grapheme() == SourceGrapheme::L && 
+    ctx.next_grapheme() == Some(SourceGrapheme::D) 
+    {
+        if p_index < p.len() && p[p_index] == IPASymbol::VoicedAlveolarStop {
+            return true
         }
     }
 
