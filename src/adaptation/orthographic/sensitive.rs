@@ -696,6 +696,14 @@ fn sensitive_digraph(
             Some((tokens![FilipinoGrapheme::W], 1))
         }
 
+        SourceGrapheme::MB => {
+            if ctx.position() == ctx.graphemes.len() - 1 {
+                return Some((tokens![FilipinoGrapheme::M], 1))
+            }
+
+            Some((tokens![FilipinoGrapheme::M, FilipinoGrapheme::B], 1))
+        }
+
         _ => None,
     }
 }
