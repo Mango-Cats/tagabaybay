@@ -18,7 +18,7 @@ pub fn phoneme_grapheme_alignment(
             vec![None]
         } else if is_double_vowel(&ctx) {
             vec![None]
-        } else if is_case_ck(&ctx) || is_case_gh(&ctx) || is_case_ld(&ctx, &p, p_index) {
+        } else if is_case_ck(&ctx) || is_case_gh(&ctx) || is_case_ld(&ctx, &p, p_index)||is_case_sc(&ctx) {
             vec![None]
         } else if p_index < p.len() {
             handle_phonemes(&ctx, &p, &mut p_index)
@@ -111,6 +111,23 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
     ctx.next_grapheme() == Some(SourceGrapheme::D) 
     {
         if p_index < p.len() && p[p_index] == IPASymbol::VoicedAlveolarStop {
+            return true
+        }
+    }
+
+    false
+}
+
+// oh lordy bruh
+fn is_case_sc(ctx: &Cursor) -> bool {
+    let next_gh = ctx.next_grapheme();
+    if ctx.current_grapheme() == SourceGrapheme::C &&
+    ctx.prev_grapheme() == Some(SourceGrapheme::S) {
+        if next_gh == Some(SourceGrapheme::A) || 
+        next_gh == Some(SourceGrapheme::E) ||
+        next_gh == Some(SourceGrapheme::I) ||
+        next_gh == Some(SourceGrapheme::O) ||
+        next_gh == Some(SourceGrapheme::U) {
             return true
         }
     }
