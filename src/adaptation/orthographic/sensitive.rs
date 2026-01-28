@@ -748,6 +748,29 @@ fn sensitive_digraph(
             Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::E], 1))
         }
 
+        SourceGrapheme::TI => {
+            if ctx.position() != 0 {
+                let next = ctx.next_grapheme_low();
+                
+                match next {
+                    Some(SourceGrapheme::A) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::H, FilipinoGrapheme::A], 2)),
+                    Some(SourceGrapheme::E) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::H, FilipinoGrapheme::E], 2)),
+                    Some(SourceGrapheme::O) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::H, FilipinoGrapheme::O], 2)),
+                    Some(SourceGrapheme::U) => Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::H, FilipinoGrapheme::U], 2)),
+
+                    _ => Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::I], 1)),
+                }
+            }
+            else {
+                match (ctx.lookat_grapheme_low(1), ctx.lookat_grapheme_low(2)) {
+                    (Some(SourceGrapheme::M), Some(SourceGrapheme::E)) => Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::A, FilipinoGrapheme::Y, FilipinoGrapheme::M], 3)),
+
+                    _ => Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::I], 1))
+                }
+            }
+            
+        }
+
         _ => None,
     }
 }
