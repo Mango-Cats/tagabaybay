@@ -1,6 +1,5 @@
 use std::io;
 use std::io::Write;
-use tagabaybay::adaptation::cursor::phoneme_grapheme_alignment;
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::g2p::G2Py;
@@ -9,6 +8,7 @@ use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
 use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 use tagabaybay::grapheme::tokenize::source_tokenizer;
+use tagabaybay::adaptation::alignment::phoneme_grapheme_alignment;
 
 fn main() {
     let config = AdapterConfig::new();
