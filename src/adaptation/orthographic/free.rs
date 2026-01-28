@@ -45,6 +45,7 @@ pub fn free_replacement(
         SourceGrapheme::ORE => Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::R], 1)),
         SourceGrapheme::IGH => Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::Y], 1)),
         SourceGrapheme::DGE => Some((tokens![FilipinoGrapheme::J], 1)),
+        SourceGrapheme::TCH => Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::S], 1)),
 
         // Tetragraph replacements (tetragraph count as 1 grapheme)
         SourceGrapheme::AUGH => Some((tokens![FilipinoGrapheme::O], 1)),

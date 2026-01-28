@@ -28,12 +28,14 @@ pub enum SourceGrapheme {
     SE,
     SC,
     ZE,
+    GE,
 
     // Trigraphs
     ORE,
     IGH,
     DGE,
     QUE,
+    TCH,
 
     // Tetragraphs
     AUGH,
@@ -133,12 +135,14 @@ impl SourceGrapheme {
             SourceGrapheme::SE => "se".to_string(),
             SourceGrapheme::SC => "sc".to_string(),
             SourceGrapheme::ZE => "ze".to_string(),
+            SourceGrapheme::GE => "ge".to_string(),
 
             // Trigraphs
             SourceGrapheme::ORE => "ore".to_string(),
             SourceGrapheme::IGH => "igh".to_string(),
             SourceGrapheme::DGE => "dge".to_string(),
             SourceGrapheme::QUE => "que".to_string(),
+            SourceGrapheme::TCH => "tch".to_string(),
 
             // Tetragraphs
             SourceGrapheme::AUGH => "augh".to_string(),
@@ -318,6 +322,7 @@ impl SourceGrapheme {
                 | SourceGrapheme::SE
                 | SourceGrapheme::SC
                 | SourceGrapheme::ZE
+                | SourceGrapheme::GE
         )
     }
 
@@ -329,6 +334,7 @@ impl SourceGrapheme {
                 | SourceGrapheme::IGH
                 | SourceGrapheme::DGE
                 | SourceGrapheme::QUE
+                | SourceGrapheme::TCH
         )
     }
 
@@ -510,6 +516,7 @@ pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
         "igh" => Some(SourceGrapheme::IGH),
         "dge" => Some(SourceGrapheme::DGE),
         "que" => Some(SourceGrapheme::QUE),
+        "tch" => Some(SourceGrapheme::TCH),
 
         _ => None,
     }
@@ -546,6 +553,7 @@ pub fn match_digraph(s: &str) -> Option<SourceGrapheme> {
         "se" => Some(SourceGrapheme::SE),
         "sc" => Some(SourceGrapheme::SC),
         "ze" => Some(SourceGrapheme::ZE),
+        "ge" => Some(SourceGrapheme::GE),
 
         _ => None,
     }
