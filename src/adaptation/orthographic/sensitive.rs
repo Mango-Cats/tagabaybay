@@ -277,7 +277,7 @@ fn handle_consonant_h(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             ],
             2,
         )),
-        // "-hrough"
+        // "-hrough" -> "-tru" (through, throughout)
         Some(SourceGrapheme::R) => {
             if ctx.lookat_grapheme_low(2) == Some(SourceGrapheme::OUGH) {
                 return Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::R, FilipinoGrapheme::U], 3));
