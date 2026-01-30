@@ -93,7 +93,7 @@ fn sensitive_consonant(
         SourceGrapheme::V => handle_consonant_v(ctx),
         SourceGrapheme::X => handle_consonant_x(ctx),
         SourceGrapheme::Y => handle_consonant_y(ctx),
-        SourceGrapheme::Z => handle_consonant_z(ctx),
+        SourceGrapheme::Z => handle_consonant_z(ctx, config),
         SourceGrapheme::J => {
             if config.allow_j_letter {
                 Some((tokens![FilipinoGrapheme::J], 1))
@@ -601,16 +601,15 @@ fn handle_consonant_y(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 /// # Returns
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
-fn handle_consonant_z(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+fn handle_consonant_z(ctx: &Cursor, config: &AdapterConfig) -> Option<(Vec<FilipinoGrapheme>, usize)> {
     // "-zed" → "-sd" (realized, legalized, recognized)
     match ctx.next_grapheme_low() {
-        Some(SourceGrapheme::ED) => Some((
-            tokens![
-                FilipinoGrapheme::S,
-                FilipinoGrapheme::D
-            ],
-            2,
-        )),
+        Some(SourceGrapheme::ED) => {
+            if config.allow_z_letter {
+                return Some((tokens![FilipinoGrapheme::Z, FilipinoGrapheme::D], 2))
+            }
+            return Some((tokens![FilipinoGrapheme::S, FilipinoGrapheme::D], 2))
+        }
         _ => None,
     }
 }
