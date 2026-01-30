@@ -177,6 +177,11 @@ fn handle_consonant_c(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_d(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-dough" -> "dow" (dough, doughnut)
+    if let Some(SourceGrapheme::OUGH) = ctx.next_grapheme_low() {
+        return Some((tokens![FilipinoGrapheme::D, FilipinoGrapheme::O, FilipinoGrapheme::W], 2));
+    }
+
     match (ctx.prev_grapheme_low(), ctx.next_grapheme_low()) {
         (Some(SourceGrapheme::I), Some(SourceGrapheme::E)) => Some((
             tokens![
@@ -262,8 +267,8 @@ fn handle_consonant_g(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_h(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    // "heigh-" → "hay-" (height, heightened)
     match ctx.next_grapheme_low() {
+        // "heigh-" → "hay-" (height, heightened)
         Some(SourceGrapheme::EIGH) => Some((
             tokens![
                 FilipinoGrapheme::H,
@@ -272,6 +277,13 @@ fn handle_consonant_h(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             ],
             2,
         )),
+        // "-hrough"
+        Some(SourceGrapheme::R) => {
+            if ctx.lookat_grapheme_low(2) == Some(SourceGrapheme::OUGH) {
+                return Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::R, FilipinoGrapheme::U], 3));
+            }
+            None
+        }
         _ => None,
     }
 }
@@ -462,6 +474,11 @@ fn handle_consonant_s(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` if a pattern matches, `None` otherwise.
 fn handle_consonant_t(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    // "-though" -> "dow" (although, though)
+    if ctx.next_grapheme_low() == Some(SourceGrapheme::H) && ctx.lookat_grapheme_low(2) == Some(SourceGrapheme::OUGH) && ctx.lookat_grapheme_low(3).is_none()  {
+        return Some((tokens![FilipinoGrapheme::D, FilipinoGrapheme::O, FilipinoGrapheme::W], 3));
+    }
+
     match (ctx.prev_grapheme_low(), ctx.next_grapheme_low()) {
         // 'th' + (a|o) -> 'tay/toy'
         (Some(SourceGrapheme::H), Some(SourceGrapheme::A | SourceGrapheme::O)) => Some((
@@ -1095,6 +1112,14 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 2,
             )),
         },
+
+        Some(SourceGrapheme::R) => {
+            // "-orough" -> "-orow" (thorough, borough)
+            if ctx.lookat_grapheme_low(2) == Some(SourceGrapheme::OUGH) {
+                return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::R, FilipinoGrapheme::O, FilipinoGrapheme::W], 3));
+            }
+            return Some((tokens![FilipinoGrapheme::O, FilipinoGrapheme::R], 2));
+        }
 
         None | _ => return None,
     }
