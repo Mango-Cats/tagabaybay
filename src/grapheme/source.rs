@@ -382,6 +382,7 @@ impl SourceGrapheme {
                 | SourceGrapheme::CH
                 | SourceGrapheme::TH
                 | SourceGrapheme::SH
+                | SourceGrapheme::SC
         )
     }
 

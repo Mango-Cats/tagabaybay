@@ -33,8 +33,7 @@ pub fn phoneme_grapheme_alignment(
         is_double_vowel(&ctx) ||
         is_case_ck(&ctx) ||
         is_case_gh(&ctx) || 
-        is_case_ld(&ctx, &p, p_index)||
-        is_case_sc(&ctx)
+        is_case_ld(&ctx, &p, p_index)
         {
             vec![None]
         } else if p_index < p.len() {
@@ -196,38 +195,6 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
     false
 }
 
-/// Determines graphemes S and C are next to each other
-/// in some cases SC is pronounced as 1 phoneme instead of 2
-/// 
-/// i.e
-/// ascend -> ɐsɛnd
-/// a -> ɐ
-/// s -> s
-/// c -> None
-/// e -> ɛ
-/// n -> n
-/// d -> d
-/// 
-/// # Returns a boolean value
-fn is_case_sc(ctx: &Cursor) -> bool {
-    let next_gh = ctx.next_grapheme();
-    if ctx.current_grapheme() == SourceGrapheme::C &&
-    ctx.prev_grapheme() == Some(SourceGrapheme::S) {
-        if next_gh == Some(SourceGrapheme::A) || 
-        next_gh == Some(SourceGrapheme::E) ||
-        next_gh == Some(SourceGrapheme::I) ||
-        next_gh == Some(SourceGrapheme::O) ||
-        next_gh == Some(SourceGrapheme::U) ||
-        next_gh == Some(SourceGrapheme::OO) ||
-        next_gh == Some(SourceGrapheme::EE)
-        {
-            return true
-        }
-    }
-
-    false
-}
-
 /// Handling different phoneme cases 
 /// 
 /// # Arguments
@@ -279,13 +246,22 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         // If grapheme is an X, append the /ks/ phonemes together
         if current_grapheme == SourceGrapheme::X {
             *p_index += 1;
-            vec![Some(ph), Some(next_ph)]
+            return vec![Some(ph), Some(next_ph)]
         } 
+
+        else if current_grapheme == SourceGrapheme::SC {
+            if next_ph == IPASymbol::VoicelessVelarStop {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
         
         // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the previous phoneme
         else if next_ph == IPASymbol::PalatalApproximant {
             *p_index += 1;
-            vec![Some(ph), Some(next_ph)]
+            return vec![Some(ph), Some(next_ph)]
         } 
 
         else {
