@@ -21,7 +21,27 @@ pub fn source_tokenizer(input: &str) -> Vec<source::SourceGrapheme> {
     let mut i = 0;
 
     while i < chars.len() {
-        // Check digraphs first (2 characters)
+        // Check tetragraphs first (4 characters)
+        if i + 4 <= chars.len() {
+            let substring_4: String = chars[i..i + 4].iter().collect();
+            if let Some(g) = source::match_tetragraph(&substring_4) {
+                result.push(g);
+                i += 4;
+                continue;
+            }
+        }
+
+        // Check trigraphs second (3 characters)
+        if i + 3 <= chars.len() {
+            let substring_3: String = chars[i..i + 3].iter().collect();
+            if let Some(g) = source::match_trigraph(&substring_3) {
+                result.push(g);
+                i += 3;
+                continue;
+            }
+        }
+
+        // Check digraphs third (2 characters)
         if i + 2 <= chars.len() {
             let substring_2: String = chars[i..i + 2].iter().collect();
             if let Some(g) = source::match_digraph(&substring_2) {

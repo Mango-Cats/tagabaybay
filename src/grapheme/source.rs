@@ -18,6 +18,30 @@ pub enum SourceGrapheme {
     SH,
     EE,
     OO,
+    ED,
+    GH,
+    WH,
+    MB,
+    KN,
+    GN,
+    WR,
+    SE,
+    SC,
+    ZE,
+    GE,
+    TI,
+
+    // Trigraphs
+    ORE,
+    IGH,
+    DGE,
+    QUE,
+    TCH,
+
+    // Tetragraphs
+    AUGH,
+    OUGH,
+    EIGH,
 
     // Vowels
     A,
@@ -102,6 +126,30 @@ impl SourceGrapheme {
             SourceGrapheme::SH => "sh".to_string(),
             SourceGrapheme::EE => "ee".to_string(),
             SourceGrapheme::OO => "oo".to_string(),
+            SourceGrapheme::ED => "ed".to_string(),
+            SourceGrapheme::GH => "gh".to_string(),
+            SourceGrapheme::WH => "wh".to_string(),
+            SourceGrapheme::MB => "mb".to_string(),
+            SourceGrapheme::KN => "kn".to_string(),
+            SourceGrapheme::GN => "gn".to_string(),
+            SourceGrapheme::WR => "wr".to_string(),
+            SourceGrapheme::SE => "se".to_string(),
+            SourceGrapheme::SC => "sc".to_string(),
+            SourceGrapheme::ZE => "ze".to_string(),
+            SourceGrapheme::GE => "ge".to_string(),
+            SourceGrapheme::TI => "ti".to_string(),
+
+            // Trigraphs
+            SourceGrapheme::ORE => "ore".to_string(),
+            SourceGrapheme::IGH => "igh".to_string(),
+            SourceGrapheme::DGE => "dge".to_string(),
+            SourceGrapheme::QUE => "que".to_string(),
+            SourceGrapheme::TCH => "tch".to_string(),
+
+            // Tetragraphs
+            SourceGrapheme::AUGH => "augh".to_string(),
+            SourceGrapheme::OUGH => "ough".to_string(),
+            SourceGrapheme::EIGH => "eigh".to_string(),
 
             // Vowels
             SourceGrapheme::A => "a".to_string(),
@@ -266,6 +314,40 @@ impl SourceGrapheme {
                 | SourceGrapheme::SH
                 | SourceGrapheme::EE
                 | SourceGrapheme::OO
+                | SourceGrapheme::ED
+                | SourceGrapheme::GH
+                | SourceGrapheme::WH
+                | SourceGrapheme::MB
+                | SourceGrapheme::KN
+                | SourceGrapheme::GN
+                | SourceGrapheme::WR
+                | SourceGrapheme::SE
+                | SourceGrapheme::SC
+                | SourceGrapheme::ZE
+                | SourceGrapheme::GE
+                | SourceGrapheme::TI
+        )
+    }
+
+    /// Check if this grapheme represents a trigraph
+    pub fn is_trigraph(&self) -> bool {
+        matches!(
+            self,
+            SourceGrapheme::ORE
+                | SourceGrapheme::IGH
+                | SourceGrapheme::DGE
+                | SourceGrapheme::QUE
+                | SourceGrapheme::TCH
+        )
+    }
+
+    /// Check if this grapheme represents a trigraph
+    pub fn is_tetragraph(&self) -> bool {
+        matches!(
+            self,
+            SourceGrapheme::AUGH
+                | SourceGrapheme::OUGH
+                | SourceGrapheme::EIGH
         )
     }
 
@@ -397,12 +479,51 @@ impl SourceGrapheme {
     }
 }
 
+/// Match a 4-character string to a tetragraph
+/// Recognizes tetragraphs (four-letter combinations that represent
+/// a single sound or pattern).
+/// 
+/// # Arguments
+///
+/// * `s` - A 4-character string to match (case-insensitive)
+///
+/// # Returns
+///
+/// Returns `Some(SourceGrapheme)` if the string matches a known tetragraph.
+/// Returns `None` if no match is found.
+pub fn match_tetragraph(s: &str) -> Option<SourceGrapheme> {
+    match s.to_lowercase().as_str() {
+        "augh" => Some(SourceGrapheme::AUGH),
+        "ough" => Some(SourceGrapheme::OUGH),
+        "eigh" => Some(SourceGrapheme::EIGH),
+
+        _ => None,
+    }
+}
+
 /// Match a 3-character string to a trigraph
-// pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
-//     match s.to_lowercase().as_str() {
-//         _ => None,
-//     }
-// }
+/// Recognizes trigraphs (three-letter combinations that represent
+/// a single sound or pattern).
+/// 
+/// # Arguments
+///
+/// * `s` - A 3-character string to match (case-insensitive)
+///
+/// # Returns
+///
+/// Returns `Some(SourceGrapheme)` if the string matches a known trigraph.
+/// Returns `None` if no match is found.
+pub fn match_trigraph(s: &str) -> Option<SourceGrapheme> {
+    match s.to_lowercase().as_str() {
+        "ore" => Some(SourceGrapheme::ORE),
+        "igh" => Some(SourceGrapheme::IGH),
+        "dge" => Some(SourceGrapheme::DGE),
+        "que" => Some(SourceGrapheme::QUE),
+        "tch" => Some(SourceGrapheme::TCH),
+
+        _ => None,
+    }
+}
 
 /// Match a 2-character string to a digraph grapheme
 ///
@@ -425,6 +546,18 @@ pub fn match_digraph(s: &str) -> Option<SourceGrapheme> {
         "sh" => Some(SourceGrapheme::SH),
         "ee" => Some(SourceGrapheme::EE),
         "oo" => Some(SourceGrapheme::OO),
+        "ed" => Some(SourceGrapheme::ED),
+        "gh" => Some(SourceGrapheme::GH),
+        "wh" => Some(SourceGrapheme::WH),
+        "mb" => Some(SourceGrapheme::MB),
+        "kn" => Some(SourceGrapheme::KN),
+        "gn" => Some(SourceGrapheme::GN),
+        "wr" => Some(SourceGrapheme::WR),
+        "se" => Some(SourceGrapheme::SE),
+        "sc" => Some(SourceGrapheme::SC),
+        "ze" => Some(SourceGrapheme::ZE),
+        "ge" => Some(SourceGrapheme::GE),
+        "ti" => Some(SourceGrapheme::TI),
 
         _ => None,
     }
