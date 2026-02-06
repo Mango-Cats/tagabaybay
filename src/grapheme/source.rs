@@ -386,6 +386,7 @@ impl SourceGrapheme {
                 | SourceGrapheme::SE
                 | SourceGrapheme::DGE
                 | SourceGrapheme::GE
+                | SourceGrapheme::TI
         )
     }
 

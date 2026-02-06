@@ -1,4 +1,4 @@
-use crate::phoneme::tokens::arpabet::ArpabetSymbols;
+use crate::{grapheme::filipino::FilipinoGrapheme, phoneme::tokens::arpabet::ArpabetSymbols};
 
 use super::ipa::IPASymbol;
 use once_cell::sync::Lazy;
@@ -126,6 +126,32 @@ pub static ARPA_TO_IPA: Lazy<HashMap<ArpabetSymbols, IPASymbol>> = Lazy::new(|| 
         (ArpabetSymbols::Y, IPASymbol::PalatalApproximant),
         (ArpabetSymbols::Z, IPASymbol::VoicedAlveolarFricative),
         (ArpabetSymbols::ZH, IPASymbol::VoicedPostalveolarFricative),
+    ])
+});
+
+pub static IPA_TO_FAG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::new(|| {
+    HashMap::from([
+        //Vowels
+        (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::A]),
+        (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]),
+        (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::U]), //change possibly
+        (IPASymbol::Schwa, vec![FilipinoGrapheme::E]),
+        (IPASymbol::OpenMidBackRounded, vec![FilipinoGrapheme::O]),
+        (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E]),
+        (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]),
+        (IPASymbol::RColoredSchwa, vec![FilipinoGrapheme::U, FilipinoGrapheme::R]),
+        (IPASymbol::NearCloseFront, vec![FilipinoGrapheme::I]),
+        (IPASymbol::CloseFront, vec![FilipinoGrapheme::I]),
+        (IPASymbol::NearCloseBack, vec![FilipinoGrapheme::U]),
+        (IPASymbol::CloseBack, vec![FilipinoGrapheme::U]),
+        // Diphthongs
+        (IPASymbol::DiphthongAU, vec![FilipinoGrapheme::A, FilipinoGrapheme::W]),
+        (IPASymbol::DiphthongAI, vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]),
+        (IPASymbol::DiphthongEI, vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]),
+        (IPASymbol::DiphthongOU, vec![FilipinoGrapheme::O, FilipinoGrapheme::W]),
+        (IPASymbol::DiphthongAU, vec![FilipinoGrapheme::O, FilipinoGrapheme::Y]),
+        //Stops 
+
     ])
 });
 
