@@ -1,5 +1,77 @@
 import os
 
+try:
+    import spacy
+    from spacy.cli import download
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+
+# Global spaCy model
+_nlp = None
+
+def load_spacy_model(model_name="en_core_web_sm"):
+    """Loads the spaCy model for morphological analysis."""
+    global _nlp
+    
+    if not SPACY_AVAILABLE:
+        raise ImportError("spaCy is not installed. Install with: pip install spacy")
+    
+    if _nlp is not None:
+        return _nlp
+    
+    try:
+        _nlp = spacy.load(model_name)
+    except OSError:
+        print(f"Model '{model_name}' not found. Downloading...")
+        download(model_name)
+        _nlp = spacy.load(model_name)
+    
+    return _nlp
+
+def segment_spacy(word, model=None):
+    """Returns morphological analysis of a word using spaCy.
+    
+    Returns a list containing:
+    - lemma (base form)
+    - morphological features as strings
+    """
+    if model is None:
+        model = load_spacy_model()
+    
+    # Process the word
+    doc = model(word)
+    
+    if len(doc) == 0:
+        return [word]
+    
+    token = doc[0]
+    
+    # Build morpheme representation
+    morphemes = []
+    
+    # Add lemma as the base form
+    lemma = token.lemma_
+    
+    # Extract morphological features
+    morph_features = []
+    if token.morph:
+        for feature in token.morph:
+            morph_features.append(str(feature))
+    
+    # If word differs from lemma, show the transformation
+    if word.lower() != lemma.lower():
+        morphemes.append(lemma)
+        if morph_features:
+            morphemes.extend(morph_features)
+    else:
+        # Word is already in base form
+        morphemes.append(word)
+        if morph_features:
+            morphemes.extend(morph_features)
+    
+    return morphemes if morphemes else [word]
+
 def load_model(path):
     """Loads morpheme rules from a dictionary file."""
     if not os.path.exists(path):

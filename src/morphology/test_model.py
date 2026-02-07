@@ -1,7 +1,7 @@
-from parser import load_model, segment
+from parser import load_model, segment, segment_spacy, load_spacy_model, SPACY_AVAILABLE
 
-# Load the model
-print("Loading model...")
+# Load the dictionary model
+print("Loading dictionary model...")
 model = load_model('model.bin')
 
 # Test all words in the model
@@ -50,3 +50,26 @@ for word in unknown_words:
 print("\n=== Statistics ===")
 print(f"Total words in model: {len(model)}")
 print(f"Average morphemes per word: {sum(len(v) for v in model.values()) / len(model):.2f}")
+
+# Test spaCy-based segmentation if available
+if SPACY_AVAILABLE:
+    print("\n\n" + "="*60)
+    print("=== spaCy-based Morphological Analysis ===")
+    print("="*60)
+    try:
+        spacy_model = load_spacy_model()
+        print("spaCy model loaded successfully!\n")
+        
+        comparison_words = ['running', 'walked', 'unhappiness', 'children', 'better', 'quickly']
+        
+        print("Comparison: Dictionary vs spaCy")
+        print("-" * 60)
+        for word in comparison_words:
+            dict_result = segment(word, model)
+            spacy_result = segment_spacy(word, spacy_model)
+            print(f"{word:15} Dict: {' + '.join(dict_result):25} spaCy: {' | '.join(spacy_result)}")
+    except Exception as e:
+        print(f"Could not load spaCy model: {e}")
+        print("Install with: pip install spacy && python -m spacy download en_core_web_sm")
+else:
+    print("\n\nspaCy not available. Install with: pip install spacy")
