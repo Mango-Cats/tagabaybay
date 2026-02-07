@@ -1,6 +1,6 @@
 import sys
 import os
-from parser import load_model, segment, segment_spacy, load_spacy_model, SPACY_AVAILABLE
+from parser import segment_spacy, segment_dict, load_spacy_model, SPACY_AVAILABLE
 
 def main():
     if len(sys.argv) < 2:
@@ -18,13 +18,11 @@ def main():
         word = sys.argv[2]
     
     try:
+        # Use dictionary-based segmentation if requested
         if use_dict:
-            # Get the directory where this script is located
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            model_path = os.path.join(script_dir, 'model.bin')
-            model = load_model(model_path)
-            morphemes = segment(word, model)
+            morphemes = segment_dict(word)
         else:
+            # Use spaCy-based segmentation
             if not SPACY_AVAILABLE:
                 print("spaCy not installed", file=sys.stderr)
                 sys.exit(1)

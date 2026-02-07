@@ -1,4 +1,5 @@
 import os
+import threading
 
 try:
     import spacy
@@ -7,25 +8,32 @@ try:
 except ImportError:
     SPACY_AVAILABLE = False
 
-# Global spaCy model
+# Global spaCy model with thread-safe loading
 _nlp = None
+_nlp_lock = threading.Lock()
 
 def load_spacy_model(model_name="en_core_web_sm"):
-    """Loads the spaCy model for morphological analysis."""
+    """Loads the spaCy model for morphological analysis (thread-safe)."""
     global _nlp
     
     if not SPACY_AVAILABLE:
         raise ImportError("spaCy is not installed. Install with: pip install spacy")
     
+    # Double-checked locking pattern for thread safety
     if _nlp is not None:
         return _nlp
     
-    try:
-        _nlp = spacy.load(model_name)
-    except OSError:
-        print(f"Model '{model_name}' not found. Downloading...")
-        download(model_name)
-        _nlp = spacy.load(model_name)
+    with _nlp_lock:
+        # Check again inside the lock
+        if _nlp is not None:
+            return _nlp
+        
+        try:
+            _nlp = spacy.load(model_name)
+        except OSError:
+            print(f"Model '{model_name}' not found. Downloading...")
+            download(model_name)
+            _nlp = spacy.load(model_name)
     
     return _nlp
 
@@ -72,76 +80,38 @@ def segment_spacy(word, model=None):
     
     return morphemes if morphemes else [word]
 
-def load_model(path):
-    """Loads morpheme rules from a dictionary file."""
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Model file not found: {path}")
+def segment_dict(word):
+    """Basic dictionary-based morpheme segmentation.
     
-    morpheme_dict = {}
-    with open(path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line and ' -> ' in line:
-                word, morphemes = line.split(' -> ')
-                morpheme_dict[word] = morphemes.split()
-    
-    return morpheme_dict
-
-def extract_morpheme_patterns(model):
-    """Extract common prefixes and suffixes from the model."""
-    prefixes = set()
-    suffixes = set()
-    
-    for word, morphemes in model.items():
-        if len(morphemes) > 1:
-            # First morpheme might be a prefix
-            if len(morphemes[0]) <= 5:  # Prefixes are usually short
-                prefixes.add(morphemes[0])
-            
-            # Last morpheme might be a suffix
-            if len(morphemes[-1]) <= 5:  # Suffixes are usually short
-                suffixes.add(morphemes[-1])
-    
-    return prefixes, suffixes
-
-def segment_unknown(word, prefixes, suffixes):
-    """Attempt to segment an unknown word using learned patterns."""
+    This is a simple rule-based approach that doesn't require spaCy.
+    Returns a list of morphemes based on common English affixes.
+    """
     morphemes = []
-    remaining = word
+    remaining = word.lower()
     
-    # Try to strip prefixes
-    for prefix in sorted(prefixes, key=len, reverse=True):
-        if remaining.startswith(prefix) and len(remaining) > len(prefix):
+    # Common prefixes
+    prefixes = ["un", "re", "in", "dis", "en", "non", "pre", "post", "anti", "de"]
+    # Common suffixes  
+    suffixes = ["ing", "ed", "er", "est", "ly", "ness", "ment", "tion", "sion", "ity", "ful", "less", "ous", "ive", "al"]
+    
+    # Extract prefix
+    for prefix in prefixes:
+        if remaining.startswith(prefix) and len(remaining) > len(prefix) + 2:
             morphemes.append(prefix)
             remaining = remaining[len(prefix):]
             break
     
-    # Try to strip suffixes
-    for suffix in sorted(suffixes, key=len, reverse=True):
-        if remaining.endswith(suffix) and len(remaining) > len(suffix):
-            # Check if there's a root left
-            root = remaining[:-len(suffix)]
-            if len(root) >= 2:  # Root should be at least 2 characters
-                morphemes.append(root)
-                morphemes.append(suffix)
-                return morphemes
+    # Extract suffix
+    for suffix in suffixes:
+        if remaining.endswith(suffix) and len(remaining) > len(suffix) + 2:
+            morphemes.append(remaining[:-len(suffix)])
+            morphemes.append(suffix)
+            return morphemes
     
-    # If we found a prefix but no suffix, add the remaining as root
+    # No suffix found, add remaining word
     if morphemes:
         morphemes.append(remaining)
-        return morphemes
+    else:
+        morphemes.append(word)
     
-    # No segmentation found, return word as-is
-    return [word]
-
-def segment(word, model):
-    """Returns a list of morphemes for a given word."""
-    # Check if word is in dictionary
-    if word in model:
-        return model[word]
-    
-    # Extract morpheme patterns from model
-    prefixes, suffixes = extract_morpheme_patterns(model)
-    
-    # Try to segment the unknown word
-    return segment_unknown(word, prefixes, suffixes)
+    return morphemes

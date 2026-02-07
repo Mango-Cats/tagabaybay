@@ -1,6 +1,6 @@
 # ᜆᜄᜊᜌ᜔ᜊᜌ᜔ / TagaBaybay
 
-A loanword adaptation algorithm for Filipino loanwords.
+    A loanword adaptation algorithm for Filipino loanwords.
 Written in Rust.
 
 ## Project Team

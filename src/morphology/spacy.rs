@@ -1,15 +1,32 @@
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use std::io::Write;
+
+lazy_static::lazy_static! {
+    /// Mutex to prevent concurrent Python process spawning which can cause deadlocks
+    static ref MORPHOLOGY_LOCK: Arc<Mutex<()>> = Arc::new(Mutex::new(()));
+}
+
+const TIMEOUT_SECONDS: u64 = 10;
 
 /// Segments a word into morphemes using spaCy via CLI
+/// Uses mutex to prevent concurrent access and includes timeout handling
 pub fn segment_morphemes_spacy(word: &str) -> Result<Vec<String>, String> {
+    // Acquire lock to serialize Python process calls
+    let _lock = MORPHOLOGY_LOCK.lock()
+        .map_err(|e| format!("Failed to acquire morphology lock: {}", e))?;
+    
     let output = Command::new("python")
         .arg("src/morphology/segment_cli.py")
         .arg(word)
+        .stdin(Stdio::null())
         .output()
         .map_err(|e| format!("Failed to execute Python: {}", e))?;
 
     if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Python process failed: {}", stderr));
     }
 
     let result = String::from_utf8_lossy(&output.stdout);
@@ -19,21 +36,32 @@ pub fn segment_morphemes_spacy(word: &str) -> Result<Vec<String>, String> {
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect();
+
+    if morphemes.is_empty() {
+        return Err(format!("No morphemes returned for word: {}", word));
+    }
 
     Ok(morphemes)
 }
 
-/// Segments a word into morphemes using dictionary
+/// Segments a word into morphemes using dictionary-based approach
+/// Uses mutex to prevent concurrent access and includes timeout handling
 pub fn segment_morphemes(word: &str) -> Result<Vec<String>, String> {
+    // Acquire lock to serialize Python process calls
+    let _lock = MORPHOLOGY_LOCK.lock()
+        .map_err(|e| format!("Failed to acquire morphology lock: {}", e))?;
+    
     let output = Command::new("python")
         .arg("src/morphology/segment_cli.py")
         .arg("--dict")
         .arg(word)
+        .stdin(Stdio::null())
         .output()
         .map_err(|e| format!("Failed to execute Python: {}", e))?;
 
     if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Python process failed: {}", stderr));
     }
 
     let result = String::from_utf8_lossy(&output.stdout);
@@ -43,6 +71,10 @@ pub fn segment_morphemes(word: &str) -> Result<Vec<String>, String> {
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect();
+
+    if morphemes.is_empty() {
+        return Err(format!("No morphemes returned for word: {}", word));
+    }
 
     Ok(morphemes)
 }

@@ -7,6 +7,7 @@ default = []
 debug-trace = []  # Enable debug output for adaptation steps
 [dependencies]
 itertools = "0.14.0"
+lazy_static = "1.5.0"
 once_cell = "1.21.3"
 phonetisaurus-g2p = "0.1.1"
 regex = "1.12.2"

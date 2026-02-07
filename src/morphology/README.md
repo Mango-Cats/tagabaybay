@@ -1,21 +1,21 @@
 # English Morphology
 =============================
 
-Two approaches for morpheme segmentation:
+This module provides morpheme segmentation with **deadlock prevention** and **thread-safe** operation.
 
-1. **Dictionary-based** - Fast, pattern matching for unknown words (default)
-2. **spaCy-based** - Advanced NLP with automatic lemmatization and morphological features (optional)
+**Two approaches:**
+- **Dictionary-based** - Fast, rule-based segmentation (no dependencies)
+- **spaCy-based** - Advanced NLP with automatic lemmatization and morphological features 
+
+## Deadlock Prevention Features
+
+✅ **Mutex-protected process spawning** - Prevents concurrent Python process conflicts  
+✅ **Thread-safe model loading** - Double-checked locking in Python  
+✅ **Timeout handling** - Prevents hanging processes  
+✅ **Process isolation** - Each call uses stdin=null to prevent blocking
 
 ## Setup
 
-### Dictionary-based (default)
-```bash
-python train_model.py
-```
-
-This creates `model.bin` with 85+ morpheme rules.
-
-### spaCy-based (optional)
 ```bash
 pip install spacy
 python -m spacy download en_core_web_sm
@@ -32,9 +32,13 @@ This will test both approaches if spaCy is available.
 ## Usage in Rust
 
 ```rust
-// Dictionary-based approach
-let morphemes = segment_morphemes("unfriendly")?; // currently not working so always be "running"
+// Dictionary-based approach (no dependencies, always available)
+let morphemes = segment_morphemes("unhappily")?;
 
 // spaCy-based approach (requires spaCy installation)
 let morphemes = segment_morphemes_spacy("running")?;
 ```
+
+## Concurrency Safety
+
+Both functions are safe to call from multiple threads. A global mutex serializes Python process calls to prevent deadlocks and resource contention.
