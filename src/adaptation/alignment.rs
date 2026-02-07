@@ -4,8 +4,6 @@ use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
 
 type AlignedString = Vec<(SourceGrapheme, Vec<Option<IPASymbol>>)>;
 
-// note to self: pls fix these conditionals bru 😭
-
 /// Phoneme-Grapheme Alignment
 /// 
 /// Handles the alignment of grapheme tokens with its respective phoneme (ipa) tokens
@@ -87,8 +85,11 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
 /// # Returns a boolean value
 fn is_double_vowel(ctx: &Cursor) -> bool {
     let current = ctx.current_grapheme();
+    let current_vowel = current.is_vowel() || 
+    current == SourceGrapheme::W ||
+    current == SourceGrapheme::Y;
 
-    if current.is_consonant() {
+    if !current_vowel {
         return false;
     }
 
@@ -111,7 +112,7 @@ fn is_double_vowel(ctx: &Cursor) -> bool {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -203,39 +204,6 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
 /// vec![Some(phoneme)]
 fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec<Option<IPASymbol>> {
     let current_grapheme = ctx.current_grapheme();
-    let prev_grapheme = ctx.prev_grapheme();
-
-    // If the previous phoneme was a diphthong and the prev and current graphemes are vowels, 'Y', or 'W' make phoneme None 
-    // ie
-    // 0: b -> b
-    // 1: o -> oʊ
-    // 2: w -> None
-    // 3: l -> l
-    // lowkey idk how necessary ALL the conditionals here are (or how to arrange all of this) since im sure i can clean this (somehow...hopefully) 
-    if *p_index > 1 {
-        let prev_ph = p[*p_index - 1].clone();
-
-        if (prev_ph == IPASymbol::DiphthongAI ||
-            prev_ph == IPASymbol::DiphthongAU ||
-            prev_ph == IPASymbol::DiphthongEI ||
-            prev_ph == IPASymbol::DiphthongOI ||
-            prev_ph == IPASymbol::DiphthongOU) &&
-            (prev_grapheme == Some(SourceGrapheme::A) || 
-            prev_grapheme == Some(SourceGrapheme::E) ||
-            prev_grapheme == Some(SourceGrapheme::I) ||
-            prev_grapheme == Some(SourceGrapheme::O) ||
-            prev_grapheme == Some(SourceGrapheme::U) ||
-            prev_grapheme == Some(SourceGrapheme::OO) ||
-            prev_grapheme == Some(SourceGrapheme::EE) ||
-            prev_grapheme == Some(SourceGrapheme::W) ||
-            prev_grapheme == Some(SourceGrapheme::Y)) && 
-            (current_grapheme.is_vowel() ||
-            current_grapheme == SourceGrapheme::W ||
-            current_grapheme == SourceGrapheme::Y)
-            {
-                return vec![None];
-            } 
-    }
 
     let ph = p[*p_index].clone();
     *p_index += 1;
