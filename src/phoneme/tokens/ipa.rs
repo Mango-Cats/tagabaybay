@@ -201,7 +201,7 @@ impl IPASymbol {
             // Tap
             IPASymbol::AlveolarTap => "ɾ",
 
-            // Miscellaneous
+            // Length
             IPASymbol::TriangularColon => "ː",
             IPASymbol::RegularColon => ":",
         }
