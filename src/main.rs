@@ -1,12 +1,14 @@
 use std::io;
 use std::io::Write;
-
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::g2p::G2Py;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
+use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
+use tagabaybay::grapheme::tokenize::source_tokenizer;
+use tagabaybay::adaptation::alignment::phoneme_grapheme_alignment;
 
 fn main() {
     let config = AdapterConfig::new();
@@ -24,7 +26,8 @@ fn main() {
         }
         if let Some(ref mut g2p) = ipa_g2p {
             if let Ok(phonemes) = g2p.phonemize_phrase(&input, None, None, &config) {
-                println!("* {phonemes}")
+                println!("* {phonemes}");
+                phoneme_grapheme_alignment(tokenize_ipa(&phonemes), source_tokenizer(input));
             }
         }
 
