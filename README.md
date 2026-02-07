@@ -143,7 +143,7 @@ BibTeX:
 
 ```bibtex
 @software{Ganituen_TagaBaybay,
-    author = {Ganituen, Zhean Robby and Ang, Clarence Ivan and Campo, Roan Cedric and Ching, Justin Ethan and Erin Gabrielle, Chua and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Oco, Nathaniel},
+    author = {Ganituen, Zhean Robby and Ang, Clarence Ivan and Campo, Roan Cedric and Ching, Justin Ethan and Chua, Erin Gabrielle and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Oco, Nathaniel},
     license = {Apache-2.0},
     title = {{TagaBaybay}},
     url = {https://github.com/Mango-Cats/tagabaybay/}
