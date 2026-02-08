@@ -2,7 +2,7 @@ use crate::{grapheme::source::SourceGrapheme, phoneme::tokens::ipa::IPASymbol};
 use crate::adaptation::cursor::Cursor;
 use crate::{phoneme::tokenizer::ipa::detokenize_ipa};
 
-type AlignedString = Vec<(SourceGrapheme, Vec<Option<IPASymbol>>)>;
+pub type AlignedString = Vec<(SourceGrapheme, Vec<Option<IPASymbol>>)>;
 
 /// Phoneme-Grapheme Alignment
 /// 

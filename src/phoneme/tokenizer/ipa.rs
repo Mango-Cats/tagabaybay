@@ -65,6 +65,7 @@ pub fn detokenize_ipa(symbols: &[IPASymbol]) -> String {
     symbols.iter().map(|s| s.as_str()).collect()
 }
 
+/// Convert a vector of IPASymbol back to corresponding mapped filipino grapheme.
 pub fn ipa_to_filipino_graphemes(symbols: Vec<IPASymbol>) -> String {
     symbols.iter()
         .filter_map(|s| IPA_TO_FG.get(s).cloned()).flatten()

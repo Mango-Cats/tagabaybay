@@ -9,6 +9,7 @@ use tagabaybay::syllabification::algorithm::syllabify;
 use tagabaybay::phoneme::tokenizer::{ipa::tokenize_ipa, ipa::ipa_to_filipino_graphemes};
 use tagabaybay::grapheme::tokenize::source_tokenizer;
 use tagabaybay::adaptation::alignment::phoneme_grapheme_alignment;
+// use tagabaybay::phoneme::tokens::map::ipa_to_filipino_graphemes;
 
 fn main() {
     let config = AdapterConfig::new();
@@ -28,9 +29,11 @@ fn main() {
         if let Some(ref mut g2p) = ipa_g2p {
             if let Ok(phonemes) = g2p.phonemize_phrase(&input, None, None, &config) {
                 println!("* {phonemes}");
+                // let aligned_string = 
                 phoneme_grapheme_alignment(tokenize_ipa(&phonemes), source_tokenizer(input));
 
                 println!("\nFull IPA mapping:");
+                // let ipa_tpo_fg = ipa_to_filipino_graphemes(tokenize_ipa(&phonemes), &aligned_string);
                 let ipa_tpo_fg = ipa_to_filipino_graphemes(tokenize_ipa(&phonemes));
                 println!("-> {ipa_tpo_fg}\n");
             }
