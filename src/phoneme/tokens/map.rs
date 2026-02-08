@@ -1,4 +1,4 @@
-use crate::{grapheme::filipino::FilipinoGrapheme, phoneme::tokens::arpabet::ArpabetSymbols};
+use crate::{grapheme::{filipino::FilipinoGrapheme}, phoneme::tokens::arpabet::ArpabetSymbols};
 
 use super::ipa::IPASymbol;
 use once_cell::sync::Lazy;
@@ -137,12 +137,12 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         // Vowels
         (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::A]), // "ɑ"
         (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]), // "æ"
-        (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::U]), // "ʌ" 
+        (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::A]), // "ʌ" 
         (IPASymbol::Schwa, vec![FilipinoGrapheme::E]), // "ə" 
         (IPASymbol::OpenMidBackRounded, vec![FilipinoGrapheme::O]), // "ɔ"
-        (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E]), // "ɛ"
+        (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]), // "ɛ"
         (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]), // "ɝ"
-        (IPASymbol::RColoredSchwa, vec![FilipinoGrapheme::U, FilipinoGrapheme::R]), // "ɚ"
+        (IPASymbol::RColoredSchwa, vec![FilipinoGrapheme::E, FilipinoGrapheme::R]), // "ɚ"
         (IPASymbol::NearCloseFront, vec![FilipinoGrapheme::I]), // "ɪ"
         (IPASymbol::CloseFront, vec![FilipinoGrapheme::I]), // "i"
         (IPASymbol::NearCloseBack, vec![FilipinoGrapheme::U]), // "ʊ"
@@ -152,8 +152,8 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::DiphthongAU, vec![FilipinoGrapheme::A, FilipinoGrapheme::W]), // "aʊ"
         (IPASymbol::DiphthongAI, vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]), // "aɪ"
         (IPASymbol::DiphthongEI, vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]), // "eɪ"
-        (IPASymbol::DiphthongOU, vec![FilipinoGrapheme::O, FilipinoGrapheme::W]), // "oʊ"
-        (IPASymbol::DiphthongAU, vec![FilipinoGrapheme::O, FilipinoGrapheme::Y]), // "ɔɪ"
+        (IPASymbol::DiphthongOU, vec![FilipinoGrapheme::O]), // "oʊ"
+        (IPASymbol::DiphthongOI, vec![FilipinoGrapheme::O, FilipinoGrapheme::Y]), // "ɔɪ"
         
         // Stops 
         (IPASymbol::VoicelessBilabialStop, vec![FilipinoGrapheme::P]), // "p"
@@ -171,13 +171,13 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::VoicedDentalFricative, vec![FilipinoGrapheme::D]), // "ð"
         (IPASymbol::VoicelessAlveolarFricative, vec![FilipinoGrapheme::S]), // "s"
         (IPASymbol::VoicedAlveolarFricative, vec![FilipinoGrapheme::S]), // "z"
-        (IPASymbol::VoicelessPostalveolarFricative, vec![FilipinoGrapheme::S]), // "ʃ"
+        (IPASymbol::VoicelessPostalveolarFricative, vec![FilipinoGrapheme::S, FilipinoGrapheme::I]), // "ʃ"
         (IPASymbol::VoicedPostalveolarFricative, vec![FilipinoGrapheme::S]), // "ʒ"
         (IPASymbol::VoicelessGlottalFricative, vec![FilipinoGrapheme::H]), // "h"
 
         // Affricates
         (IPASymbol::VoicelessPostalveolarAffricate, vec![FilipinoGrapheme::T, FilipinoGrapheme::S]), // "tʃ"
-        (IPASymbol::VoicedPostalveolarAffricate, vec![FilipinoGrapheme::J]), // "dʒ"
+        (IPASymbol::VoicedPostalveolarAffricate, vec![FilipinoGrapheme::D, FilipinoGrapheme::Y]), // "dʒ"
 
         // Nasals
         (IPASymbol::BilabialNasal, vec![FilipinoGrapheme::M]), // "m"
@@ -190,11 +190,11 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::AlveolarApproximant, vec![FilipinoGrapheme::R]), // "ɹ"
         (IPASymbol::AlveolarTrill, vec![FilipinoGrapheme::R]), // "r"
         (IPASymbol::LabialVelarApproximant, vec![FilipinoGrapheme::W]), // "w"
-        (IPASymbol::PalatalApproximant, vec![FilipinoGrapheme::J]), // "j"
+        (IPASymbol::PalatalApproximant, vec![FilipinoGrapheme::Y]), // "j"
         (IPASymbol::VoicelessLabialVelar, vec![FilipinoGrapheme::W]), // "ʍ"
 
         // Tap
-        (IPASymbol::AlveolarTap, vec![FilipinoGrapheme::R]), // "ɾ"
+        (IPASymbol::AlveolarTap, vec![FilipinoGrapheme::T]), // "ɾ"
 
     ])
 });

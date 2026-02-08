@@ -1,4 +1,4 @@
-use crate::{grapheme::filipino::FilipinoGrapheme, phoneme::tokens::{
+use crate::{phoneme::tokens::{
     ipa::IPASymbol, 
     map::IPA_STR_TO_SYMBOL,
     map::IPA_TO_FG,
@@ -65,7 +65,7 @@ pub fn detokenize_ipa(symbols: &[IPASymbol]) -> String {
     symbols.iter().map(|s| s.as_str()).collect()
 }
 
-pub fn ipa_to_filipino_graphemes(symbols: &[IPASymbol]) -> String {
+pub fn ipa_to_filipino_graphemes(symbols: Vec<IPASymbol>) -> String {
     symbols.iter()
         .filter_map(|s| IPA_TO_FG.get(s).cloned()).flatten()
         .map(|fg| fg.to_string()) 
