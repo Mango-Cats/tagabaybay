@@ -144,7 +144,7 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]), // "ɛ"
         (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]), // "ɝ"
         (IPASymbol::RColoredSchwa, vec![FilipinoGrapheme::E, FilipinoGrapheme::R]), // "ɚ"
-        // Default is 'I', but it is context sensititive
+        // Default is FilipinoGrapheme 'I', but it is context sensititive
         (IPASymbol::NearCloseFront, vec![FilipinoGrapheme::I]), // "ɪ"
         (IPASymbol::CloseFront, vec![FilipinoGrapheme::I]), // "i"
         (IPASymbol::NearCloseBack, vec![FilipinoGrapheme::U]), // "ʊ"
@@ -226,16 +226,6 @@ pub fn ipa_to_filipino_graphemes(
     }
     
     result
-}
-
-fn case_i_sound(ctx: &Cursor) -> Vec<FilipinoGrapheme> {
-    if ctx.current_grapheme() == SourceGrapheme::A {
-        return vec![FilipinoGrapheme::E, FilipinoGrapheme::Y];
-    } else if ctx.current_grapheme() == SourceGrapheme::E {
-        return vec![FilipinoGrapheme::E];
-    } else {
-        return vec![FilipinoGrapheme::I];
-    }
 }
 
 /// IPA to ARPABET mapping (legacy, for backwards compatibility)
