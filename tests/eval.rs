@@ -39,7 +39,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
     //
     // ===== LOOK HERE ==============================
     let config = AdapterConfig::new();
-    let adapter = Adapter::new_with_config(config.clone());
+    let mut adapter = Adapter::new_with_config(config.clone());
 
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
