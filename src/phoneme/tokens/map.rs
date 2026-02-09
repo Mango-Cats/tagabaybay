@@ -1,5 +1,4 @@
 use crate::{grapheme::{filipino::FilipinoGrapheme, source::SourceGrapheme}, phoneme::tokens::arpabet::ArpabetSymbols};
-use crate::adaptation::cursor::Cursor;
 use super::ipa::IPASymbol;
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, vec};
@@ -136,7 +135,7 @@ pub static ARPA_TO_IPA: Lazy<HashMap<ArpabetSymbols, IPASymbol>> = Lazy::new(|| 
 pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::new(|| {
     HashMap::from([
         // Vowels
-        (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::A]), // "ɑ"
+        (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::O]), // "ɑ"
         (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]), // "æ"
         (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::A]), // "ʌ" 
         (IPASymbol::Schwa, vec![FilipinoGrapheme::E]), // "ə" 
