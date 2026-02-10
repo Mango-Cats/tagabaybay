@@ -6,12 +6,10 @@ use tagabaybay::g2p::G2Py;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 use tagabaybay::grapheme::filipino::hyphenate;
 use tagabaybay::syllabification::algorithm::syllabify;
-use tagabaybay::phoneme::tokenizer::{ipa::tokenize_ipa, 
-    // ipa::ipa_to_filipino_graphemes
-};
+use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 use tagabaybay::grapheme::tokenize::source_tokenizer;
-use tagabaybay::adaptation::alignment::phoneme_grapheme_alignment;
-use tagabaybay::phoneme::tokens::map::ipa_to_filipino_graphemes;
+use tagabaybay::alignment::alignment::phoneme_grapheme_alignment;
+use tagabaybay::alignment::aligned_string::ipa_to_filipino_graphemes;
 
 fn main() {
     let config = AdapterConfig::new();
@@ -34,7 +32,7 @@ fn main() {
                 let aligned_string = phoneme_grapheme_alignment(tokenize_ipa(&phonemes), source_tokenizer(input));
 
                 println!("\nFull IPA mapping:");
-                let ipa_tpo_fg = ipa_to_filipino_graphemes(tokenize_ipa(&phonemes), &aligned_string);
+                let ipa_tpo_fg = ipa_to_filipino_graphemes(&aligned_string);
                 // let ipa_tpo_fg = ipa_to_filipino_graphemes(tokenize_ipa(&phonemes));
                 println!("-> {ipa_tpo_fg}\n");
             }

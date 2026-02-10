@@ -1,8 +1,7 @@
-use crate::{grapheme::{filipino::FilipinoGrapheme, source::SourceGrapheme}, phoneme::tokens::arpabet::ArpabetSymbols};
+use crate::{grapheme::{filipino::FilipinoGrapheme}, phoneme::tokens::arpabet::ArpabetSymbols};
 use super::ipa::IPASymbol;
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, vec};
-use crate::adaptation::alignment::AlignedString;
 
 /// IPA string to IPASymbol mapping (for tokenization)
 ///
@@ -199,33 +198,6 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
 
     ])
 });
-
-pub fn ipa_to_filipino_graphemes(
-    symbols: Vec<IPASymbol>, 
-    aligned: &AlignedString
-) -> String {
-    let mut result = String::new();
-    
-    for (idx, symbol) in symbols.iter().enumerate() {
-        if *symbol == IPASymbol::NearCloseFront { // "ɪ"
-            if let Some((grapheme, _)) = aligned.get(idx) {
-                let fg = match grapheme {
-                    SourceGrapheme::A => vec![FilipinoGrapheme::E, FilipinoGrapheme::Y],
-                    SourceGrapheme::E => vec![FilipinoGrapheme::E],
-                    _ => vec![FilipinoGrapheme::I],
-                };
-                result.push_str(&fg.iter().map(|g| g.to_string()).collect::<String>());
-                continue;
-            }
-        }
-        
-        if let Some(graphemes) = IPA_TO_FG.get(symbol) {
-            result.push_str(&graphemes.iter().map(|g| g.to_string()).collect::<String>());
-        }
-    }
-    
-    result
-}
 
 /// IPA to ARPABET mapping (legacy, for backwards compatibility)
 /// Use this when using Phonetisaurus: see src/g2p/arpa
