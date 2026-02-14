@@ -205,6 +205,15 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
 fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec<Option<IPASymbol>> {
     let current_grapheme = ctx.current_grapheme();
 
+    if *p_index >= 1 {
+        let prev_ph = p[*p_index - 1].clone();
+        
+        if prev_ph == IPASymbol::RColoredSchwa && 
+           current_grapheme == SourceGrapheme::R {
+            return vec![None];
+        }
+    }
+
     let ph = p[*p_index].clone();
     *p_index += 1;
 
