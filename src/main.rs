@@ -33,8 +33,8 @@ fn main() {
 
                 println!("\nFull IPA mapping:");
                 let ipa_tpo_fg = ipa_to_filipino_graphemes(&aligned_string);
-                // let ipa_tpo_fg = ipa_to_filipino_graphemes(tokenize_ipa(&phonemes));
-                println!("-> {ipa_tpo_fg}\n");
+                let mapped_string = graphemes_to_string(&ipa_tpo_fg);
+                println!("-> {mapped_string}\n");
             }
         }
 

@@ -4,8 +4,8 @@ use super::alignment::AlignedString;
 use crate::phoneme::tokens::map::IPA_TO_FG;
 use std::vec;
 
-pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> String {
-    let mut result = String::new();
+pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGrapheme> {
+    let mut result = Vec::new();
     
     for (idx, (grapheme, phonemes)) in aligned.iter().enumerate() {
         for phoneme_opt in phonemes {
@@ -18,7 +18,10 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> String {
                     } else {
                         vec![FilipinoGrapheme::D, FilipinoGrapheme::Y]
                     };
-                    result.push_str(&fg.iter().map(|g| g.to_string()).collect::<String>());
+                    
+                    for g in fg {
+                        result.push(g)
+                    };
                     continue;
                 }
                 
@@ -35,13 +38,17 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> String {
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         _ => vec![FilipinoGrapheme::I],
                     };
-                    result.push_str(&fg.iter().map(|g| g.to_string()).collect::<String>());
+                    for g in fg {
+                        result.push(g)
+                    };
                     continue;
                 }
                 
                 // Default mapping
                 if let Some(graphemes) = IPA_TO_FG.get(symbol) {
-                    result.push_str(&graphemes.iter().map(|g| g.to_string()).collect::<String>());
+                    for g in graphemes {
+                        result.push(g.clone());
+                    };
                 }
             }
         }
