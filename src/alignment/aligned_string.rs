@@ -48,6 +48,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                 // "ə"
                 if *symbol == IPASymbol::Schwa {
                     let fg = match grapheme {
+                        g if g.is_consonant() => vec![],
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::A => vec![FilipinoGrapheme::A],
                         SourceGrapheme::O => vec![FilipinoGrapheme::O],
@@ -75,6 +76,30 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
 
+                // "ɑ"
+                if *symbol == IPASymbol::OpenBackUnrounded {
+                    let fg = match grapheme {
+                        SourceGrapheme::O => vec![FilipinoGrapheme::O],
+                        _ => vec![FilipinoGrapheme::A],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
+                // "ɛ"
+                if *symbol == IPASymbol::OpenMidFront {
+                    let fg = match grapheme {
+                        SourceGrapheme::A => vec![FilipinoGrapheme::A],
+                        _ => vec![FilipinoGrapheme::E],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
                 // "ɚ"
                 if *symbol == IPASymbol::RColoredSchwa {
                     let fg = match grapheme {
@@ -82,6 +107,18 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::U => vec![FilipinoGrapheme::U, FilipinoGrapheme::R],
                         SourceGrapheme::ORE => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
                         _ => vec![FilipinoGrapheme::E, FilipinoGrapheme::R],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
+                // "t"
+                if *symbol == IPASymbol::VoicelessAlveolarStop {
+                    let fg = match grapheme {
+                        SourceGrapheme::ED => vec![FilipinoGrapheme::D],
+                        _ => vec![FilipinoGrapheme::T],
                     };
                     for g in fg {
                         result.push(g)

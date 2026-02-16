@@ -134,7 +134,7 @@ pub static ARPA_TO_IPA: Lazy<HashMap<ArpabetSymbols, IPASymbol>> = Lazy::new(|| 
 pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::new(|| {
     HashMap::from([
         // Vowels
-        (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::O]), // "ɑ"
+        (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::A]), // "ɑ"
         (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]), // "æ"
         (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::A]), // "ʌ" 
         (IPASymbol::Schwa, vec![FilipinoGrapheme::E]), // "ə" 
