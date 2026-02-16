@@ -75,6 +75,20 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
 
+                // "ɚ"
+                if *symbol == IPASymbol::RColoredSchwa {
+                    let fg = match grapheme {
+                        SourceGrapheme::O => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
+                        SourceGrapheme::U => vec![FilipinoGrapheme::U, FilipinoGrapheme::R],
+                        SourceGrapheme::ORE => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
+                        _ => vec![FilipinoGrapheme::E, FilipinoGrapheme::R],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
                 // Default mapping
                 if let Some(graphemes) = IPA_TO_FG.get(symbol) {
                     for g in graphemes {
