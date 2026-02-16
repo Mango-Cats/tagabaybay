@@ -48,12 +48,12 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                 // "ə"
                 if *symbol == IPASymbol::Schwa {
                     let fg = match grapheme {
-                        g if g.is_consonant() => vec![],
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::A => vec![FilipinoGrapheme::A],
+                        SourceGrapheme::I => vec![FilipinoGrapheme::I],
                         SourceGrapheme::O => vec![FilipinoGrapheme::O],
                         SourceGrapheme::U => vec![FilipinoGrapheme::U],
-                        _ => vec![FilipinoGrapheme::I],
+                        _ => vec![FilipinoGrapheme::O],
                     };
                     for g in fg {
                         result.push(g)

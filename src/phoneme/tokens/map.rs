@@ -137,7 +137,7 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::A]), // "ɑ"
         (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]), // "æ"
         (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::A]), // "ʌ" 
-        (IPASymbol::Schwa, vec![FilipinoGrapheme::E]), // "ə" 
+        (IPASymbol::Schwa, vec![FilipinoGrapheme::O]), // "ə" 
         (IPASymbol::OpenMidBackRounded, vec![FilipinoGrapheme::O]), // "ɔ"
         (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E]), // "ɛ"
         (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]), // "ɝ"
