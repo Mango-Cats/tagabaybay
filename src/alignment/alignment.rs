@@ -227,6 +227,13 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
            p[*p_index] != IPASymbol::VoicelessAlveolarFricative {
             return vec![None];
         }
+
+        //handles D, J
+        if current_grapheme == SourceGrapheme::J &&
+           prev_grapheme == Some(SourceGrapheme::D) &&
+           p[*p_index] != IPASymbol::VoicedPostalveolarAffricate {
+            return vec![None];
+        }
     }
 
     let ph = p[*p_index].clone();
