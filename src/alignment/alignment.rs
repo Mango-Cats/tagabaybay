@@ -65,6 +65,10 @@ pub fn phoneme_grapheme_alignment(
 /// # Returns a boolean value
 fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
     if let Some(prev) = ctx.prev_grapheme(){
+        // case for double Cs
+        if ctx.current_grapheme() == SourceGrapheme::C && prev == SourceGrapheme::C {
+            return false
+        }
         ctx.current_grapheme() == prev
     } else {
         false
@@ -204,12 +208,21 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
 /// vec![Some(phoneme)]
 fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec<Option<IPASymbol>> {
     let current_grapheme = ctx.current_grapheme();
+    // let next_grapheme = ctx.next_grapheme();
+    let prev_grapheme = ctx.prev_grapheme();
 
     if *p_index >= 1 {
         let prev_ph = p[*p_index - 1].clone();
         
         if prev_ph == IPASymbol::RColoredSchwa && 
            current_grapheme == SourceGrapheme::R {
+            return vec![None];
+        }
+
+        // handles double Cs
+        if current_grapheme == SourceGrapheme::C &&
+           prev_grapheme == Some(SourceGrapheme::C) &&
+           p[*p_index] != IPASymbol::VoicelessAlveolarFricative {
             return vec![None];
         }
     }
