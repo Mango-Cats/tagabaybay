@@ -36,6 +36,22 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                             vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]
                         },
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::ED => vec![FilipinoGrapheme::E],
+                        _ => vec![FilipinoGrapheme::I],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
+                // "ə"
+                if *symbol == IPASymbol::Schwa {
+                    let fg = match grapheme {
+                        SourceGrapheme::E => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::A => vec![FilipinoGrapheme::A],
+                        SourceGrapheme::O => vec![FilipinoGrapheme::O],
+                        SourceGrapheme::U => vec![FilipinoGrapheme::U],
                         _ => vec![FilipinoGrapheme::I],
                     };
                     for g in fg {
@@ -44,6 +60,21 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
                 
+                // "ʌ"
+                if *symbol == IPASymbol::OpenMidBack {
+                    let fg = match grapheme {
+                        SourceGrapheme::E => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::A => vec![FilipinoGrapheme::A],
+                        SourceGrapheme::O => vec![FilipinoGrapheme::O],
+                        SourceGrapheme::U => vec![FilipinoGrapheme::U],
+                        _ => vec![FilipinoGrapheme::I],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
                 // Default mapping
                 if let Some(graphemes) = IPA_TO_FG.get(symbol) {
                     for g in graphemes {

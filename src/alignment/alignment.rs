@@ -211,6 +211,8 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     // let next_grapheme = ctx.next_grapheme();
     let prev_grapheme = ctx.prev_grapheme();
 
+
+    // non-consuming
     if *p_index >= 1 {
         let prev_ph = p[*p_index - 1].clone();
         
@@ -230,6 +232,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     let ph = p[*p_index].clone();
     *p_index += 1;
 
+    // consuming
     if *p_index < p.len() {
         let next_ph = p[*p_index].clone();
 
