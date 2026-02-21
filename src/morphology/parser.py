@@ -101,10 +101,52 @@ def segment_dict(word):
             remaining = remaining[len(prefix):]
             break
     
-    # Extract suffix
+    # Extract suffix with special handling for -tion/-sion
     for suffix in suffixes:
         if remaining.endswith(suffix) and len(remaining) > len(suffix) + 2:
-            morphemes.append(remaining[:-len(suffix)])
+            stem = remaining[:-len(suffix)]
+            
+            # Special case: -tion/-sion often comes from verbs ending in -ate/-ite/-ute/-ize
+            # e.g., allocate + ion -> allocation (but we want "allocate" + "tion")
+            if suffix in ["tion", "sion"]:
+                # Check patterns to restore the proper verb form
+                if len(stem) >= 3:
+                    # Pattern: ...iza + tion -> ...ize + tion (organize, realize)
+                    if stem.endswith("iza"):
+                        stem = stem[:-1] + "e"  # iza -> ize
+                    # Pattern: ...ca + tion -> ...cate + tion (allocate, communicate, dedicate)
+                    # Pattern: ...ga + tion -> ...gate + tion (navigate, delegate)
+                    # Pattern: ...ra + tion -> ...rate + tion (operate, generate)
+                    # Pattern: ...ta + tion -> ...tate + tion (rotate, imitate)
+                    # etc.
+                    elif stem.endswith("a") and len(stem) >= 2:
+                        # Check if it's likely from an -ate verb (not from -ct verbs)
+                        # Most -ation words come from -ate verbs
+                        stem = stem + "te"
+                    # Pattern: ...i + tion -> ...ite + tion (ignite, excite)
+                    elif stem.endswith("i") and not stem.endswith("it"):  # avoid "ition"
+                        stem = stem + "te"
+                    # Pattern: ...u + tion -> ...ute + tion (contribute, distribute)
+                    elif stem.endswith("u"):
+                        stem = stem + "te"
+                    # Pattern: ...us + ion -> ...use + ion (confuse, diffuse)
+                    elif stem.endswith("us"):
+                        stem = stem + "e"
+                    # Pattern: ...c + tion -> ...ct + tion (construct, destruct, abstract)
+                    # The 't' in '-tion' is actually part of the verb stem
+                    elif stem.endswith("c") and len(stem) >= 2:
+                        stem = stem + "t"
+            
+            # Special case: -ness often follows adjectives where y->i (happy -> happiness)
+            elif suffix == "ness":
+                if stem.endswith("i") and len(stem) >= 2:
+                    # Check if it's likely from y->i transformation
+                    # happi -> happy, easi -> easy, etc.
+                    consonants = "bcdfghjklmnpqrstvwxz"
+                    if len(stem) >= 2 and stem[-2] in consonants:
+                        stem = stem[:-1] + "y"
+            
+            morphemes.append(stem)
             morphemes.append(suffix)
             return morphemes
     

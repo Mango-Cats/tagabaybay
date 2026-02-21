@@ -10,11 +10,27 @@ use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 use tagabaybay::grapheme::tokenize::source_tokenizer;
 use tagabaybay::alignment::alignment::phoneme_grapheme_alignment;
 use tagabaybay::alignment::aligned_string::ipa_to_filipino_graphemes;
+use tagabaybay::alignment::{rebuild_and_align_from_morphology};
 
 fn main() {
     let config = AdapterConfig::new();
     let mut adapter = Adapter::new_with_config(config.clone());
+    
+    println!("TagaBaybay Interactive Shell");
+    println!("Initializing G2P...");
     let mut ipa_g2p = G2Py::new().ok();
+    
+    if ipa_g2p.is_some() {
+        println!("✓ IPA G2P initialized successfully");
+    } else {
+        println!("✗ IPA G2P not available (eSpeak-NG or UV not found)");
+        println!("  Morphology mode will not work without G2P");
+    }
+    
+    println!("\nCommands:");
+    println!("  qq - quit");
+    println!("  m:<word> - use morphology-aware G2P");
+    println!("  <word> - normal processing\n");
 
     loop {
         print!("? ");
@@ -24,6 +40,42 @@ fn main() {
         let input = input.trim();
         if input == "qq" {
             break;
+        }
+
+        // Check if morphology mode is requested
+        if input.starts_with("m:") {
+            let word = input.trim_start_matches("m:");
+            if let Some(ref mut g2p) = ipa_g2p {
+                println!("\n=== Morphology-Aware G2P Pipeline ===");
+                match g2p.phonemize_with_morphology(word) {
+                    Ok((phonemes, morphemes)) => {
+                        println!("Input: {}", word);
+                        println!("Morphemes: {:?}", morphemes);
+                        println!("Phonemes (with # boundaries): {}", phonemes);
+                        
+                        // Rebuild and align
+                        let aligned = rebuild_and_align_from_morphology(word, &phonemes, &morphemes);
+                        let ipa_fg = ipa_to_filipino_graphemes(&aligned);
+                        let mapped = graphemes_to_string(&ipa_fg);
+                        
+                        println!("Rebuild phonemes: {}", phonemes.replace('#', ""));
+                        println!("Filipino output: {}\n", mapped);
+                    }
+                    Err(e) => {
+                        println!("Error: {:?}\n", e);
+                    }
+                }
+            } else {
+                println!("\n⚠️  IPA G2P not available!");
+                println!("Morphology mode requires IPA G2P.");
+                println!("\nTo fix this:");
+                println!("  1. Install eSpeak-NG:");
+                println!("     - Windows: Download from https://github.com/espeak-ng/espeak-ng/releases");
+                println!("     - Set ESPEAK_LIB environment variable to the DLL path");
+                println!("  2. Install UV: https://docs.astral.sh/uv/");
+                println!();
+            }
+            continue;
         }
 
         if let Some(ref mut g2p) = ipa_g2p {

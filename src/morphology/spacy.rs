@@ -1,14 +1,10 @@
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use std::io::Write;
 
 lazy_static::lazy_static! {
     /// Mutex to prevent concurrent Python process spawning which can cause deadlocks
     static ref MORPHOLOGY_LOCK: Arc<Mutex<()>> = Arc::new(Mutex::new(()));
 }
-
-const TIMEOUT_SECONDS: u64 = 10;
 
 /// Segments a word into morphemes using spaCy via CLI
 /// Uses mutex to prevent concurrent access and includes timeout handling
@@ -79,8 +75,6 @@ pub fn segment_morphemes(word: &str) -> Result<Vec<String>, String> {
     Ok(morphemes)
 }
 
-// ...existing code...
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -94,6 +88,66 @@ mod tests {
                 assert_eq!(morphemes, vec!["un", "friend", "ly"]);
             }
             Err(e) => panic!("Segmentation failed: {}", e),
+        }
+    }
+
+    #[test]
+    fn test_dict_segmentation_tion_suffix() {
+        // Test -tion suffix with -ate verb stems
+        let test_cases = vec![
+            ("reallocation", vec!["re", "allocate", "tion"]),
+            ("creation", vec!["create", "tion"]),
+            ("organization", vec!["organize", "tion"]),
+        ];
+        
+        for (word, expected) in test_cases {
+            match segment_morphemes(word) {
+                Ok(morphemes) => {
+                    println!("{} -> {:?}", word, morphemes);
+                    assert_eq!(morphemes, expected, "Failed for word: {}", word);
+                }
+                Err(e) => panic!("Segmentation failed for {}: {}", word, e),
+            }
+        }
+    }
+
+    #[test]
+    fn test_dict_segmentation_ction_suffix() {
+        // Test -ction suffix with -ct verb stems
+        let test_cases = vec![
+            ("reconstruction", vec!["re", "construct", "tion"]),
+            ("destruction", vec!["de", "struct", "tion"]),
+            ("abstraction", vec!["abstract", "tion"]),
+        ];
+        
+        for (word, expected) in test_cases {
+            match segment_morphemes(word) {
+                Ok(morphemes) => {
+                    println!("{} -> {:?}", word, morphemes);
+                    assert_eq!(morphemes, expected, "Failed for word: {}", word);
+                }
+                Err(e) => panic!("Segmentation failed for {}: {}", word, e),
+            }
+        }
+    }
+
+    #[test]
+    fn test_dict_segmentation_ness_suffix() {
+        // Test -ness suffix with y->i transformation
+        let test_cases = vec![
+            ("unhappiness", vec!["un", "happy", "ness"]),
+            ("easiness", vec!["easy", "ness"]),
+            ("loneliness", vec!["lonely", "ness"]),
+        ];
+        
+        for (word, expected) in test_cases {
+            match segment_morphemes(word) {
+                Ok(morphemes) => {
+                    println!("{} -> {:?}", word, morphemes);
+                    assert_eq!(morphemes, expected, "Failed for word: {}", word);
+                }
+                Err(e) => panic!("Segmentation failed for {}: {}", word, e),
+            }
         }
     }
 
