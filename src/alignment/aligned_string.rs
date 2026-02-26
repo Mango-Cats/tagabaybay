@@ -67,8 +67,8 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::A => vec![FilipinoGrapheme::A],
                         SourceGrapheme::O => vec![FilipinoGrapheme::O],
-                        SourceGrapheme::U => vec![FilipinoGrapheme::U],
-                        _ => vec![FilipinoGrapheme::I],
+                        SourceGrapheme::U => vec![FilipinoGrapheme::A],
+                        _ => vec![FilipinoGrapheme::A],
                     };
                     for g in fg {
                         result.push(g)
@@ -104,7 +104,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                 if *symbol == IPASymbol::RColoredSchwa {
                     let fg = match grapheme {
                         SourceGrapheme::O => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
-                        SourceGrapheme::U => vec![FilipinoGrapheme::U, FilipinoGrapheme::R],
+                        SourceGrapheme::U => vec![FilipinoGrapheme::E, FilipinoGrapheme::R],
                         SourceGrapheme::ORE => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
                         _ => vec![FilipinoGrapheme::E, FilipinoGrapheme::R],
                     };
