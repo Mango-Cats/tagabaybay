@@ -28,7 +28,7 @@ pub fn phoneme_grapheme_alignment(
 
         let phoneme = 
         if is_duplicate_grapheme(&ctx) ||
-        is_double_vowel(&ctx) ||
+        is_double_vowel(&ctx, &p, p_index) ||
         is_case_ck(&ctx) ||
         is_case_gh(&ctx) || 
         is_case_ld(&ctx, &p, p_index)
@@ -87,7 +87,7 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
 /// t -> t
 /// 
 /// # Returns a boolean value
-fn is_double_vowel(ctx: &Cursor) -> bool {
+fn is_double_vowel(ctx: &Cursor,  p: &Vec<IPASymbol>, p_index: usize) -> bool {
     let current = ctx.current_grapheme();
     let current_vowel = current.is_vowel() || 
     current == SourceGrapheme::W ||
@@ -109,6 +109,20 @@ fn is_double_vowel(ctx: &Cursor) -> bool {
         // Special case for UA
         if prev == SourceGrapheme::U && current == SourceGrapheme::A {
             return false;
+        }
+
+        // if current vowel is a dipthong
+        if p_index < p.len() {
+            let current_phoneme = &p[p_index];
+            if matches!(current_phoneme,
+                IPASymbol::DiphthongAI |
+                IPASymbol::DiphthongAU |
+                IPASymbol::DiphthongEI |
+                IPASymbol::DiphthongOI |
+                IPASymbol::DiphthongOU
+            ) {
+                return false;
+            }
         }
 
        if let Some(before_prev) = ctx.lookat_grapheme(-2) {
