@@ -111,7 +111,7 @@ fn is_double_vowel(ctx: &Cursor,  p: &Vec<IPASymbol>, p_index: usize) -> bool {
             return false;
         }
 
-        // if current vowel is a dipthong
+        // if current vowel is a dipthong/monophthong
         if p_index < p.len() {
             let current_phoneme = &p[p_index];
             if matches!(current_phoneme,
@@ -119,7 +119,19 @@ fn is_double_vowel(ctx: &Cursor,  p: &Vec<IPASymbol>, p_index: usize) -> bool {
                 IPASymbol::DiphthongAU |
                 IPASymbol::DiphthongEI |
                 IPASymbol::DiphthongOI |
-                IPASymbol::DiphthongOU
+                IPASymbol::DiphthongOU |
+                IPASymbol::OpenBackUnrounded |
+                IPASymbol::NearOpenFront |
+                IPASymbol::OpenMidBack |
+                IPASymbol::Schwa |
+                IPASymbol::OpenMidBackRounded |
+                IPASymbol::OpenMidFront |
+                IPASymbol::RColoredMid |
+                IPASymbol::RColoredSchwa |
+                IPASymbol::NearCloseFront |
+                IPASymbol::CloseFront |
+                IPASymbol::NearCloseBack |
+                IPASymbol::CloseBack 
             ) {
                 return false;
             }
