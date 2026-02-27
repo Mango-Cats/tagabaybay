@@ -126,6 +126,22 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
 
+                // "ŋ"
+                if *symbol == IPASymbol::VelarNasal {
+                    let next_is_g = aligned.get(idx + 1)
+                        .map(|(next_g, _)| *next_g == SourceGrapheme::G).unwrap_or(false);
+                    let fg = match grapheme {
+                        SourceGrapheme::N if !next_is_g => {
+                            vec![FilipinoGrapheme::N]
+                        },
+                        _ => vec![FilipinoGrapheme::Ng],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
                 // Default mapping
                 if let Some(graphemes) = IPA_TO_FG.get(symbol) {
                     for g in graphemes {

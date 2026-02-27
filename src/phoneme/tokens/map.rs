@@ -182,7 +182,7 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         // Nasals
         (IPASymbol::BilabialNasal, vec![FilipinoGrapheme::M]), // "m"
         (IPASymbol::AlveolarNasal, vec![FilipinoGrapheme::N]), // "n"
-        (IPASymbol::VelarNasal, vec![FilipinoGrapheme::N, FilipinoGrapheme::G]), // "ŋ"
+        (IPASymbol::VelarNasal, vec![FilipinoGrapheme::Ng]), // "ŋ"
         (IPASymbol::PalatalNasal, vec![FilipinoGrapheme::N, FilipinoGrapheme::Y]), // "ɲ"
 
         // Approximants
