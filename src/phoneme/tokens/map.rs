@@ -26,6 +26,7 @@ pub static IPA_STR_TO_SYMBOL: Lazy<HashMap<&'static str, IPASymbol>> = Lazy::new
         ("ə", IPASymbol::Schwa),
         ("ɔ", IPASymbol::OpenMidBackRounded),
         ("ɛ", IPASymbol::OpenMidFront),
+        ("ɜ", IPASymbol::OpenMidCentral),
         ("ɝ", IPASymbol::RColoredMid),
         ("ɚ", IPASymbol::RColoredSchwa),
         ("ɪ", IPASymbol::NearCloseFront),
@@ -70,7 +71,7 @@ pub static IPA_STR_TO_SYMBOL: Lazy<HashMap<&'static str, IPASymbol>> = Lazy::new
         // Tap
         ("ɾ", IPASymbol::AlveolarTap),
         // Miscellaneous 
-        // ("ː", IPASymbol::TriangularColon),
+        ("ː", IPASymbol::TriangularColon),
         // (":", IPASymbol::RegularColon),
     ])
 });
@@ -140,9 +141,9 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::Schwa, vec![FilipinoGrapheme::O]), // "ə" 
         (IPASymbol::OpenMidBackRounded, vec![FilipinoGrapheme::O]), // "ɔ"
         (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E]), // "ɛ"
+        (IPASymbol::OpenMidCentral, vec![FilipinoGrapheme::U, FilipinoGrapheme::R]), // "ɜ"
         (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]), // "ɝ"
         (IPASymbol::RColoredSchwa, vec![FilipinoGrapheme::E, FilipinoGrapheme::R]), // "ɚ"
-        // Default is FilipinoGrapheme 'I', but it is context sensititive
         (IPASymbol::NearCloseFront, vec![FilipinoGrapheme::I]), // "ɪ"
         (IPASymbol::CloseFront, vec![FilipinoGrapheme::I]), // "i"
         (IPASymbol::NearCloseBack, vec![FilipinoGrapheme::U]), // "ʊ"

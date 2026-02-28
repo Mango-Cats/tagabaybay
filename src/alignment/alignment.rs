@@ -69,7 +69,10 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
         if ctx.current_grapheme() == SourceGrapheme::C && prev == SourceGrapheme::C {
             return false
         }
-        ctx.current_grapheme() == prev
+
+        ctx.current_grapheme() == prev ||
+        (prev == SourceGrapheme::S && ctx.current_grapheme() == SourceGrapheme::SE) ||
+        (prev == SourceGrapheme::ED && ctx.current_grapheme() == SourceGrapheme::D)
     } else {
         false
     }
@@ -114,25 +117,7 @@ fn is_double_vowel(ctx: &Cursor,  p: &Vec<IPASymbol>, p_index: usize) -> bool {
         // if current vowel is a dipthong/monophthong
         if p_index < p.len() {
             let current_phoneme = &p[p_index];
-            if matches!(current_phoneme,
-                IPASymbol::DiphthongAI |
-                IPASymbol::DiphthongAU |
-                IPASymbol::DiphthongEI |
-                IPASymbol::DiphthongOI |
-                IPASymbol::DiphthongOU |
-                IPASymbol::OpenBackUnrounded |
-                IPASymbol::NearOpenFront |
-                IPASymbol::OpenMidBack |
-                IPASymbol::Schwa |
-                IPASymbol::OpenMidBackRounded |
-                IPASymbol::OpenMidFront |
-                IPASymbol::RColoredMid |
-                IPASymbol::RColoredSchwa |
-                IPASymbol::NearCloseFront |
-                IPASymbol::CloseFront |
-                IPASymbol::NearCloseBack |
-                IPASymbol::CloseBack 
-            ) {
+            if current_phoneme.is_vowel() {
                 return false;
             }
         }
@@ -243,6 +228,12 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         let prev_ph = p[*p_index - 1].clone();
         
         if prev_ph == IPASymbol::RColoredSchwa && 
+           current_grapheme == SourceGrapheme::R && 
+           p[*p_index] == IPASymbol::RColoredSchwa {
+            return vec![None];
+        }
+
+        if prev_ph == IPASymbol::OpenMidCentral && 
            current_grapheme == SourceGrapheme::R {
             return vec![None];
         }
