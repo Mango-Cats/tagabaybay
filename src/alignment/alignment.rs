@@ -259,6 +259,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     // consuming
     if *p_index < p.len() {
         let next_ph = p[*p_index].clone();
+        //let next_next_ph = p[*p_index + 1].clone();
 
         // If grapheme is an X, append the /ks/ phonemes together
         if current_grapheme == SourceGrapheme::X {
@@ -317,6 +318,18 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
                 return vec![Some(ph), Some(next_ph)]
             } else {
                 return vec![Some(ph)];
+            }
+        }
+
+        else if current_grapheme == SourceGrapheme::ORE {
+            *p_index += 1;
+
+            if *p_index < p.len() && p[*p_index].is_vowel() {
+                let vec = vec![Some(ph), Some(next_ph), Some( p[*p_index].clone())];
+                *p_index += 1;
+                return vec
+            } else {
+                return vec![Some(ph), Some(next_ph)]
             }
         }
         

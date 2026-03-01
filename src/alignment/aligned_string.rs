@@ -37,6 +37,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         },
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::ED => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::ORE => vec![FilipinoGrapheme::E],
                         _ => vec![FilipinoGrapheme::I],
                     };
                     for g in fg {

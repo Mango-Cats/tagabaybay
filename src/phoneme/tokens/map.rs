@@ -71,7 +71,7 @@ pub static IPA_STR_TO_SYMBOL: Lazy<HashMap<&'static str, IPASymbol>> = Lazy::new
         // Tap
         ("ɾ", IPASymbol::AlveolarTap),
         // Miscellaneous 
-        ("ː", IPASymbol::TriangularColon),
+        // ("ː", IPASymbol::TriangularColon),
         // (":", IPASymbol::RegularColon),
     ])
 });
