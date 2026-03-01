@@ -43,7 +43,9 @@ pub fn phoneme_grapheme_alignment(
         result.push((grapheme.clone(), phoneme));
     };
 
+    // post alignment cases
     handle_leftover_phonemes(&mut result, &p, p_index);
+    free_replacement(&mut result);
 
     // for testing 
     print_aligned_string(&result);
@@ -251,6 +253,16 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
            p[*p_index] != IPASymbol::VoicedPostalveolarAffricate {
             return vec![None];
         }
+
+        // silent vowels 
+         if current_grapheme.is_vowel() {
+            if *p_index < p.len() {
+                let current_phoneme = &p[*p_index];
+                if !current_phoneme.is_vowel() {
+                    return vec![None];
+                }
+            }
+    }
     }
 
     let ph = p[*p_index].clone();
@@ -259,7 +271,6 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     // consuming
     if *p_index < p.len() {
         let next_ph = p[*p_index].clone();
-        //let next_next_ph = p[*p_index + 1].clone();
 
         // If grapheme is an X, append the /ks/ phonemes together
         if current_grapheme == SourceGrapheme::X {
@@ -345,6 +356,26 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
 
     } else {
         vec![Some(ph)]
+    }
+}
+
+/// i hate americans
+fn free_replacement (result: &mut AlignedString) {
+    let len = result.len(); 
+
+    for (idx, (grapheme, phoneme_vec)) in result.iter_mut().enumerate() {
+        if idx < len-1 && grapheme.is_vowel() && phoneme_vec == &vec![None] {
+            *phoneme_vec = match grapheme {
+                SourceGrapheme::A => vec![Some(IPASymbol::OpenBackUnrounded)],
+                SourceGrapheme::E => vec![Some(IPASymbol::OpenMidFront)],
+                SourceGrapheme::I => vec![Some(IPASymbol::NearCloseFront)],
+                SourceGrapheme::O => vec![Some(IPASymbol::OpenMidBackRounded)],
+                SourceGrapheme::U => vec![Some(IPASymbol::CloseBack)],
+                SourceGrapheme::OO => vec![Some(IPASymbol::CloseBack)],
+                SourceGrapheme::EE => vec![Some(IPASymbol::NearCloseFront)],
+                _ => continue,
+            };
+        }
     }
 }
 
