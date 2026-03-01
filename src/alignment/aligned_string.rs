@@ -143,6 +143,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                 // "ɚ"
                 if *symbol == IPASymbol::RColoredSchwa {
                     let fg = match grapheme {
+                        SourceGrapheme::A => vec![FilipinoGrapheme::A, FilipinoGrapheme::R],
                         SourceGrapheme::O => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
                         SourceGrapheme::U => vec![FilipinoGrapheme::E, FilipinoGrapheme::R],
                         SourceGrapheme::ORE => vec![FilipinoGrapheme::O, FilipinoGrapheme::R],
@@ -171,11 +172,40 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                 if *symbol == IPASymbol::VelarNasal {
                     let next_is_g = aligned.get(idx + 1)
                         .map(|(next_g, _)| *next_g == SourceGrapheme::G).unwrap_or(false);
+
                     let fg = match grapheme {
                         SourceGrapheme::N if !next_is_g => {
                             vec![FilipinoGrapheme::N]
                         },
                         _ => vec![FilipinoGrapheme::Ng],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
+                // "ɹ"
+                if *symbol == IPASymbol::AlveolarApproximant {
+                    let prev_phoneme = aligned.get(idx - 1)
+                    .map(|(_, prev_p)| prev_p);
+
+                    let fg = match grapheme {
+                        SourceGrapheme::R => {
+                             let prev_has_r_sound = prev_phoneme
+                                .map(|phonemes| {
+                                    phonemes.iter().any(|p| {
+                                        matches!(p, Some(IPASymbol::RColoredSchwa)| Some(IPASymbol::RColoredMid))
+                                    })
+                                }).unwrap_or(false);
+
+                            if prev_has_r_sound {
+                                vec![]
+                            } else {
+                                vec![FilipinoGrapheme::R]
+                            }
+                        },
+                        _ => vec![FilipinoGrapheme::R],
                     };
                     for g in fg {
                         result.push(g)
