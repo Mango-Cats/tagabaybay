@@ -294,6 +294,10 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         }
 
         else if current_grapheme == SourceGrapheme::ED {
+            if next_ph != IPASymbol::VoicedAlveolarStop {
+                return vec![Some(ph), Some(IPASymbol::VoicedAlveolarStop)]
+            }
+
             *p_index += 1;
             return vec![Some(ph), Some(next_ph)]
         }
