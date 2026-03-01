@@ -306,6 +306,15 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
                 return vec![Some(ph)];
             }
         }
+
+        else if current_grapheme == SourceGrapheme::MB {
+            if next_ph == IPASymbol::VoicedBilabialStop {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
         
         // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the previous phoneme
         else if next_ph == IPASymbol::PalatalApproximant {

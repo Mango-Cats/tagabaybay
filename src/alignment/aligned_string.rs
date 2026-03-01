@@ -35,7 +35,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::A if next_is_consonant => {
                             vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]
                         },
-                        // SourceGrapheme::E => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::ED => vec![FilipinoGrapheme::E],
                         _ => vec![FilipinoGrapheme::I],
                     };
@@ -47,12 +47,25 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
 
                 // "ə"
                 if *symbol == IPASymbol::Schwa {
+                    let prev_grapheme = aligned.get(idx - 1)
+                    .map(|(prev_g, _)| prev_g);
                     let fg = match grapheme {
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::A => vec![FilipinoGrapheme::A],
                         SourceGrapheme::I => vec![FilipinoGrapheme::I],
                         SourceGrapheme::O => vec![FilipinoGrapheme::O],
                         SourceGrapheme::U => vec![FilipinoGrapheme::U],
+                        SourceGrapheme::Y => vec![FilipinoGrapheme::Y],
+
+                        SourceGrapheme::L => {
+                            if prev_grapheme == Some(&SourceGrapheme::K) ||
+                                prev_grapheme == Some(&SourceGrapheme::C) {
+                                vec![FilipinoGrapheme::E]
+                            } else {
+                                vec![FilipinoGrapheme::O]
+                            }
+                            
+                        },
                         _ => vec![FilipinoGrapheme::O],
                     };
                     for g in fg {
