@@ -73,7 +73,7 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
         }
 
         ctx.current_grapheme() == prev ||
-        (prev == SourceGrapheme::S && ctx.current_grapheme() == SourceGrapheme::SE) ||
+        // (prev == SourceGrapheme::S && ctx.current_grapheme() == SourceGrapheme::SE) ||
         (prev == SourceGrapheme::ED && ctx.current_grapheme() == SourceGrapheme::D)
     } else {
         false
@@ -345,6 +345,15 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
                 return vec![Some(ph), Some(next_ph)]
             }
         }
+
+        else if current_grapheme == SourceGrapheme::DGE {
+            if next_ph.is_vowel() {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
         
         // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the previous phoneme
         else if next_ph == IPASymbol::PalatalApproximant {
@@ -355,6 +364,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         else {
             vec![Some(ph)]
         }
+
 
     } else {
         vec![Some(ph)]

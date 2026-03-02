@@ -173,7 +173,7 @@ pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::ne
         (IPASymbol::VoicelessAlveolarFricative, vec![FilipinoGrapheme::S]), // "s"
         (IPASymbol::VoicedAlveolarFricative, vec![FilipinoGrapheme::S]), // "z"
         (IPASymbol::VoicelessPostalveolarFricative, vec![FilipinoGrapheme::S, FilipinoGrapheme::Y]), // "ʃ"
-        (IPASymbol::VoicedPostalveolarFricative, vec![FilipinoGrapheme::S]), // "ʒ"
+        (IPASymbol::VoicedPostalveolarFricative, vec![FilipinoGrapheme::J]), // "ʒ"
         (IPASymbol::VoicelessGlottalFricative, vec![FilipinoGrapheme::H]), // "h"
 
         // Affricates

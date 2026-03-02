@@ -65,6 +65,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::ED => vec![FilipinoGrapheme::E],
                         SourceGrapheme::GE => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::DGE => vec![FilipinoGrapheme::E],
                         SourceGrapheme::ORE => {
                             if !next_is_consonant {
                                 vec![FilipinoGrapheme::Y]
@@ -91,10 +92,12 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::O => vec![FilipinoGrapheme::O],
                         SourceGrapheme::U => vec![FilipinoGrapheme::U],
                         SourceGrapheme::Y => vec![FilipinoGrapheme::Y],
+                        SourceGrapheme::GE => vec![FilipinoGrapheme::E],
 
                         SourceGrapheme::L => {
                             if prev_grapheme == Some(&SourceGrapheme::K) ||
-                                prev_grapheme == Some(&SourceGrapheme::C) {
+                                prev_grapheme == Some(&SourceGrapheme::C) || 
+                                prev_grapheme == Some(&SourceGrapheme::T) {
                                 vec![FilipinoGrapheme::E]
                             } else {
                                 vec![FilipinoGrapheme::O]
@@ -210,10 +213,32 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
 
+                // "ʃ"
+                if *symbol == IPASymbol::VoicelessPostalveolarFricative {
+                    let next_grapheme_vowel = aligned.get(idx + 1)
+                        .map(|(next_g, _)| next_g.is_vowel()).unwrap_or(false);
+                    let fg = match grapheme {
+                        SourceGrapheme::SH => {
+                            if !next_grapheme_vowel {
+                                vec![FilipinoGrapheme::S]
+                            } else {
+                                vec![FilipinoGrapheme::S, FilipinoGrapheme::Y]
+                            }
+                        },
+
+                        _ => vec![FilipinoGrapheme::S, FilipinoGrapheme::Y],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
                 // "ŋ"
                 if *symbol == IPASymbol::VelarNasal {
                     let next_is_g = aligned.get(idx + 1)
-                        .map(|(next_g, _)| *next_g == SourceGrapheme::G).unwrap_or(false);
+                        .map(|(next_g, _)| *next_g == SourceGrapheme::G ||  
+                        *next_g == SourceGrapheme::GE).unwrap_or(false);
 
                     let fg = match grapheme {
                         SourceGrapheme::N if !next_is_g => {
