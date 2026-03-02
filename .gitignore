@@ -7,3 +7,6 @@
 
 # Legacy Code
 legacy/
+
+# Pycache
+**/__pycache__/

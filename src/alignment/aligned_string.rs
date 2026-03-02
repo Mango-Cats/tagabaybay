@@ -17,8 +17,35 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         vec![FilipinoGrapheme::J]
                     } else {
                         vec![FilipinoGrapheme::D, FilipinoGrapheme::Y]
+                            
                     };
                     
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
+                // "d"
+                if *symbol == IPASymbol::VoicedAlveolarStop{
+                    let fg = match grapheme {
+                        SourceGrapheme::D | SourceGrapheme::ED => {
+                             let next_has_d_sound = if idx < aligned.len() - 1 {
+                                aligned[idx + 1].1.iter().any(|p| {
+                                    matches!(p, Some(IPASymbol::VoicedPostalveolarAffricate))
+                                })
+                            } else {
+                                false
+                            };
+
+                            if next_has_d_sound {
+                                vec![]
+                            } else {
+                                vec![FilipinoGrapheme::D]
+                            }
+                        },
+                        _ => vec![FilipinoGrapheme::D],
+                    };
                     for g in fg {
                         result.push(g)
                     };
@@ -37,7 +64,14 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         },
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
                         SourceGrapheme::ED => vec![FilipinoGrapheme::E],
-                        SourceGrapheme::ORE => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::GE => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::ORE => {
+                            if !next_is_consonant {
+                                vec![FilipinoGrapheme::Y]
+                            } else {
+                                vec![FilipinoGrapheme::E]
+                            }
+                        },
                         _ => vec![FilipinoGrapheme::I],
                     };
                     for g in fg {
@@ -48,7 +82,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
 
                 // "ə"
                 if *symbol == IPASymbol::Schwa {
-                    let prev_grapheme = aligned.get(idx - 1)
+                    let prev_grapheme = aligned.get(idx.saturating_sub(1))
                     .map(|(prev_g, _)| prev_g);
                     let fg = match grapheme {
                         SourceGrapheme::E => vec![FilipinoGrapheme::E],
@@ -130,8 +164,16 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
 
                 // "ɔ"
                 if *symbol == IPASymbol::OpenMidBackRounded {
+                    let next_grapheme = aligned.get(idx + 1)
+                        .map(|(next_g, _)| next_g);
                     let fg = match grapheme {
-                        SourceGrapheme::A => vec![FilipinoGrapheme::A],
+                        SourceGrapheme::A => {
+                            if next_grapheme == Some(&SourceGrapheme::U) {
+                                vec![FilipinoGrapheme::O]
+                            } else {
+                                vec![FilipinoGrapheme::A]
+                            }
+                        },
                         _ => vec![FilipinoGrapheme::O],
                     };
                     for g in fg {
@@ -187,17 +229,15 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
 
                 // "ɹ"
                 if *symbol == IPASymbol::AlveolarApproximant {
-                    let prev_phoneme = aligned.get(idx - 1)
-                    .map(|(_, prev_p)| prev_p);
-
                     let fg = match grapheme {
                         SourceGrapheme::R => {
-                             let prev_has_r_sound = prev_phoneme
-                                .map(|phonemes| {
-                                    phonemes.iter().any(|p| {
-                                        matches!(p, Some(IPASymbol::RColoredSchwa)| Some(IPASymbol::RColoredMid))
-                                    })
-                                }).unwrap_or(false);
+                             let prev_has_r_sound = if idx > 0 {
+                                aligned[idx - 1].1.iter().any(|p| {
+                                    matches!(p, Some(IPASymbol::RColoredSchwa) | Some(IPASymbol::RColoredMid))
+                                })
+                            } else {
+                                false
+                            };
 
                             if prev_has_r_sound {
                                 vec![]
