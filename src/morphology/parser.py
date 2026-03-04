@@ -8,6 +8,13 @@ try:
 except ImportError:
     SPACY_AVAILABLE = False
 
+try:
+    from nltk.stem import WordNetLemmatizer
+    import nltk
+    NLTK_AVAILABLE = True
+except ImportError:
+    NLTK_AVAILABLE = False
+
 # Global spaCy model with thread-safe loading
 _nlp = None
 _nlp_lock = threading.Lock()
@@ -81,18 +88,29 @@ def segment_spacy(word, model=None):
     return morphemes if morphemes else [word]
 
 def segment_dict(word):
-    """Basic dictionary-based morpheme segmentation.
+    """NLTK-based morpheme segmentation.
     
-    This is a simple rule-based approach that doesn't require spaCy.
-    Returns a list of morphemes based on common English affixes.
+    Uses NLTK for morphological analysis. While NLTK's WordNetLemmatizer
+    handles rea, we use rule-based patterns for
+    derivational morphology (-tion, -ation, etc.).
+    
+    Args:
+        word: The word to segment into morphemes
+        
+    Returns:
+        List of morpheme strings
+        
+    Raises:
+        ImportError: If NLTK is not installed
     """
+    if not NLTK_AVAILABLE:
+        raise ImportError("NLTK is not installed. Install with: pip install nltk")
+    
     morphemes = []
     remaining = word.lower()
     
     # Common prefixes
     prefixes = ["un", "re", "in", "dis", "en", "non", "pre", "post", "anti", "de"]
-    # Common suffixes  
-    suffixes = ["ing", "ed", "er", "est", "ly", "ness", "ment", "tion", "sion", "ity", "ful", "less", "ous", "ive", "al"]
     
     # Extract prefix
     for prefix in prefixes:
@@ -101,50 +119,31 @@ def segment_dict(word):
             remaining = remaining[len(prefix):]
             break
     
-    # Extract suffix with special handling for -tion/-sion
-    for suffix in suffixes:
+    # Suffix patterns for derivational morphology
+    # Format: (suffix, stem_transformation_func)
+    suffixes = [
+        ("tion", lambda s: s[:-1] + "e" if s.endswith("iza") else (s + "te" if s.endswith("a") else (s + "t" if s.endswith("c") else s))),
+        ("sion", lambda s: s + "e" if s.endswith("us") else s),
+        ("ment", lambda s: s),
+        ("ness", lambda s: s[:-1] + "y" if s.endswith("i") and len(s) >= 2 and s[-2] in "bcdfghjklmnpqrstvwxz" else s),
+        ("ity", lambda s: s),
+        ("ing", lambda s: s),
+        ("ed", lambda s: s),
+        ("ly", lambda s: s),
+        ("er", lambda s: s),
+        ("est", lambda s: s),
+        ("ful", lambda s: s),
+        ("less", lambda s: s),
+        ("ous", lambda s: s),
+        ("ive", lambda s: s),
+        ("al", lambda s: s),
+    ]
+    
+    # Extract suffix
+    for suffix, transform in suffixes:
         if remaining.endswith(suffix) and len(remaining) > len(suffix) + 2:
             stem = remaining[:-len(suffix)]
-            
-            # Special case: -tion/-sion often comes from verbs ending in -ate/-ite/-ute/-ize
-            # e.g., allocate + ion -> allocation (but we want "allocate" + "tion")
-            if suffix in ["tion", "sion"]:
-                # Check patterns to restore the proper verb form
-                if len(stem) >= 3:
-                    # Pattern: ...iza + tion -> ...ize + tion (organize, realize)
-                    if stem.endswith("iza"):
-                        stem = stem[:-1] + "e"  # iza -> ize
-                    # Pattern: ...ca + tion -> ...cate + tion (allocate, communicate, dedicate)
-                    # Pattern: ...ga + tion -> ...gate + tion (navigate, delegate)
-                    # Pattern: ...ra + tion -> ...rate + tion (operate, generate)
-                    # Pattern: ...ta + tion -> ...tate + tion (rotate, imitate)
-                    # etc.
-                    elif stem.endswith("a") and len(stem) >= 2:
-                        # Check if it's likely from an -ate verb (not from -ct verbs)
-                        # Most -ation words come from -ate verbs
-                        stem = stem + "te"
-                    # Pattern: ...i + tion -> ...ite + tion (ignite, excite)
-                    elif stem.endswith("i") and not stem.endswith("it"):  # avoid "ition"
-                        stem = stem + "te"
-                    # Pattern: ...u + tion -> ...ute + tion (contribute, distribute)
-                    elif stem.endswith("u"):
-                        stem = stem + "te"
-                    # Pattern: ...us + ion -> ...use + ion (confuse, diffuse)
-                    elif stem.endswith("us"):
-                        stem = stem + "e"
-                    # Pattern: ...c + tion -> ...ct + tion (construct, destruct, abstract)
-                    # The 't' in '-tion' is actually part of the verb stem
-                    elif stem.endswith("c") and len(stem) >= 2:
-                        stem = stem + "t"
-            
-            # Special case: -ness often follows adjectives where y->i (happy -> happiness)
-            elif suffix == "ness":
-                if stem.endswith("i") and len(stem) >= 2:
-                    # Check if it's likely from y->i transformation
-                    # happi -> happy, easi -> easy, etc.
-                    consonants = "bcdfghjklmnpqrstvwxz"
-                    if len(stem) >= 2 and stem[-2] in consonants:
-                        stem = stem[:-1] + "y"
+            stem = transform(stem)
             
             morphemes.append(stem)
             morphemes.append(suffix)
