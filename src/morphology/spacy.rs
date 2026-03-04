@@ -172,7 +172,7 @@ mod tests {
     fn test_multiple_words() {
         let test_cases = vec![
             ("walked", vec!["walk", "ed"]),
-            ("happiness", vec!["happi", "ness"]),
+            ("happiness", vec!["happy", "ness"]),
             ("rebuild", vec!["re", "build"]),
         ];
 
