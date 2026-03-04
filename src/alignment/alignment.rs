@@ -28,7 +28,7 @@ pub fn phoneme_grapheme_alignment(
 
         let phoneme = 
         if is_duplicate_grapheme(&ctx) ||
-        is_double_vowel(&ctx) ||
+        is_double_vowel(&ctx, &p, p_index) ||
         is_case_ck(&ctx) ||
         is_case_gh(&ctx) || 
         is_case_ld(&ctx, &p, p_index)
@@ -43,7 +43,9 @@ pub fn phoneme_grapheme_alignment(
         result.push((grapheme.clone(), phoneme));
     };
 
+    // post alignment cases
     handle_leftover_phonemes(&mut result, &p, p_index);
+    free_replacement(&mut result);
 
     // for testing 
     print_aligned_string(&result);
@@ -69,7 +71,10 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
         if ctx.current_grapheme() == SourceGrapheme::C && prev == SourceGrapheme::C {
             return false
         }
-        ctx.current_grapheme() == prev
+
+        ctx.current_grapheme() == prev ||
+        // (prev == SourceGrapheme::S && ctx.current_grapheme() == SourceGrapheme::SE) ||
+        (prev == SourceGrapheme::ED && ctx.current_grapheme() == SourceGrapheme::D)
     } else {
         false
     }
@@ -87,7 +92,7 @@ fn is_duplicate_grapheme(ctx: &Cursor) -> bool {
 /// t -> t
 /// 
 /// # Returns a boolean value
-fn is_double_vowel(ctx: &Cursor) -> bool {
+fn is_double_vowel(ctx: &Cursor,  p: &Vec<IPASymbol>, p_index: usize) -> bool {
     let current = ctx.current_grapheme();
     let current_vowel = current.is_vowel() || 
     current == SourceGrapheme::W ||
@@ -109,6 +114,15 @@ fn is_double_vowel(ctx: &Cursor) -> bool {
         // Special case for UA
         if prev == SourceGrapheme::U && current == SourceGrapheme::A {
             return false;
+        }
+        
+
+        // if current vowel is a dipthong/monophthong
+        if p_index < p.len() {
+            let current_phoneme = &p[p_index];
+            if current_phoneme.is_vowel() {
+                return false;
+            }
         }
 
        if let Some(before_prev) = ctx.lookat_grapheme(-2) {
@@ -208,7 +222,7 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
 /// vec![Some(phoneme)]
 fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec<Option<IPASymbol>> {
     let current_grapheme = ctx.current_grapheme();
-    // let next_grapheme = ctx.next_grapheme();
+    let next_grapheme = ctx.next_grapheme();
     let prev_grapheme = ctx.prev_grapheme();
 
 
@@ -217,6 +231,12 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         let prev_ph = p[*p_index - 1].clone();
         
         if prev_ph == IPASymbol::RColoredSchwa && 
+           current_grapheme == SourceGrapheme::R && 
+           p[*p_index] != IPASymbol::AlveolarApproximant {
+            return vec![None];
+        }
+
+        if prev_ph == IPASymbol::OpenMidCentral && 
            current_grapheme == SourceGrapheme::R {
             return vec![None];
         }
@@ -233,6 +253,16 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
            prev_grapheme == Some(SourceGrapheme::D) &&
            p[*p_index] != IPASymbol::VoicedPostalveolarAffricate {
             return vec![None];
+        }
+
+        // silent vowels 
+         if current_grapheme.is_vowel() {
+            if *p_index < p.len() {
+                let current_phoneme = &p[*p_index];
+                if !current_phoneme.is_vowel() {
+                    return vec![None];
+                }
+            }
         }
     }
 
@@ -277,12 +307,47 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         }
 
         else if current_grapheme == SourceGrapheme::ED {
+            if next_ph != IPASymbol::VoicedAlveolarStop && 
+            (next_ph == IPASymbol::VoicedPostalveolarAffricate && next_grapheme == Some(SourceGrapheme::GE)) {
+                return vec![Some(ph), Some(IPASymbol::VoicedAlveolarStop)]
+            }
+
             *p_index += 1;
             return vec![Some(ph), Some(next_ph)]
         }
 
         else if current_grapheme == SourceGrapheme::GE {
-            if next_ph == IPASymbol::OpenMidFront {
+            if next_ph.is_vowel() {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
+
+        else if current_grapheme == SourceGrapheme::MB {
+            if next_ph == IPASymbol::VoicedBilabialStop {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
+
+        else if current_grapheme == SourceGrapheme::ORE {
+            *p_index += 1;
+
+            if *p_index < p.len() && p[*p_index].is_vowel() {
+                let vec = vec![Some(ph), Some(next_ph), Some( p[*p_index].clone())];
+                *p_index += 1;
+                return vec
+            } else {
+                return vec![Some(ph), Some(next_ph)]
+            }
+        }
+
+        else if current_grapheme == SourceGrapheme::DGE {
+            if next_ph.is_vowel() {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
             } else {
@@ -300,8 +365,62 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             vec![Some(ph)]
         }
 
+
     } else {
         vec![Some(ph)]
+    }
+}
+
+/// i hate americans
+fn free_replacement (result: &mut AlignedString) {
+    let len = result.len(); 
+
+    for idx in 0..len {
+        let prev_grapheme = result.get(idx.saturating_sub(1))
+            .map(|(prev_g, _)| prev_g);
+        let next_grapheme = result.get(idx + 1)
+            .map(|(next_g, _)| next_g);
+
+        // cvc format
+        let prev_is_consonant = !matches!(prev_grapheme, 
+                Some(SourceGrapheme::A) | 
+                Some(SourceGrapheme::E) | 
+                Some(SourceGrapheme::I) | 
+                Some(SourceGrapheme::O) | 
+                Some(SourceGrapheme::U) | 
+                Some(SourceGrapheme::OO) | 
+                Some(SourceGrapheme::EE)
+            );
+            
+        let next_is_consonant = next_grapheme.is_some() && 
+            !matches!(next_grapheme, 
+                Some(SourceGrapheme::A) | 
+                Some(SourceGrapheme::E) | 
+                Some(SourceGrapheme::I) | 
+                Some(SourceGrapheme::O) | 
+                Some(SourceGrapheme::U) | 
+                Some(SourceGrapheme::OO) | 
+                Some(SourceGrapheme::EE)
+        );
+
+        let (grapheme, phoneme_vec) = &mut result[idx];
+
+        if idx < len-1 && 
+        grapheme.is_vowel() && 
+        phoneme_vec == &vec![None] &&
+        prev_is_consonant &&
+        next_is_consonant {
+            *phoneme_vec = match grapheme {
+                SourceGrapheme::A => vec![Some(IPASymbol::OpenBackUnrounded)],
+                SourceGrapheme::E => vec![Some(IPASymbol::OpenMidFront)],
+                SourceGrapheme::I => vec![Some(IPASymbol::NearCloseFront)],
+                SourceGrapheme::O => vec![Some(IPASymbol::OpenMidBackRounded)],
+                SourceGrapheme::U => vec![Some(IPASymbol::CloseBack)],
+                SourceGrapheme::OO => vec![Some(IPASymbol::CloseBack)],
+                SourceGrapheme::EE => vec![Some(IPASymbol::NearCloseFront)],
+                _ => continue,
+            };
+        }
     }
 }
 
