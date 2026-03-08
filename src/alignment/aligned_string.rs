@@ -4,6 +4,9 @@ use super::alignment::AlignedString;
 use crate::phoneme::tokens::map::IPA_TO_FG;
 use std::vec;
 
+/// AlignedString to Filipino Graphemes
+/// 
+/// Handles case mapping 
 pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGrapheme> {
     let mut result = Vec::new();
     

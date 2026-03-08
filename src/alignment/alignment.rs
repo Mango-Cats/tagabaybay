@@ -225,20 +225,23 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     let next_grapheme = ctx.next_grapheme();
     let prev_grapheme = ctx.prev_grapheme();
 
+    // ngl idk if i should add input examples for each
+
 
     // Non-consuming Cases
     // 
-    // Specific cases where grapheme and phoneme contexts just map to None
-    // 
+    // Specific cases where grapheme and phoneme contexts just map to None 
     if *p_index >= 1 {
         let prev_ph = p[*p_index - 1].clone();
         
+        // If the previous phoneme is /ɚ/, skip over grapheme R
         if prev_ph == IPASymbol::RColoredSchwa && 
            current_grapheme == SourceGrapheme::R && 
            p[*p_index] != IPASymbol::AlveolarApproximant {
             return vec![None];
         }
 
+        // If the previous phoneme is /ɝ/, skip over grapheme R
         if prev_ph == IPASymbol::OpenMidCentral && 
            current_grapheme == SourceGrapheme::R {
             return vec![None];
@@ -258,7 +261,10 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             return vec![None];
         }
 
-        // silent vowels 
+        // If the current grapheme is a vowel but does not align with a vowel phoneme
+        // then its considered a silent vowel and maps to None for further processing
+        // i.e chocolate --> choc-late
+        // See free_replacement() for next steps
          if current_grapheme.is_vowel() {
             if *p_index < p.len() {
                 let current_phoneme = &p[*p_index];
@@ -306,6 +312,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
+        // If grapheme is TI and an /i/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::TI {
             if next_ph == IPASymbol::NearCloseFront {
                 *p_index += 1;
@@ -315,6 +322,9 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
+        // If grapheme is ED and an /d/ sound follows it, combine the 2
+        // special case if ED is followed by grapheme GE a combination
+        // of the current phoneme and /d/ is returned
         else if current_grapheme == SourceGrapheme::ED {
             if next_ph != IPASymbol::VoicedAlveolarStop && 
             (next_ph == IPASymbol::VoicedPostalveolarAffricate && next_grapheme == Some(SourceGrapheme::GE)) {
@@ -325,6 +335,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             return vec![Some(ph), Some(next_ph)]
         }
 
+        // If grapheme is GE and an vowel sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::GE {
             if next_ph.is_vowel() {
                 *p_index += 1;
@@ -334,6 +345,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
+        // If grapheme is MB and an /b/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::MB {
             if next_ph == IPASymbol::VoicedBilabialStop {
                 *p_index += 1;
@@ -343,6 +355,8 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
+        // If grapheme is ORE and the phoneme after the next phoneme is a vowel, 
+        // map a vector of 3 phonemes for grapheme ORE 
         else if current_grapheme == SourceGrapheme::ORE {
             *p_index += 1;
 
@@ -355,6 +369,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
+        // If grapheme is DGE and an vowel sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::DGE {
             if next_ph.is_vowel() {
                 *p_index += 1;
@@ -380,7 +395,27 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     }
 }
 
-/// i hate americans
+/// Free-Replacement 🦅🦅🍔🍔
+/// 
+/// Handles silent vowels and maps it to a default vowel phoneme
+/// sound given that a vowel in the resulting AlignedString maps to None 
+/// 
+/// i. e. 
+/// chocolate --> tʃɑːklət 
+/// 0: ch -> tʃ
+/// 1: o -> ɑ
+/// 2: c -> k
+/// 3: o -> ɔ (o maps to ɔ on default despite tʃɑːklət not having ɔ)
+/// 4: l -> l
+/// 5: a -> ə
+/// 6: t -> t
+/// 7: e -> None
+/// 
+/// # Arguments
+/// * `result` - Contains the AlignedString of a given input
+/// 
+/// # Returns
+/// The modified AlignedString
 fn free_replacement (result: &mut AlignedString) {
     let len = result.len(); 
 
@@ -390,7 +425,7 @@ fn free_replacement (result: &mut AlignedString) {
         let next_grapheme = result.get(idx + 1)
             .map(|(next_g, _)| next_g);
 
-        // cvc format
+        // Checking if the vowel being replaced is in CVC format
         let prev_is_consonant = !matches!(prev_grapheme, 
                 Some(SourceGrapheme::A) | 
                 Some(SourceGrapheme::E) | 

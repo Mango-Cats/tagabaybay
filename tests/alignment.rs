@@ -2,7 +2,7 @@
 
 // to run: set CSV_NAME=<csv_name>.csv && cargo test --test alignment evaluate_csv -- --nocapture
 //
-// this will not make a report file
+// this will not make a report file, ensure that the csv is in /data
 //
 // CSV format: `input,expected`
 // Example: `alphabet,alfabet`

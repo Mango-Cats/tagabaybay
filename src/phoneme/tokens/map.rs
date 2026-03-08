@@ -130,8 +130,7 @@ pub static ARPA_TO_IPA: Lazy<HashMap<ArpabetSymbols, IPASymbol>> = Lazy::new(|| 
 });
 
 /// IPA to FilipinoGraphemes
-/// Converting IPA symbols to its corresponding filipino graphemes 
-/// !* Subject to editing since im not sure im correct for all of these *
+/// Converting IPA symbols from AlignedString to its corresponding filipino graphemes 
 pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::new(|| {
     HashMap::from([
         // Vowels
