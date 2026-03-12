@@ -100,6 +100,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::U => vec![FilipinoGrapheme::U],
                         SourceGrapheme::Y => vec![FilipinoGrapheme::Y],
                         SourceGrapheme::GE => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::ORE => vec![FilipinoGrapheme::E],
 
                         SourceGrapheme::L => {
                             if prev_grapheme == Some(&SourceGrapheme::K) ||
@@ -232,7 +233,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                                 vec![FilipinoGrapheme::S, FilipinoGrapheme::Y]
                             }
                         },
-
+                        SourceGrapheme::CH => vec![FilipinoGrapheme::T, FilipinoGrapheme::S],
                         _ => vec![FilipinoGrapheme::S, FilipinoGrapheme::Y],
                     };
                     for g in fg {

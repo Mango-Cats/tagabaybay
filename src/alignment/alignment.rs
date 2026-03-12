@@ -284,10 +284,10 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
 
         // if theres no T sound when source grapheme is T, i.e. wrestle
         if current_grapheme == SourceGrapheme::T && 
-            (p[*p_index] != IPASymbol::VoicelessAlveolarStop ||
-            p[*p_index] != IPASymbol::GlottalStop || 
-            p[*p_index] != IPASymbol::VoicelessDentalFricative ||
-            p[*p_index] != IPASymbol::VoicelessPostalveolarAffricate) {
+            p[*p_index] != IPASymbol::VoicelessAlveolarStop &&
+            p[*p_index] != IPASymbol::GlottalStop &&
+            p[*p_index] != IPASymbol::VoicelessDentalFricative &&
+            p[*p_index] != IPASymbol::VoicelessPostalveolarAffricate {
                 return vec![None];
         }
 
@@ -404,8 +404,8 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
-        // If grapheme is KN and an /n/ sound follows it, combine the 2
-        else if current_grapheme == SourceGrapheme::KN {
+        // If grapheme is KN or GN and an /n/ sound follows it, combine the 2
+        else if current_grapheme == SourceGrapheme::KN || current_grapheme == SourceGrapheme::GN {
             if next_ph == IPASymbol::AlveolarNasal {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
@@ -497,7 +497,8 @@ fn free_replacement (result: &mut AlignedString) {
                 Some(SourceGrapheme::OO) | 
                 Some(SourceGrapheme::EE) |
                 Some(SourceGrapheme::Y) |
-                Some(SourceGrapheme::W) 
+                Some(SourceGrapheme::W) |
+                Some(SourceGrapheme::ORE)
             );
             
         let next_is_consonant = next_grapheme.is_some() && 
@@ -510,7 +511,8 @@ fn free_replacement (result: &mut AlignedString) {
                 Some(SourceGrapheme::OO) | 
                 Some(SourceGrapheme::EE) |
                 Some(SourceGrapheme::Y) |
-                Some(SourceGrapheme::W)
+                Some(SourceGrapheme::W) |
+                Some(SourceGrapheme::ORE)
         );
 
         let (grapheme, phoneme_vec) = &mut result[idx];
