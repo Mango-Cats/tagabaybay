@@ -24,6 +24,11 @@ pub fn phoneme_grapheme_alignment(
     let mut p_index = 0;
     
     for (index , grapheme) in g.iter().enumerate() {
+        // removing duplicate phonemes
+         while p_index > 0 && p_index < p.len() && p[p_index] == p[p_index - 1] {
+            p_index += 1; 
+        }
+
         let ctx = Cursor::new("", "", &g, &p, index);
 
         let phoneme = 
@@ -282,12 +287,18 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             return vec![None];
         }
 
+        if current_grapheme == SourceGrapheme::S && 
+            next_grapheme == Some(SourceGrapheme::SE) {
+            return vec![None];
+        }
+
         // if theres no T sound when source grapheme is T, i.e. wrestle
         if current_grapheme == SourceGrapheme::T && 
             p[*p_index] != IPASymbol::VoicelessAlveolarStop &&
             p[*p_index] != IPASymbol::GlottalStop &&
             p[*p_index] != IPASymbol::VoicelessDentalFricative &&
-            p[*p_index] != IPASymbol::VoicelessPostalveolarAffricate {
+            p[*p_index] != IPASymbol::VoicelessPostalveolarAffricate &&
+            p[*p_index] != IPASymbol:: AlveolarTap {
                 return vec![None];
         }
 
@@ -319,7 +330,6 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     // hence the next phoneme is consumed and skipped over
     if *p_index < p.len() {
         let next_ph = p[*p_index].clone();
-        // let next_next_ph = p[*p_index + 1].clone();
 
         // If grapheme is an X, append the /ks/ phonemes together
         if current_grapheme == SourceGrapheme::X && 
@@ -353,7 +363,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
 
         // If grapheme is SE and an /e/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::SE {
-            if next_ph == IPASymbol::OpenMidFront {
+            if next_ph.is_vowel() && !next_grapheme_is_vowel {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
             } else {
@@ -437,7 +447,6 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
                 return vec![Some(ph)];
             }
         }
-        
 
         // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the next phoneme
         else if next_ph == IPASymbol::PalatalApproximant {
