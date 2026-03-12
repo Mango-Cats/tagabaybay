@@ -16,7 +16,11 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
 
                 // "dʒ"
                 if *symbol == IPASymbol::VoicedPostalveolarAffricate {
-                    let fg = if idx == aligned.len() - 1 {
+                    let next_grapheme = aligned.get(idx + 1)
+                        .map(|(next_g, _)| next_g);
+                    let fg = 
+                    if idx == aligned.len() - 1 || 
+                    (idx == aligned.len() - 2 && next_grapheme == Some(&SourceGrapheme::GE)){
                         vec![FilipinoGrapheme::J]
                     } else {
                         vec![FilipinoGrapheme::D, FilipinoGrapheme::Y]
@@ -239,16 +243,23 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
 
                 // "ŋ"
                 if *symbol == IPASymbol::VelarNasal {
-                    let next_is_g = aligned.get(idx + 1)
-                        .map(|(next_g, _)| *next_g == SourceGrapheme::G ||  
-                        *next_g == SourceGrapheme::GE).unwrap_or(false);
+                    let next_has_velar = if idx < aligned.len() - 1 {
+                                    aligned[idx + 1].1.iter().any(|p| {
+                                        matches!(p, 
+                                            Some(IPASymbol::VoicedVelarStop) |
+                                            Some(IPASymbol::VoicelessVelarStop)
+                                        )
+                                    })
+                                } else {
+                                    false
+                                };
 
-                    let fg = match grapheme {
-                        SourceGrapheme::N if !next_is_g => {
+                    let fg = if next_has_velar {
                             vec![FilipinoGrapheme::N]
-                        },
-                        _ => vec![FilipinoGrapheme::Ng],
-                    };
+                        } else {
+                            vec![FilipinoGrapheme::Ng]
+                        };
+
                     for g in fg {
                         result.push(g)
                     };

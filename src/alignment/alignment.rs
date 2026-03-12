@@ -225,6 +225,9 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     let next_grapheme = ctx.next_grapheme();
     let prev_grapheme = ctx.prev_grapheme();
 
+    let next_grapheme_is_vowel = next_grapheme.clone()
+    .map(|g| g.is_vowel()).unwrap_or(false);
+
     // ngl idk if i should add input examples for each
 
 
@@ -234,6 +237,13 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     if *p_index >= 1 {
         let prev_ph = p[*p_index - 1].clone();
         
+        // If the previous phoneme is a diphthong and the current grapheme is a Y or W
+        if prev_ph.is_diphthong() &&
+            (current_grapheme == SourceGrapheme::W ||
+            current_grapheme == SourceGrapheme::Y) {
+                return vec![None];
+        }
+
         // If the previous phoneme is /ɚ/, skip over grapheme R
         if prev_ph == IPASymbol::RColoredSchwa && 
            current_grapheme == SourceGrapheme::R && 
@@ -247,7 +257,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             return vec![None];
         }
 
-        // handles double Cs
+        // handles double Cs provided it is not an /s/ sound
         if current_grapheme == SourceGrapheme::C &&
            prev_grapheme == Some(SourceGrapheme::C) &&
            p[*p_index] != IPASymbol::VoicelessAlveolarFricative {
@@ -259,6 +269,26 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
            prev_grapheme == Some(SourceGrapheme::D) &&
            p[*p_index] != IPASymbol::VoicedPostalveolarAffricate {
             return vec![None];
+        }
+
+        // H is silent after grapheme SC
+        if current_grapheme == SourceGrapheme::H &&
+            prev_grapheme == Some(SourceGrapheme::SC) {
+            return vec![None];
+        }
+
+        if current_grapheme == SourceGrapheme::W &&
+            p[*p_index] != IPASymbol::LabialVelarApproximant {
+            return vec![None];
+        }
+
+        // if theres no T sound when source grapheme is T, i.e. wrestle
+        if current_grapheme == SourceGrapheme::T && 
+            (p[*p_index] != IPASymbol::VoicelessAlveolarStop ||
+            p[*p_index] != IPASymbol::GlottalStop || 
+            p[*p_index] != IPASymbol::VoicelessDentalFricative ||
+            p[*p_index] != IPASymbol::VoicelessPostalveolarAffricate) {
+                return vec![None];
         }
 
         // If the current grapheme is a vowel but does not align with a vowel phoneme
@@ -278,18 +308,37 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     let ph = p[*p_index].clone();
     *p_index += 1;
 
+    // if word ends in MB 
+    if current_grapheme == SourceGrapheme::MB && *p_index >= p.len() {
+        return vec![Some(ph), Some(IPASymbol::VoicedBilabialStop)];
+    }
+
     // Consuming cases
     // 
     // These cases involve 2 or more phonemes being mapped to a singular grapheme
     // hence the next phoneme is consumed and skipped over
     if *p_index < p.len() {
         let next_ph = p[*p_index].clone();
+        // let next_next_ph = p[*p_index + 1].clone();
 
         // If grapheme is an X, append the /ks/ phonemes together
-        if current_grapheme == SourceGrapheme::X {
+        if current_grapheme == SourceGrapheme::X && 
+            ph != IPASymbol::VoicedAlveolarFricative &&
+            ph != IPASymbol::VoicelessAlveolarFricative {
             *p_index += 1;
             return vec![Some(ph), Some(next_ph)]
         } 
+
+        // If grapheme is a Z, and the current phoneme is /t/ followed by an /s/ combine 
+        else if current_grapheme == SourceGrapheme::Z {
+            if ph == IPASymbol::VoicelessAlveolarStop &&
+                next_ph == IPASymbol::VoicelessAlveolarFricative {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
 
         // If grapheme is SC and the next phoneme is /k/ combine the 2 to make /sk/, 
         // unless /s/ is standalone
@@ -312,9 +361,9 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
-        // If grapheme is TI and an /i/ sound follows it, combine the 2
+        // If grapheme is TI and an /ɪ/ or /i/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::TI {
-            if next_ph == IPASymbol::NearCloseFront {
+            if next_ph == IPASymbol::NearCloseFront || next_ph == IPASymbol::CloseFront {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
             } else {
@@ -337,7 +386,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
 
         // If grapheme is GE and an vowel sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::GE {
-            if next_ph.is_vowel() {
+            if next_ph.is_vowel() && !next_grapheme_is_vowel {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
             } else {
@@ -348,6 +397,16 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         // If grapheme is MB and an /b/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::MB {
             if next_ph == IPASymbol::VoicedBilabialStop {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph), Some(IPASymbol::VoicedBilabialStop)];
+            }
+        }
+
+        // If grapheme is KN and an /n/ sound follows it, combine the 2
+        else if current_grapheme == SourceGrapheme::KN {
+            if next_ph == IPASymbol::AlveolarNasal {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
             } else {
@@ -379,7 +438,8 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
         
-        // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the previous phoneme
+
+        // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the next phoneme
         else if next_ph == IPASymbol::PalatalApproximant {
             *p_index += 1;
             return vec![Some(ph), Some(next_ph)]
@@ -390,7 +450,9 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         }
 
 
-    } else {
+    } 
+
+    else {
         vec![Some(ph)]
     }
 }
@@ -433,7 +495,9 @@ fn free_replacement (result: &mut AlignedString) {
                 Some(SourceGrapheme::O) | 
                 Some(SourceGrapheme::U) | 
                 Some(SourceGrapheme::OO) | 
-                Some(SourceGrapheme::EE)
+                Some(SourceGrapheme::EE) |
+                Some(SourceGrapheme::Y) |
+                Some(SourceGrapheme::W) 
             );
             
         let next_is_consonant = next_grapheme.is_some() && 
@@ -444,7 +508,9 @@ fn free_replacement (result: &mut AlignedString) {
                 Some(SourceGrapheme::O) | 
                 Some(SourceGrapheme::U) | 
                 Some(SourceGrapheme::OO) | 
-                Some(SourceGrapheme::EE)
+                Some(SourceGrapheme::EE) |
+                Some(SourceGrapheme::Y) |
+                Some(SourceGrapheme::W)
         );
 
         let (grapheme, phoneme_vec) = &mut result[idx];
