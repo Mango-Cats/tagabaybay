@@ -41,6 +41,7 @@ use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
 use crate::error::{G2PError, G2PErrorKind};
 use crate::grapheme::filipino::FilipinoGrapheme;
+use crate::grapheme::source::SourceGrapheme;
 use crate::phoneme::tokens::ipa::IPASymbol;
 
 /// Handles phonetic replacement for vowels and Y based on G2P transcription.
@@ -75,6 +76,27 @@ pub fn phonetic_replacements(
     // Alignment see section (### Solution) in top-level documentation
     let pre_vowels = vowels_before(ctx);
     let phoneme = find_nth_vowel_phoneme(&ctx.phonemes, pre_vowels)?;
+
+    // Schwa handling: behaviour depends on whether the vowel is at a word boundary.
+    //
+    // A vowel is "word-final" when no further unpredictable-variant graphemes
+    // (a, e, i, o, u, y) appear before the next space/hyphen or end of input —
+    // e.g. the 'e' in "cycle" (…c-l-e), or the 'o' in "doctor" (…c-t-o-r).
+    //
+    // - Word-final schwa: map written o/u → O, everything else → E
+    //   ("cycle"  e→E, "color"  o→O)
+    // - Non-final schwa: return None, let orthographic rules use the written letter
+    if phoneme == IPASymbol::Schwa {
+        if is_word_final_vowel(ctx) {
+            let fg = match curr {
+                SourceGrapheme::O | SourceGrapheme::U => FilipinoGrapheme::O,
+                _ => FilipinoGrapheme::E,
+            };
+            return Some((vec![fg], 1));
+        } else {
+            return None;
+        }
+    }
 
     let next_is_unpredictable_variant = ctx
         .next_grapheme_low()
@@ -119,4 +141,22 @@ fn vowels_before(ctx: &Cursor) -> usize {
 /// Find the nth vowel phoneme in the phoneme sequence
 fn find_nth_vowel_phoneme(phonemes: &[IPASymbol], n: usize) -> Option<IPASymbol> {
     phonemes.iter().filter(|p| p.is_vowel()).nth(n).cloned()
+}
+
+/// Returns true when the current vowel is at a word-final position.
+///
+/// A vowel is word-final if no further unpredictable-variant graphemes
+/// (a, e, i, o, u, y) appear before the next word boundary (space, hyphen,
+/// or end of input). This captures patterns like "-cle", "-ble", "-er", "-or".
+fn is_word_final_vowel(ctx: &Cursor) -> bool {
+    for i in (ctx.index + 1)..ctx.graphemes.len() {
+        let g = ctx.graphemes[i].to_lowercase();
+        match g {
+            SourceGrapheme::Space => return true,
+            SourceGrapheme::Passthrough(ref s) if s == "-" => return true,
+            g if g.is_unpredictable_variant() => return false,
+            _ => {}
+        }
+    }
+    true
 }
