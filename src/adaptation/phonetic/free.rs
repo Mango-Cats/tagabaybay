@@ -145,7 +145,8 @@ fn vowels_before(ctx: &Cursor) -> usize {
     for i in 0..ctx.index {
         let g = ctx.graphemes[i].to_lowercase();
         if g.is_unpredictable_variant() {
-            // Create a temporary "view" to check if this was silent
+            count += 1;
+        } else if g == SourceGrapheme::ED && i < ctx.graphemes.len() - 1 {
             count += 1;
         }
     }
