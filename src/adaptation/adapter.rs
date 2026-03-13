@@ -6,11 +6,9 @@ use crate::adaptation::phonetic::free::phonetic_replacements;
 use crate::configs::AdapterConfig;
 use crate::error::{AdaptationError, ErrorTypes};
 use crate::g2p::G2Py;
-use crate::g2p::phonemize_to_arpa;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
-use crate::phoneme::tokenizer::arpabet::tokenize_arpa_to_ipa;
 use crate::phoneme::tokenizer::ipa::tokenize_ipa;
 
 /// Builder for adaptation with customizable configuration
@@ -40,29 +38,18 @@ use crate::phoneme::tokenizer::ipa::tokenize_ipa;
 /// ```
 pub struct Adapter {
     pub config: AdapterConfig,
-    ipa_g2p: Option<G2Py>,
 }
 
 impl Adapter {
     /// Create a new Adapter with default configuration
     pub fn new() -> Self {
         let config = AdapterConfig::default();
-        let ipa_g2p = if config.use_ipa {
-            G2Py::new().ok()
-        } else {
-            None
-        };
-        Self { config, ipa_g2p }
+        Self { config }
     }
 
     /// Create a Adapter with a custom configuration
     pub fn new_with_config(config: AdapterConfig) -> Self {
-        let ipa_g2p = if config.use_ipa {
-            G2Py::new().ok()
-        } else {
-            None
-        };
-        Self { config, ipa_g2p }
+        Self { config }
     }
 
     fn adapter_internal(
@@ -77,23 +64,9 @@ impl Adapter {
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
 
         let graphemes = source_tokenizer(word);
-
-        let (phon_str, phonemes) = if config.use_ipa {
-            let g2p = self.ipa_g2p.as_mut().ok_or_else(|| {
-                ErrorTypes::G2P(crate::error::G2PError::new(
-                    crate::error::G2PErrorKind::ServerUnavailable {
-                        reason: "IPA G2P not initialized".to_string(),
-                    },
-                ))
-            })?;
-            let phon_str = g2p.phonemize_phrase(word, word_number, dataset_name, config)?;
-            let toks = tokenize_ipa(&phon_str);
-            (phon_str, toks)
-        } else {
-            let phon_str = phonemize_to_arpa(word, word_number, dataset_name, config)?;
-            let toks = tokenize_arpa_to_ipa(&phon_str);
-            (phon_str, toks)
-        };
+        let mut g2p = G2Py::new().unwrap();
+        let phon_str = g2p.phonemize_phrase(word, word_number, dataset_name, config)?;
+        let phonemes = tokenize_ipa(&phon_str);
 
         let mut ctx = Cursor::new(word, &phon_str, &graphemes, &phonemes, 0);
 
