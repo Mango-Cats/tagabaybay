@@ -100,7 +100,6 @@ fn evaluate_csv(path: &str) -> EvalReport {
     }
 
     let total = results.len();
-    let passed = results.iter().filter(|r| r.passed).count();
     let failures: Vec<TestResult> = results.into_iter().filter(|r| !r.passed).collect();
 
     let token_error_rate = if total_tokens > 0 {
@@ -111,8 +110,6 @@ fn evaluate_csv(path: &str) -> EvalReport {
 
     EvalReport {
         total,
-        passed,
-        failed: total - passed,
         token_error_rate,
         total_token_edits,
         total_tokens,
@@ -139,8 +136,6 @@ struct TokenError {
 
 struct EvalReport {
     total: usize,
-    passed: usize,
-    failed: usize,
     token_error_rate: f64,
     total_token_edits: usize,
     total_tokens: usize,
@@ -149,12 +144,10 @@ struct EvalReport {
 }
 
 struct OverallMetrics {
-    total: usize,
-    passed: usize,
-    failed: usize,
+    words: usize,
+    tokens: usize,
+    edits: usize,
     ter: f64,
-    total_token_edits: usize,
-    total_tokens: usize,
     worst_performer: String,
     worst_ter: f64,
     per_dataset: Vec<DatasetMetrics>,
@@ -453,13 +446,10 @@ fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> Str
 
     // Header metrics
     content.push_str(&format!("{}\n", name));
-    content.push_str(&format!("├── Total           {}\n", report.total));
-    content.push_str(&format!("├── Passed          {}\n", report.passed));
-    content.push_str(&format!("├── Failed          {}\n", report.failed));
-    content.push_str(&format!(
-        "├── TER             {:.2}% ({}/{})\n",
-        report.token_error_rate, report.total_token_edits, report.total_tokens
-    ));
+    content.push_str(&format!("├── Words           {}\n", report.total));
+    content.push_str(&format!("├── Tokens          {}\n", report.total_tokens));
+    content.push_str(&format!("├── Edits           {}\n", report.total_token_edits));
+    content.push_str(&format!("├── TER             {:.2}%\n", report.token_error_rate));
     content.push_str(&format!(
         "└── Accept@TER<{:<2}   {}\n",
         ACCEPT_TER,
@@ -529,13 +519,10 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     // Summary metrics
     content.push_str("Summary\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
-    content.push_str(&format!("├── Total           {}\n", metrics.total));
-    content.push_str(&format!("├── Passed          {}\n", metrics.passed));
-    content.push_str(&format!("├── Failed          {}\n", metrics.failed));
-    content.push_str(&format!(
-        "├── TER             {:.2}% ({}/{})\n",
-        metrics.ter, metrics.total_token_edits, metrics.total_tokens
-    ));
+    content.push_str(&format!("├── Words           {}\n", metrics.words));
+    content.push_str(&format!("├── Tokens          {}\n", metrics.tokens));
+    content.push_str(&format!("├── Edits           {}\n", metrics.edits));
+    content.push_str(&format!("├── TER             {:.2}%\n", metrics.ter));
     content.push_str(&format!(
         "├── Accept@TER<{:<2}   {}\n",
         ACCEPT_TER,
@@ -579,13 +566,10 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
 fn print_overall_metrics(metrics: &OverallMetrics) {
     println!("\nOVERALL");
     println!("=======");
-    println!("├── Total           {}", metrics.total);
-    println!("├── Passed          {}", metrics.passed);
-    println!("├── Failed          {}", metrics.failed);
-    println!(
-        "├── TER             {:.2}% ({}/{})",
-        metrics.ter, metrics.total_token_edits, metrics.total_tokens
-    );
+    println!("├── Words           {}", metrics.words);
+    println!("├── Tokens          {}", metrics.tokens);
+    println!("├── Edits           {}", metrics.edits);
+    println!("├── TER             {:.2}%", metrics.ter);
     println!("├── Accept?         {}", metrics.ter < ACCEPT_TER);
     println!(
         "└── Worst Performer {} (TER {:.2}%)",
@@ -637,8 +621,7 @@ fn compare() {
 
     let timestamp = Local::now().format("%m%d%y_%H%M").to_string();
 
-    let mut total_all = 0;
-    let mut passed_all = 0;
+    let mut words_all = 0;
     let mut total_token_edits_all = 0;
     let mut total_tokens_all = 0;
     let mut all_token_errors: HashMap<String, TokenError> = HashMap::new();
@@ -655,8 +638,7 @@ fn compare() {
             report_file,
         });
 
-        total_all += report.total;
-        passed_all += report.passed;
+        words_all += report.total;
         total_token_edits_all += report.total_token_edits;
         total_tokens_all += report.total_tokens;
 
@@ -671,12 +653,10 @@ fn compare() {
 
     // Build overall metrics
     let metrics = OverallMetrics {
-        total: total_all,
-        passed: passed_all,
-        failed: total_all - passed_all,
+        words: words_all,
+        tokens: total_tokens_all,
+        edits: total_token_edits_all,
         ter: (total_token_edits_all as f64 / total_tokens_all as f64) * 100.0,
-        total_token_edits: total_token_edits_all,
-        total_tokens: total_tokens_all,
         worst_performer: worst.name.clone(),
         worst_ter: worst.ter,
         per_dataset,
