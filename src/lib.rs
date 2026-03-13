@@ -26,11 +26,10 @@
 //! - `consts`: Configuration constants and types
 
 pub mod adaptation;
+pub mod alignment;
 pub mod configs;
 pub mod error;
 pub mod g2p;
 pub mod grapheme;
 pub mod phoneme;
 pub mod syllabification;
-pub mod morphology;
-pub mod alignment;

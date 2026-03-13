@@ -15,9 +15,13 @@ use tagabaybay::configs::AdapterConfig;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 
 const GOLD_DIR: &str = "gold/data";
-const GOLD_COUNT: usize = 3;
-const GOLD_STANDARDS: [&str; GOLD_COUNT] =
-    ["common_drugs.csv", "common_eng.csv", "ph_fda_human.csv"];
+const GOLD_COUNT: usize = 4;
+const GOLD_STANDARDS: [&str; GOLD_COUNT] = [
+    "common_drugs.csv",
+    "common_eng.csv",
+    "ph_fda_human.csv",
+    "ching_chua.csv",
+];
 
 const ACCEPT: f64 = 70.;
 const REPORT_DIR: &str = ".tests/report";

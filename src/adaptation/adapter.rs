@@ -38,18 +38,21 @@ use crate::phoneme::tokenizer::ipa::tokenize_ipa;
 /// ```
 pub struct Adapter {
     pub config: AdapterConfig,
+    g2p: Option<G2Py>,
 }
 
 impl Adapter {
     /// Create a new Adapter with default configuration
     pub fn new() -> Self {
-        let config = AdapterConfig::default();
-        Self { config }
+        Self {
+            config: AdapterConfig::default(),
+            g2p: None,
+        }
     }
 
     /// Create a Adapter with a custom configuration
     pub fn new_with_config(config: AdapterConfig) -> Self {
-        Self { config }
+        Self { config, g2p: None }
     }
 
     fn adapter_internal(
@@ -60,12 +63,28 @@ impl Adapter {
     ) -> Result<Vec<FilipinoGrapheme>, ErrorTypes> {
         // Variable declarations
         // --------------------
-        let config = &self.config;
         let mut result: Vec<FilipinoGrapheme> = Vec::new();
 
         let graphemes = source_tokenizer(word);
-        let mut g2p = G2Py::new().unwrap();
-        let phon_str = g2p.phonemize_phrase(word, word_number, dataset_name, config)?;
+
+        // Only invoke G2P when the word contains unpredictable-variant graphemes
+        // (vowels: a, e, i, o, u, y) and the config has g2p enabled.
+        let needs_g2p = self.config.g2p_unpredictable_variants
+            && graphemes
+                .iter()
+                .any(|g| g.to_lowercase().is_unpredictable_variant());
+
+        let phon_str = if needs_g2p {
+            if self.g2p.is_none() {
+                self.g2p = Some(G2Py::new().map_err(ErrorTypes::G2P)?);
+            }
+            let config = &self.config;
+            let g2p = self.g2p.as_mut().unwrap();
+            g2p.phonemize_phrase(word, word_number, dataset_name, config)?
+        } else {
+            String::new()
+        };
+
         let phonemes = tokenize_ipa(&phon_str);
 
         let mut ctx = Cursor::new(word, &phon_str, &graphemes, &phonemes, 0);
@@ -217,11 +236,11 @@ impl Adapter {
         word_list: &[&str],
         dataset_name: &str,
     ) -> Vec<Result<Vec<FilipinoGrapheme>, ErrorTypes>> {
-        word_list
-            .iter()
-            .enumerate()
-            .map(|(i, word)| self.adapter_internal(word, Some(i), Some(dataset_name)))
-            .collect()
+        let mut results = Vec::with_capacity(word_list.len());
+        for (i, word) in word_list.iter().enumerate() {
+            results.push(self.adapter_internal(word, Some(i), Some(dataset_name)));
+        }
+        results
     }
 }
 
@@ -230,6 +249,7 @@ impl Default for Adapter {
         Self::new()
     }
 }
+
 
 /// Detect and process abbreviations
 /// Returns (FilipinoGrapheme, graphemes_consumed) or None if not an abbreviation

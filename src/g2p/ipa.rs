@@ -72,7 +72,6 @@
 use crate::configs::AdapterConfig;
 use crate::error::{ErrorTypes, G2PError, G2PErrorKind};
 use crate::g2p::common::phonemize_phrase;
-use crate::morphology::segment_morphemes;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
@@ -368,49 +367,6 @@ impl G2Py {
                 e
             })
         })
-    }
-
-    /// Phonemize a single word with morphological awareness using spaCy.
-    ///
-    /// This function integrates morphology into the G2P pipeline:
-    /// 1. Segments the word into morphemes using spaCy-based segmentation
-    /// 2. Phonemizes each morpheme individually
-    /// 3. Concatenates the phonemes with `#` as morpheme boundary markers
-    ///
-    /// # Arguments
-    ///
-    /// * `word` - Input word to phonemize (will be lowercased)
-    ///
-    /// # Returns
-    ///
-    /// * `Ok((String, Vec<String>))` - Concatenated IPA phonemes with `#` morpheme separators,
-    ///                                 and the list of morphemes used
-    /// * `Err(ErrorTypes)` - If morpheme segmentation or phonemization fails
-    pub fn phonemize_with_morphology(
-        &mut self,
-        word: &str,
-    ) -> Result<(String, Vec<String>), ErrorTypes> {
-        // Step 1: Segment word into morphemes using spaCy
-        let morphemes = segment_morphemes(word)
-            .map_err(|e| ErrorTypes::G2P(G2PError::with_input(
-                G2PErrorKind::TranscriptionFailed {
-                    message: format!("Morpheme segmentation failed: {}", e),
-                },
-                word,
-            )))?;
-
-        // Step 2: Phonemize each morpheme
-        let mut phoneme_parts: Vec<String> = Vec::new();
-        for morpheme in &morphemes {
-            let ipa = self.phonemize(morpheme)
-                .map_err(|e| ErrorTypes::G2P(e))?;
-            phoneme_parts.push(ipa);
-        }
-
-        // Step 3: Concatenate with morpheme boundary marker
-        let concatenated = phoneme_parts.join("#");
-
-        Ok((concatenated, morphemes))
     }
 
 }

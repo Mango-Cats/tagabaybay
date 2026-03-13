@@ -30,6 +30,7 @@ pub fn graphemize(phoneme: &IPASymbol) -> Option<(Vec<FilipinoGrapheme>, bool)> 
         // E-like vowels
         IPASymbol::OpenMidFront => Some((tokens![FilipinoGrapheme::E], false)),
         IPASymbol::Schwa => Some((tokens![FilipinoGrapheme::A], false)),
+        IPASymbol::OpenMidCentral => Some((tokens![FilipinoGrapheme::E], false)),
 
         // I-like vowels
         IPASymbol::NearCloseFront => Some((tokens![FilipinoGrapheme::I], false)),
