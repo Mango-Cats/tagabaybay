@@ -627,7 +627,7 @@ fn sensitive_trigraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 return Some((tokens![FilipinoGrapheme::K], 1));
             }
 
-            Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::W], 1))
+            Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::W, FilipinoGrapheme::E], 1))
         }
 
         _ => None,
@@ -654,8 +654,8 @@ fn sensitive_digraph(
 
     match curr {
         SourceGrapheme::CH => {
-            if let Some(next) = next {
-                if next.is_consonant() {
+            if let Some(ref next_g) = next {
+                if next_g.is_consonant() {
                     return Some((tokens![FilipinoGrapheme::K], 1));
                 }
             }
@@ -663,6 +663,14 @@ fn sensitive_digraph(
             match prev {
                 // sch- as in schedule
                 Some(SourceGrapheme::S) => return Some((tokens![FilipinoGrapheme::K], 1)),
+
+                Some(SourceGrapheme::R) => {
+                    if let Some(ref next_g) = next {
+                        if next_g.is_vowel() {
+                            return Some((tokens![FilipinoGrapheme::K], 1));
+                        }
+                    }
+                }
                 _ => {}
             }
 
@@ -797,6 +805,21 @@ fn sensitive_digraph(
 
         SourceGrapheme::TI => {
             if ctx.position() != 0 {
+                if ctx.prev_grapheme_low() == Some(SourceGrapheme::S) {
+                    return match ctx.next_grapheme_low() {
+                        Some(SourceGrapheme::O) => Some((
+                            tokens![
+                                FilipinoGrapheme::T,
+                                FilipinoGrapheme::S,
+                                FilipinoGrapheme::Y,
+                                FilipinoGrapheme::O
+                            ],
+                            2,
+                        )),
+                        _ => Some((tokens![FilipinoGrapheme::T, FilipinoGrapheme::I], 1)),
+                    };
+                }
+
                 let next = ctx.next_grapheme_low();
 
                 match next {
@@ -1248,14 +1271,12 @@ fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             ],
             2,
         )),
-        Some(SourceGrapheme::U) => Some((
-            tokens![
-                FilipinoGrapheme::U,
-                FilipinoGrapheme::W,
-                FilipinoGrapheme::U,
-            ],
-            2,
-        )),
+        // <CLAUDE>
+        // Bug fix: "uu" → "u" (not "uwu"). Duplicate vowels should collapse.
+        // e.g. "samuu" → "samu" (not "samuwu").
+        // The u+vowel → uwV rule is meant for u before a DIFFERENT vowel (e.g. "manual" → "manwal").
+        // </CLAUDE>
+        Some(SourceGrapheme::U) => Some((tokens![FilipinoGrapheme::U], 2)),
         _ => match ctx.prev_grapheme_low() {
             Some(SourceGrapheme::E) => Some((tokens![FilipinoGrapheme::Y, FilipinoGrapheme::U], 1)),
             _ => None,
