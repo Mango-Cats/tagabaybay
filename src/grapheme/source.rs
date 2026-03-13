@@ -399,7 +399,8 @@ impl SourceGrapheme {
             | SourceGrapheme::I
             | SourceGrapheme::O
             | SourceGrapheme::U
-            | SourceGrapheme::Y => true,
+            | SourceGrapheme::Y
+            | SourceGrapheme::OUGH => true,
             _ => false,
         }
     }

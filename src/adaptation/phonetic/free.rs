@@ -118,7 +118,13 @@ pub fn phonetic_replacements(
             result
         };
 
-        let consumed = if is_diphthong && next_is_unpredictable_variant {
+        let consumed = if curr.is_tetragraph() {
+            1
+        } else if is_diphthong && next_is_unpredictable_variant {
+            2
+        } else if next_is_unpredictable_variant
+            && find_nth_vowel_phoneme(&ctx.phonemes, pre_vowels + 1).is_none()
+        {
             2
         } else {
             1

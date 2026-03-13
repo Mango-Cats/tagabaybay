@@ -8,6 +8,7 @@ use crate::adaptation::cursor::Cursor;
 use crate::configs::AdapterConfig;
 use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
+use crate::phoneme::tokens::ipa::IPASymbol;
 use crate::tokens;
 
 use super::free::free_replacement;
@@ -1158,15 +1159,27 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
         }
 
         // "ou" before consonant → "aw" (count, out, account, discount)
+        // "ou" at end → "aw" (you)
         Some(SourceGrapheme::U) => {
-            if let Some(after) = ctx.lookat_grapheme_low(2) {
-                if after.is_consonant() {
+            let is_ou_aw_context = ctx
+                .lookat_grapheme_low(2)
+                .map(|g| g.is_consonant())
+                .unwrap_or(false)
+                || ctx.position() + 1 == ctx.graphemes.len() - 1;
+
+            if is_ou_aw_context {
+                let pre_vowels = (0..ctx.index)
+                    .filter(|&i| ctx.graphemes[i].to_lowercase().is_unpredictable_variant())
+                    .count();
+                let ipa_vowel = ctx
+                    .phonemes
+                    .iter()
+                    .filter(|p| p.is_vowel())
+                    .nth(pre_vowels)
+                    .cloned();
+                if matches!(ipa_vowel, Some(IPASymbol::DiphthongAU) | None) {
                     return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
                 }
-            }
-            // "ou" at end → "aw" (you)
-            if ctx.position() + 1 == ctx.graphemes.len() - 1 {
-                return Some((tokens![FilipinoGrapheme::A, FilipinoGrapheme::W], 2));
             }
 
             None
@@ -1271,11 +1284,8 @@ fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
             ],
             2,
         )),
-        // <CLAUDE>
-        // Bug fix: "uu" → "u" (not "uwu"). Duplicate vowels should collapse.
-        // e.g. "samuu" → "samu" (not "samuwu").
-        // The u+vowel → uwV rule is meant for u before a DIFFERENT vowel (e.g. "manual" → "manwal").
-        // </CLAUDE>
+
+        // Collapse 'UU'
         Some(SourceGrapheme::U) => Some((tokens![FilipinoGrapheme::U], 2)),
         _ => match ctx.prev_grapheme_low() {
             Some(SourceGrapheme::E) => Some((tokens![FilipinoGrapheme::Y, FilipinoGrapheme::U], 1)),
