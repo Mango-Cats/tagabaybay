@@ -1,7 +1,7 @@
 Python Nativization Algorithm
 =============================
 
-BY              Zhean (zrygan) Robby Ganituen
+BY              Zhean Robby (zrygan) Ganituen
 EMAIL           zr.<last name; no vowels>@gmail.com
 LAST UPDATE     December 12, 2025
 
@@ -17,8 +17,8 @@ This work is very unfinished and a simple toy algorithm that shows it
 is possible to model phonetic nativization rules by the Komisyon sa
 Wikang Filipino as a deterministic/rule-based algorithm.
 
-This project is being continued as the `TagaBaybay` project 
-(https://github.com/Mango-Cats/TagaBaybay/) (which, as of writing this, 
+This project is being continued as the `TagaBaybay` project
+(<https://github.com/Mango-Cats/TagaBaybay/>) (which, as of writing this,
 is also a work-in-progress). This project is currently being spearheaded
 by Zhean Ganituen, part of the original project and a member of an
 undergraduate thesis group being advised by Nathaniel Oco.
