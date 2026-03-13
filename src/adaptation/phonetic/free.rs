@@ -104,6 +104,20 @@ pub fn phonetic_replacements(
         .unwrap_or(false);
 
     if let Some((result, is_diphthong)) = graphemize(&phoneme) {
+        // When G2P maps to plain 'a' but the written grapheme is 'o' or 'u',
+        // preserve the written vowel. English /ɑ/ ("comment", "problem") and
+        // /ʌ/ ("bupropion") are both written with letters that have distinct
+        // Filipino sounds, so the written form wins.
+        let result = if result == [FilipinoGrapheme::A] {
+            match curr {
+                SourceGrapheme::O => vec![FilipinoGrapheme::O],
+                SourceGrapheme::U => vec![FilipinoGrapheme::U],
+                _ => result,
+            }
+        } else {
+            result
+        };
+
         let consumed = if is_diphthong && next_is_unpredictable_variant {
             2
         } else {
