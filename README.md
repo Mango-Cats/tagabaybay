@@ -10,11 +10,11 @@ Written in Rust.
 **Faculty Supervisor**: Nathaniel Oco △◇ <br>
 **Project Members**:
 
-- Clarance Ivan Ang △
-- Roan Cedric Campo △
 - Erin Gabrielle Chua ◇
 - Jaztin Jacob Jimenez ◇
 - Justin Ethan Ching ◇
+- Clarance Ivan Ang △
+- Roan Cedric Campo △
 - Clive Jarel Ang △
 
 \***Correspondence:** `zr.gntn AT gmail DOT com` <br>
@@ -48,5 +48,6 @@ Also see [`CITATION.cff`](/CITATION.cff).
 ## Bibliography
 
 1. Komisyon sa Wikang Filipino ed. 2015. KWF manwal sa masinop na pagsulat. Komisyon sa Wikang Filipino.
-1. Christian Uffmann 2015. Loanword Adaptation. The Oxford Handbook of Historical Phonology. Patrick Honeybone and Joseph Salmons, eds. Oxford University Press. 644–666.
-1. Lingshuang Mao and Mans Hulden How Regular is Japanese Loanword Adaptation? A Computational Study.
+2. Llamzon, T.A. 1996. Tagalog Phonology. Anthropological Linguistics. 8, 1 (Jan. 1996), 30–39.
+3. Lingshuang Mao and Mans Hulden. How Regular is Japanese Loanword Adaptation? A Computational Study.
+4. Baklanova, E. 2017. Types of Borrowings in Tagalog/Filipino. Kritika Kultura. 28 (Mar. 2017). <https://doi.org/10.13185/KK2017.02803>.
