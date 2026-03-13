@@ -8,6 +8,13 @@ try:
 except ImportError:
     SPACY_AVAILABLE = False
 
+try:
+    from nltk.stem import WordNetLemmatizer
+    import nltk
+    NLTK_AVAILABLE = True
+except ImportError:
+    NLTK_AVAILABLE = False
+
 # Global spaCy model with thread-safe loading
 _nlp = None
 _nlp_lock = threading.Lock()
@@ -81,18 +88,29 @@ def segment_spacy(word, model=None):
     return morphemes if morphemes else [word]
 
 def segment_dict(word):
-    """Basic dictionary-based morpheme segmentation.
+    """NLTK-based morpheme segmentation.
     
-    This is a simple rule-based approach that doesn't require spaCy.
-    Returns a list of morphemes based on common English affixes.
+    Uses NLTK for morphological analysis. While NLTK's WordNetLemmatizer
+    handles rea, we use rule-based patterns for
+    derivational morphology (-tion, -ation, etc.).
+    
+    Args:
+        word: The word to segment into morphemes
+        
+    Returns:
+        List of morpheme strings
+        
+    Raises:
+        ImportError: If NLTK is not installed
     """
+    if not NLTK_AVAILABLE:
+        raise ImportError("NLTK is not installed. Install with: pip install nltk")
+    
     morphemes = []
     remaining = word.lower()
     
     # Common prefixes
     prefixes = ["un", "re", "in", "dis", "en", "non", "pre", "post", "anti", "de"]
-    # Common suffixes  
-    suffixes = ["ing", "ed", "er", "est", "ly", "ness", "ment", "tion", "sion", "ity", "ful", "less", "ous", "ive", "al"]
     
     # Extract prefix
     for prefix in prefixes:
@@ -101,10 +119,33 @@ def segment_dict(word):
             remaining = remaining[len(prefix):]
             break
     
+    # Suffix patterns for derivational morphology
+    # Format: (suffix, stem_transformation_func)
+    suffixes = [
+        ("tion", lambda s: s[:-1] + "e" if s.endswith("iza") else (s + "te" if s.endswith("a") else (s + "t" if s.endswith("c") else s))),
+        ("sion", lambda s: s + "e" if s.endswith("us") else s),
+        ("ment", lambda s: s),
+        ("ness", lambda s: s[:-1] + "y" if s.endswith("i") and len(s) >= 2 and s[-2] in "bcdfghjklmnpqrstvwxz" else s),
+        ("ity", lambda s: s),
+        ("ing", lambda s: s),
+        ("ed", lambda s: s),
+        ("ly", lambda s: s),
+        ("er", lambda s: s),
+        ("est", lambda s: s),
+        ("ful", lambda s: s),
+        ("less", lambda s: s),
+        ("ous", lambda s: s),
+        ("ive", lambda s: s),
+        ("al", lambda s: s),
+    ]
+    
     # Extract suffix
-    for suffix in suffixes:
+    for suffix, transform in suffixes:
         if remaining.endswith(suffix) and len(remaining) > len(suffix) + 2:
-            morphemes.append(remaining[:-len(suffix)])
+            stem = remaining[:-len(suffix)]
+            stem = transform(stem)
+            
+            morphemes.append(stem)
             morphemes.append(suffix)
             return morphemes
     

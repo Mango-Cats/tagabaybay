@@ -4,6 +4,10 @@
 # Developer files
 .*/
 .todo
+/tests/data
 
 # Legacy Code
 legacy/
+
+# Pycache
+**/__pycache__/

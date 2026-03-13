@@ -33,3 +33,4 @@ pub mod grapheme;
 pub mod phoneme;
 pub mod syllabification;
 pub mod morphology;
+pub mod alignment;

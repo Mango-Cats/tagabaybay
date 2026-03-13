@@ -33,6 +33,8 @@ pub enum IPASymbol {
     OpenMidBackRounded,
     /// /ɛ/ - Open-mid front unrounded (bed, get)
     OpenMidFront,
+    /// /ɜ/ - Open-mid central unrounded (girl, earth)
+    OpenMidCentral,
     /// /ɝ/ - R-colored mid central stressed (bird, nurse)
     RColoredMid,
     /// /ɚ/ - R-colored schwa unstressed (butter, sister)
@@ -146,6 +148,7 @@ impl IPASymbol {
             IPASymbol::Schwa => "ə",
             IPASymbol::OpenMidBackRounded => "ɔ",
             IPASymbol::OpenMidFront => "ɛ",
+            IPASymbol::OpenMidCentral => "ɜ",
             IPASymbol::RColoredMid => "ɝ",
             IPASymbol::RColoredSchwa => "ɚ",
             IPASymbol::NearCloseFront => "ɪ",
@@ -201,7 +204,7 @@ impl IPASymbol {
             // Tap
             IPASymbol::AlveolarTap => "ɾ",
 
-            // Miscellaneous
+            // Length
             IPASymbol::TriangularColon => "ː",
             IPASymbol::RegularColon => ":",
         }
@@ -218,6 +221,7 @@ impl IPASymbol {
                 | IPASymbol::Schwa
                 | IPASymbol::OpenMidBackRounded
                 | IPASymbol::OpenMidFront
+                | IPASymbol::OpenMidCentral
                 | IPASymbol::RColoredMid
                 | IPASymbol::RColoredSchwa
                 | IPASymbol::NearCloseFront
