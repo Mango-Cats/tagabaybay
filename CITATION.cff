@@ -8,28 +8,28 @@ message: >-
   metadata from this file.
 type: software
 authors:
+  - given-names: Erin Gabrielle
+    family-names: Chua
+    affiliation: De La Salle University
   - given-names: Zhean Robby
     family-names: Ganituen
     email: zr.gntn@gmail.com
     affiliation: De La Salle University
     orcid: 'https://orcid.org/0009-0002-3266-5384'
-  - given-names: Clarence Ivan
-    family-names: Ang
-    affiliation: De La Salle University
-  - given-names: Roan Cedric
-    family-names: Campo
-    affiliation: De La Salle University
   - given-names: Justin Ethan
     family-names: Ching
-    affiliation: De La Salle University
-  - given-names: Erin Gabrielle
-    family-names: Chua
     affiliation: De La Salle University
   - given-names: Jaztin Jacob
     family-names: Jimenez
     affiliation: De La Salle University
   - given-names: Clive Jarel
     family-names: Ang
+    affiliation: De La Salle University
+  - given-names: Clarence Ivan
+    family-names: Ang
+    affiliation: De La Salle University
+  - given-names: Roan Cedric
+    family-names: Campo
     affiliation: De La Salle University
   - given-names: Nathaniel
     family-names: Oco
@@ -42,4 +42,5 @@ keywords:
   - Context-Free Grammars
   - Context-Sensitive Grammars
   - Formal Languages
+  - Grapheme-to-Phoneme
 license: Apache-2.0
