@@ -23,7 +23,7 @@ const GOLD_STANDARDS: [&str; GOLD_COUNT] = [
     "ching_chua.csv",
 ];
 
-const ACCEPT: f64 = 70.;
+const ACCEPT_TER: f64 = 20.;
 const REPORT_DIR: &str = ".tests/report";
 
 // Character equivalence mappings for toggle-agnostic evaluation
@@ -113,7 +113,6 @@ fn evaluate_csv(path: &str) -> EvalReport {
         total,
         passed,
         failed: total - passed,
-        accuracy: (passed as f64 / total as f64) * 100.0,
         token_error_rate,
         total_token_edits,
         total_tokens,
@@ -141,9 +140,7 @@ struct TokenError {
 struct EvalReport {
     total: usize,
     passed: usize,
-    #[allow(dead_code)]
     failed: usize,
-    accuracy: f64,
     token_error_rate: f64,
     total_token_edits: usize,
     total_tokens: usize,
@@ -155,19 +152,17 @@ struct OverallMetrics {
     total: usize,
     passed: usize,
     failed: usize,
-    accuracy: f64,
     ter: f64,
     total_token_edits: usize,
     total_tokens: usize,
     worst_performer: String,
-    worst_accuracy: f64,
+    worst_ter: f64,
     per_dataset: Vec<DatasetMetrics>,
     token_errors: HashMap<String, TokenError>,
 }
 
 struct DatasetMetrics {
     name: String,
-    accuracy: f64,
     ter: f64,
     report_file: String,
 }
@@ -460,19 +455,15 @@ fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> Str
     content.push_str(&format!("{}\n", name));
     content.push_str(&format!("├── Total           {}\n", report.total));
     content.push_str(&format!("├── Passed          {}\n", report.passed));
-    content.push_str(&format!(
-        "├── Failed          {}\n",
-        report.total - report.passed
-    ));
-    content.push_str(&format!("├── Accuracy        {:.2}%\n", report.accuracy));
+    content.push_str(&format!("├── Failed          {}\n", report.failed));
     content.push_str(&format!(
         "├── TER             {:.2}% ({}/{})\n",
         report.token_error_rate, report.total_token_edits, report.total_tokens
     ));
     content.push_str(&format!(
-        "└── Accept@{:<3}      {}\n",
-        ACCEPT,
-        report.accuracy > ACCEPT
+        "└── Accept@TER<{:<2}   {}\n",
+        ACCEPT_TER,
+        report.token_error_rate < ACCEPT_TER
     ));
 
     // Failures list
@@ -541,35 +532,28 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     content.push_str(&format!("├── Total           {}\n", metrics.total));
     content.push_str(&format!("├── Passed          {}\n", metrics.passed));
     content.push_str(&format!("├── Failed          {}\n", metrics.failed));
-    content.push_str(&format!("├── Accuracy        {:.2}%\n", metrics.accuracy));
     content.push_str(&format!(
         "├── TER             {:.2}% ({}/{})\n",
         metrics.ter, metrics.total_token_edits, metrics.total_tokens
     ));
     content.push_str(&format!(
-        "├── Accept@{:<3}      {}\n",
-        ACCEPT,
-        metrics.accuracy > ACCEPT
+        "├── Accept@TER<{:<2}   {}\n",
+        ACCEPT_TER,
+        metrics.ter < ACCEPT_TER
     ));
     content.push_str(&format!(
-        "└── Worst Performer {} ({:.2}%)\n",
-        metrics.worst_performer, metrics.worst_accuracy
+        "└── Worst Performer {} (TER {:.2}%)\n",
+        metrics.worst_performer, metrics.worst_ter
     ));
 
     // Per-dataset breakdown
     content.push_str("\nPer-Dataset Metrics\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
-    content.push_str(&format!(
-        "  {:<15} {:>10} {:>10}\n",
-        "Dataset", "Accuracy", "TER"
-    ));
-    content.push_str(&format!("  {}\n", "-".repeat(37)));
+    content.push_str(&format!("  {:<15} {:>10}\n", "Dataset", "TER"));
+    content.push_str(&format!("  {}\n", "-".repeat(27)));
 
     for dm in &metrics.per_dataset {
-        content.push_str(&format!(
-            "  {:<15} {:>9.2}% {:>9.2}%\n",
-            dm.name, dm.accuracy, dm.ter
-        ));
+        content.push_str(&format!("  {:<15} {:>9.2}%\n", dm.name, dm.ter));
     }
 
     // Token error ranking
@@ -580,8 +564,8 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     content.push_str(&format!("{}\n", "-".repeat(50)));
     for dm in &metrics.per_dataset {
         content.push_str(&format!(
-            "  - {} ({:.2}%): {}\n",
-            dm.name, dm.accuracy, dm.report_file
+            "  - {} (TER {:.2}%): {}\n",
+            dm.name, dm.ter, dm.report_file
         ));
     }
 
@@ -598,28 +582,21 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
     println!("├── Total           {}", metrics.total);
     println!("├── Passed          {}", metrics.passed);
     println!("├── Failed          {}", metrics.failed);
-    println!("├── Accuracy        {:.2}%", metrics.accuracy);
     println!(
         "├── TER             {:.2}% ({}/{})",
         metrics.ter, metrics.total_token_edits, metrics.total_tokens
     );
-    println!("├── Accept?         {}", metrics.accuracy > ACCEPT);
+    println!("├── Accept?         {}", metrics.ter < ACCEPT_TER);
     println!(
-        "└── Worst Performer {} ({:.2}%)",
-        metrics.worst_performer, metrics.worst_accuracy
+        "└── Worst Performer {} (TER {:.2}%)",
+        metrics.worst_performer, metrics.worst_ter
     );
 
     println!("\nPer-Dataset Metrics:");
-    println!(
-        "  {:<15} {:>10} {:>10}",
-        "Dataset", "Accuracy", "TER"
-    );
-    println!("  {}", "-".repeat(37));
+    println!("  {:<15} {:>10}", "Dataset", "TER");
+    println!("  {}", "-".repeat(27));
     for dm in &metrics.per_dataset {
-        println!(
-            "  {:<15} {:>9.2}% {:>9.2}%",
-            dm.name, dm.accuracy, dm.ter
-        );
+        println!("  {:<15} {:>9.2}%", dm.name, dm.ter);
     }
 
     // Top token errors
@@ -650,7 +627,7 @@ fn print_report_locations(metrics: &OverallMetrics, overall_file: &str) {
     println!("\nReports written to:");
     println!("  - overall: {}", overall_file);
     for dm in &metrics.per_dataset {
-        println!("  - {} ({:.2}%): {}", dm.name, dm.accuracy, dm.report_file);
+        println!("  - {} (TER {:.2}%): {}", dm.name, dm.ter, dm.report_file);
     }
 }
 
@@ -674,7 +651,6 @@ fn compare() {
 
         per_dataset.push(DatasetMetrics {
             name: fname.replace(".csv", ""),
-            accuracy: report.accuracy,
             ter: report.token_error_rate,
             report_file,
         });
@@ -687,10 +663,10 @@ fn compare() {
         merge_token_errors(&mut all_token_errors, report.token_errors, 5);
     }
 
-    // Find worst performer
+    // Find worst performer (highest TER)
     let worst = per_dataset
         .iter()
-        .min_by(|a, b| a.accuracy.partial_cmp(&b.accuracy).unwrap())
+        .max_by(|a, b| a.ter.partial_cmp(&b.ter).unwrap())
         .unwrap();
 
     // Build overall metrics
@@ -698,12 +674,11 @@ fn compare() {
         total: total_all,
         passed: passed_all,
         failed: total_all - passed_all,
-        accuracy: (passed_all as f64 / total_all as f64) * 100.0,
         ter: (total_token_edits_all as f64 / total_tokens_all as f64) * 100.0,
         total_token_edits: total_token_edits_all,
         total_tokens: total_tokens_all,
         worst_performer: worst.name.clone(),
-        worst_accuracy: worst.accuracy,
+        worst_ter: worst.ter,
         per_dataset,
         token_errors: all_token_errors,
     };
