@@ -103,12 +103,6 @@ fn evaluate_csv(path: &str) -> EvalReport {
     let passed = results.iter().filter(|r| r.passed).count();
     let failures: Vec<TestResult> = results.into_iter().filter(|r| !r.passed).collect();
 
-    let word_error_rate = if total > 0 {
-        ((total - passed) as f64 / total as f64) * 100.0
-    } else {
-        0.0
-    };
-
     let token_error_rate = if total_tokens > 0 {
         (total_token_edits as f64 / total_tokens as f64) * 100.0
     } else {
@@ -120,7 +114,6 @@ fn evaluate_csv(path: &str) -> EvalReport {
         passed,
         failed: total - passed,
         accuracy: (passed as f64 / total as f64) * 100.0,
-        word_error_rate,
         token_error_rate,
         total_token_edits,
         total_tokens,
@@ -151,7 +144,6 @@ struct EvalReport {
     #[allow(dead_code)]
     failed: usize,
     accuracy: f64,
-    word_error_rate: f64,
     token_error_rate: f64,
     total_token_edits: usize,
     total_tokens: usize,
@@ -164,7 +156,6 @@ struct OverallMetrics {
     passed: usize,
     failed: usize,
     accuracy: f64,
-    wer: f64,
     ter: f64,
     total_token_edits: usize,
     total_tokens: usize,
@@ -177,7 +168,6 @@ struct OverallMetrics {
 struct DatasetMetrics {
     name: String,
     accuracy: f64,
-    wer: f64,
     ter: f64,
     report_file: String,
 }
@@ -476,10 +466,6 @@ fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> Str
     ));
     content.push_str(&format!("├── Accuracy        {:.2}%\n", report.accuracy));
     content.push_str(&format!(
-        "├── WER             {:.2}%\n",
-        report.word_error_rate
-    ));
-    content.push_str(&format!(
         "├── TER             {:.2}% ({}/{})\n",
         report.token_error_rate, report.total_token_edits, report.total_tokens
     ));
@@ -556,7 +542,6 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     content.push_str(&format!("├── Passed          {}\n", metrics.passed));
     content.push_str(&format!("├── Failed          {}\n", metrics.failed));
     content.push_str(&format!("├── Accuracy        {:.2}%\n", metrics.accuracy));
-    content.push_str(&format!("├── WER             {:.2}%\n", metrics.wer));
     content.push_str(&format!(
         "├── TER             {:.2}% ({}/{})\n",
         metrics.ter, metrics.total_token_edits, metrics.total_tokens
@@ -575,15 +560,15 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     content.push_str("\nPer-Dataset Metrics\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
     content.push_str(&format!(
-        "  {:<15} {:>10} {:>10} {:>10}\n",
-        "Dataset", "Accuracy", "WER", "TER"
+        "  {:<15} {:>10} {:>10}\n",
+        "Dataset", "Accuracy", "TER"
     ));
-    content.push_str(&format!("  {}\n", "-".repeat(47)));
+    content.push_str(&format!("  {}\n", "-".repeat(37)));
 
     for dm in &metrics.per_dataset {
         content.push_str(&format!(
-            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}%\n",
-            dm.name, dm.accuracy, dm.wer, dm.ter
+            "  {:<15} {:>9.2}% {:>9.2}%\n",
+            dm.name, dm.accuracy, dm.ter
         ));
     }
 
@@ -614,7 +599,6 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
     println!("├── Passed          {}", metrics.passed);
     println!("├── Failed          {}", metrics.failed);
     println!("├── Accuracy        {:.2}%", metrics.accuracy);
-    println!("├── WER             {:.2}%", metrics.wer);
     println!(
         "├── TER             {:.2}% ({}/{})",
         metrics.ter, metrics.total_token_edits, metrics.total_tokens
@@ -627,14 +611,14 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
 
     println!("\nPer-Dataset Metrics:");
     println!(
-        "  {:<15} {:>10} {:>10} {:>10}",
-        "Dataset", "Accuracy", "WER", "TER"
+        "  {:<15} {:>10} {:>10}",
+        "Dataset", "Accuracy", "TER"
     );
-    println!("  {}", "-".repeat(50));
+    println!("  {}", "-".repeat(37));
     for dm in &metrics.per_dataset {
         println!(
-            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}%",
-            dm.name, dm.accuracy, dm.wer, dm.ter
+            "  {:<15} {:>9.2}% {:>9.2}%",
+            dm.name, dm.accuracy, dm.ter
         );
     }
 
@@ -691,7 +675,6 @@ fn compare() {
         per_dataset.push(DatasetMetrics {
             name: fname.replace(".csv", ""),
             accuracy: report.accuracy,
-            wer: report.word_error_rate,
             ter: report.token_error_rate,
             report_file,
         });
@@ -716,7 +699,6 @@ fn compare() {
         passed: passed_all,
         failed: total_all - passed_all,
         accuracy: (passed_all as f64 / total_all as f64) * 100.0,
-        wer: ((total_all - passed_all) as f64 / total_all as f64) * 100.0,
         ter: (total_token_edits_all as f64 / total_tokens_all as f64) * 100.0,
         total_token_edits: total_token_edits_all,
         total_tokens: total_tokens_all,
