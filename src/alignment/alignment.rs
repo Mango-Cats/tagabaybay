@@ -236,8 +236,11 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     let next_grapheme_is_vowel = next_grapheme.clone()
     .map(|g| g.is_vowel()).unwrap_or(false);
 
-    // ngl idk if i should add input examples for each
-
+    // When H is silent, ie. honor
+    if current_grapheme == SourceGrapheme::H &&
+        p[*p_index].is_vowel() {
+        return vec![None];
+    }
 
     // Non-consuming Cases
     // 
@@ -317,7 +320,9 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
          if current_grapheme.is_vowel() {
             if *p_index < p.len() {
                 let current_phoneme = &p[*p_index];
-                if !current_phoneme.is_vowel() {
+                if !current_phoneme.is_vowel() && 
+                current_phoneme != &IPASymbol::LabialVelarApproximant &&
+                current_phoneme != &IPASymbol::PalatalApproximant {
                     return vec![None];
                 }
             }
@@ -325,6 +330,18 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
     }
 
     let ph = p[*p_index].clone();
+
+    if current_grapheme.is_vowel() && ph == IPASymbol::PalatalApproximant {
+        *p_index += 1;
+        if *p_index < p.len() {
+            let vowel_ph = p[*p_index].clone();
+            *p_index += 1;
+            return vec![Some(ph), Some(vowel_ph)];
+        } else {
+            return vec![Some(ph)];
+        }
+    }
+
     *p_index += 1;
 
     // if word ends in MB 
@@ -482,10 +499,10 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         }
 
         // If PalatalApproximant is encountered or /j/ or the 'y' sound, combine with the next phoneme
-        else if next_ph == IPASymbol::PalatalApproximant {
-            *p_index += 1;
-            return vec![Some(ph), Some(next_ph)]
-        } 
+        // else if next_ph == IPASymbol::PalatalApproximant {
+        //     *p_index += 1;
+        //     return vec![Some(ph), Some(next_ph)]
+        // } 
 
         else {
             vec![Some(ph)]
