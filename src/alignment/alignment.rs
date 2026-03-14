@@ -225,6 +225,9 @@ fn is_case_ld(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: usize) -> bool {
 /// 
 /// # Returns 
 /// vec![Some(phoneme)]
+/// 
+/// *Note: Do clean-up here since there are just some pure grapheme cases
+/// here despite the function name, my bad 
 fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec<Option<IPASymbol>> {
     let current_grapheme = ctx.current_grapheme();
     let next_grapheme = ctx.next_grapheme();
@@ -289,6 +292,11 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
 
         if current_grapheme == SourceGrapheme::S && 
             next_grapheme == Some(SourceGrapheme::SE) {
+            return vec![None];
+        }
+
+        if current_grapheme == SourceGrapheme::E &&
+            prev_grapheme == Some(SourceGrapheme::QUE) {
             return vec![None];
         }
 
@@ -383,7 +391,8 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
 
         // If grapheme is TI and an /ɪ/ or /i/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::TI &&
-        ph != IPASymbol::VoicelessPostalveolarFricative {
+        ph != IPASymbol::VoicelessPostalveolarFricative &&
+        ph != IPASymbol::VoicelessPostalveolarAffricate {
             if next_ph.is_vowel() {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
@@ -441,6 +450,19 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             *p_index += 1;
 
             if *p_index < p.len() && p[*p_index].is_vowel() {
+                let vec = vec![Some(ph), Some(next_ph), Some( p[*p_index].clone())];
+                *p_index += 1;
+                return vec
+            } else {
+                return vec![Some(ph), Some(next_ph)]
+            }
+        }
+
+        // If grapheme is QUE pronounced /kwə/, map a vector of 3 phonemes
+        else if current_grapheme == SourceGrapheme::QUE {
+            *p_index += 1;
+
+            if *p_index < p.len() && next_ph == IPASymbol::LabialVelarApproximant && p[*p_index].is_vowel() {
                 let vec = vec![Some(ph), Some(next_ph), Some( p[*p_index].clone())];
                 *p_index += 1;
                 return vec
@@ -518,7 +540,8 @@ fn free_replacement (result: &mut AlignedString) {
                 Some(SourceGrapheme::EE) |
                 Some(SourceGrapheme::Y) |
                 Some(SourceGrapheme::W) |
-                Some(SourceGrapheme::ORE)
+                Some(SourceGrapheme::ORE) |
+                Some(SourceGrapheme::QUE)
             );
             
         let next_is_consonant = next_grapheme.is_some() && 

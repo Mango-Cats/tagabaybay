@@ -113,6 +113,7 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                         SourceGrapheme::GE => vec![FilipinoGrapheme::E],
                         SourceGrapheme::SE => vec![FilipinoGrapheme::E],
                         SourceGrapheme::ORE => vec![FilipinoGrapheme::E],
+                        SourceGrapheme::QUE => vec![FilipinoGrapheme::E],
 
                         SourceGrapheme::L => {
                             if prev_grapheme == Some(&SourceGrapheme::K) ||
