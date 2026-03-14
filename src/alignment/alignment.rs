@@ -332,7 +332,7 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         let next_ph = p[*p_index].clone();
 
         // If grapheme is an X, append the /ks/ phonemes together
-        if current_grapheme == SourceGrapheme::X && 
+        if current_grapheme == SourceGrapheme::X && next_grapheme != Some(SourceGrapheme::C) &&
             ph != IPASymbol::VoicedAlveolarFricative &&
             ph != IPASymbol::VoicelessAlveolarFricative {
             *p_index += 1;

@@ -256,6 +256,18 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
 
+                // "ʒ"
+                if *symbol == IPASymbol::VoicedPostalveolarFricative {
+                    let fg = match grapheme {
+                        SourceGrapheme::GE => vec![FilipinoGrapheme::J],
+                        _ => vec![FilipinoGrapheme::S],
+                    };
+                    for g in fg {
+                        result.push(g)
+                    };
+                    continue;
+                }
+
                 // "ŋ"
                 if *symbol == IPASymbol::VelarNasal {
                     let next_has_velar = if idx < aligned.len() - 1 {
