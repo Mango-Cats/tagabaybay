@@ -371,9 +371,19 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
             }
         }
 
+        // If grapheme is ZE and an /e/ sound follows it, combine the 2
+        else if current_grapheme == SourceGrapheme::ZE {
+            if next_ph.is_vowel() && !next_grapheme_is_vowel {
+                *p_index += 1;
+                return vec![Some(ph), Some(next_ph)]
+            } else {
+                return vec![Some(ph)];
+            }
+        }
+
         // If grapheme is TI and an /ɪ/ or /i/ sound follows it, combine the 2
         else if current_grapheme == SourceGrapheme::TI {
-            if next_ph == IPASymbol::NearCloseFront || next_ph == IPASymbol::CloseFront {
+            if next_ph.is_vowel() {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
             } else {
