@@ -382,7 +382,8 @@ fn handle_phonemes(ctx: &Cursor, p: &Vec<IPASymbol>, p_index: &mut usize) -> Vec
         }
 
         // If grapheme is TI and an /ɪ/ or /i/ sound follows it, combine the 2
-        else if current_grapheme == SourceGrapheme::TI {
+        else if current_grapheme == SourceGrapheme::TI &&
+        ph != IPASymbol::VoicelessPostalveolarFricative {
             if next_ph.is_vowel() {
                 *p_index += 1;
                 return vec![Some(ph), Some(next_ph)]
