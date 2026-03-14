@@ -34,14 +34,13 @@ const CHAR_EQUIVALENCES: &[(&str, &str)] = &[
     ("v", "b"),  // allow_v_letter
 ];
 
-fn evaluate_csv(path: &str) -> EvalReport {
-    // ===== LOOK HERE ==============================
-    //
-    // if you want to change the Adapter object
-    // like the configs, you probably want to look
-    // at the line below.
-    //
-    // ===== LOOK HERE ==============================
+#[derive(Clone, Debug)]
+struct EvalConfig {
+    equate_e_i: bool,
+    equate_o_u: bool,
+}
+
+fn evaluate_csv(path: &str, eval_config: &EvalConfig) -> EvalReport {
     let config = AdapterConfig::new();
     let mut adapter = Adapter::new_with_config(config.clone());
 
@@ -55,7 +54,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
 
     for (i, line) in reader.lines().enumerate() {
         if i == 0 {
-            continue; // Skip header
+            continue; 
         }
 
         let line = line.unwrap();
@@ -72,8 +71,8 @@ fn evaluate_csv(path: &str) -> EvalReport {
             .unwrap_or_default();
 
         // Normalize both actual and expected for toggle-agnostic comparison
-        let actual_normalized = normalize_for_comparison(&actual);
-        let expected_normalized = normalize_for_comparison(expected);
+        let actual_normalized = normalize_for_comparison(&actual, eval_config);
+        let expected_normalized = normalize_for_comparison(expected, eval_config);
 
         // Calculate token-level edit distance on normalized strings
         let edit_dist = levenshtein_distance(&actual_normalized, &expected_normalized);
@@ -88,6 +87,7 @@ fn evaluate_csv(path: &str) -> EvalReport {
                 &expected_normalized,
                 input,
                 3,
+                eval_config,
             );
         }
 
@@ -125,7 +125,6 @@ struct TestResult {
     passed: bool,
 }
 
-/// Token error information for ranking
 #[derive(Clone, Debug)]
 struct TokenError {
     expected: String,
@@ -144,6 +143,10 @@ struct EvalReport {
 }
 
 struct OverallMetrics {
+    cer_default: f64,
+    cer_e_i_y: f64,
+    cer_o_u: f64,
+    cer_both: f64,
     words: usize,
     tokens: usize,
     edits: usize,
@@ -152,6 +155,7 @@ struct OverallMetrics {
     worst_ter: f64,
     per_dataset: Vec<DatasetMetrics>,
     token_errors: HashMap<String, TokenError>,
+    token_errors_both: HashMap<String, TokenError>,
 }
 
 struct DatasetMetrics {
@@ -160,8 +164,7 @@ struct DatasetMetrics {
     report_file: String,
 }
 
-// This makes comparisons agnostic to which toggle settings were used
-fn normalize_for_comparison(text: &str) -> String {
+fn normalize_for_comparison(text: &str, cfg: &EvalConfig) -> String {
     let mut normalized = text.to_lowercase();
 
     let mut equivalences: Vec<_> = CHAR_EQUIVALENCES.iter().collect();
@@ -182,10 +185,20 @@ fn normalize_for_comparison(text: &str) -> String {
         normalized = normalized.replace(alternate, canonical);
     }
 
-    normalized
+    let mut out = String::with_capacity(normalized.len());
+    for c in normalized.chars() {
+        let mapped = match c {
+            'i' if cfg.equate_e_i => 'e',
+            'y' if cfg.equate_e_i => 'e',
+            'u' if cfg.equate_o_u => 'o',
+            _ => c,
+        };
+        out.push(mapped);
+    }
+
+    out
 }
 
-/// Calculate Levenshtein edit distance between two strings
 fn levenshtein_distance(a: &str, b: &str) -> usize {
     let a_chars: Vec<char> = a.chars().collect();
     let b_chars: Vec<char> = b.chars().collect();
@@ -224,11 +237,13 @@ fn levenshtein_distance(a: &str, b: &str) -> usize {
     dp[m][n]
 }
 
-/// Get the edit operations (alignment) between two strings for token error tracking
-fn get_edit_operations(actual: &str, expected: &str) -> Vec<(Option<char>, Option<char>)> {
-    // Normalize for toggle-agnostic comparison
-    let actual_normalized = normalize_for_comparison(actual);
-    let expected_normalized = normalize_for_comparison(expected);
+fn get_edit_operations(
+    actual: &str,
+    expected: &str,
+    cfg: &EvalConfig,
+) -> Vec<(Option<char>, Option<char>)> {
+    let actual_normalized = normalize_for_comparison(actual, cfg);
+    let expected_normalized = normalize_for_comparison(expected, cfg);
 
     let a_chars: Vec<char> = actual_normalized.chars().collect();
     let e_chars: Vec<char> = expected_normalized.chars().collect();
@@ -239,7 +254,6 @@ fn get_edit_operations(actual: &str, expected: &str) -> Vec<(Option<char>, Optio
         return vec![];
     }
 
-    // Build DP table
     let mut dp = vec![vec![0usize; n + 1]; m + 1];
     for i in 0..=m {
         dp[i][0] = i;
@@ -260,27 +274,22 @@ fn get_edit_operations(actual: &str, expected: &str) -> Vec<(Option<char>, Optio
         }
     }
 
-    // Backtrack to find operations
     let mut ops = vec![];
     let mut i = m;
     let mut j = n;
 
     while i > 0 || j > 0 {
         if i > 0 && j > 0 && a_chars[i - 1] == e_chars[j - 1] {
-            // Match - no error
             i -= 1;
             j -= 1;
         } else if i > 0 && j > 0 && dp[i][j] == dp[i - 1][j - 1] + 1 {
-            // Substitution
             ops.push((Some(a_chars[i - 1]), Some(e_chars[j - 1])));
             i -= 1;
             j -= 1;
         } else if i > 0 && dp[i][j] == dp[i - 1][j] + 1 {
-            // Deletion (extra char in actual)
             ops.push((Some(a_chars[i - 1]), None));
             i -= 1;
         } else if j > 0 && dp[i][j] == dp[i][j - 1] + 1 {
-            // Insertion (missing char in actual)
             ops.push((None, Some(e_chars[j - 1])));
             j -= 1;
         } else {
@@ -292,16 +301,22 @@ fn get_edit_operations(actual: &str, expected: &str) -> Vec<(Option<char>, Optio
     ops
 }
 
-/// Track token-level errors from edit operations
 fn track_token_errors(
     token_errors: &mut HashMap<String, TokenError>,
     actual: &str,
     expected: &str,
     input: &str,
     max_examples: usize,
+    cfg: &EvalConfig,
 ) {
-    let ops = get_edit_operations(actual, expected);
+    let ops = get_edit_operations(actual, expected, cfg);
     for (actual_char, expected_char) in ops {
+        // Skip non-alphabetic characters (digits, spaces, punctuation) — they
+        // distort the ranking and aren't phonemic targets we're diagnosing.
+        let is_alpha = |c: Option<char>| c.map_or(true, |ch| ch.is_ascii_alphabetic());
+        if !is_alpha(actual_char) || !is_alpha(expected_char) {
+            continue;
+        }
         let key = format!(
             "{}->{}",
             actual_char
@@ -322,13 +337,12 @@ fn track_token_errors(
             examples: vec![],
         });
         entry.count += 1;
-        if entry.examples.len() < max_examples {
+        if entry.examples.len() < max_examples && !entry.examples.iter().any(|e| e == input) {
             entry.examples.push(input.to_string());
         }
     }
 }
 
-/// Merge token errors from one map into another
 fn merge_token_errors(
     target: &mut HashMap<String, TokenError>,
     source: HashMap<String, TokenError>,
@@ -343,17 +357,16 @@ fn merge_token_errors(
         });
         entry.count += error.count;
         for example in error.examples {
-            if entry.examples.len() < max_examples {
+            if entry.examples.len() < max_examples && !entry.examples.iter().any(|e| e == &example) {
                 entry.examples.push(example);
             }
         }
     }
 }
 
-fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
-    // Use normalized versions for comparison
-    let actual_normalized = normalize_for_comparison(actual);
-    let expected_normalized = normalize_for_comparison(expected);
+fn highlight_differences(actual: &str, expected: &str, cfg: &EvalConfig) -> (String, String) {
+    let actual_normalized = normalize_for_comparison(actual, cfg);
+    let expected_normalized = normalize_for_comparison(expected, cfg);
 
     let actual_chars: Vec<char> = actual_normalized.chars().collect();
     let expected_chars: Vec<char> = expected_normalized.chars().collect();
@@ -389,9 +402,9 @@ fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
 }
 
 fn format_token_errors(
+    title: &str,
     token_errors: &HashMap<String, TokenError>,
     limit: usize,
-    max_example_len: usize,
 ) -> String {
     let mut content = String::new();
 
@@ -399,7 +412,9 @@ fn format_token_errors(
         return content;
     }
 
-    content.push_str("\nToken Error Ranking:\n");
+    content.push_str(&format!("\n{}\n", title));
+    content.push_str("  # = absent character\n");
+    content.push_str("  x->y = substitution  |  #->y = missing (insertion)  |  x-># = extra (deletion)\n");
     content.push_str("  (actual->expected : count : examples)\n");
     content.push_str(&format!("  {}\n", "-".repeat(60)));
 
@@ -413,18 +428,19 @@ fn format_token_errors(
             i + 1,
             key,
             error.count,
-            if examples_str.len() > max_example_len {
-                format!("{}...", &examples_str[..max_example_len])
-            } else {
-                examples_str
-            }
+            examples_str
         ));
     }
 
     content
 }
 
-fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> String {
+fn write_dataset_report(
+    name: &str,
+    report: &EvalReport,
+    timestamp: &str,
+    eval_config: &EvalConfig,
+) -> String {
     let csv_name = name.replace(".csv", "");
     let filename = format!("{}/{}_{}.txt", REPORT_DIR, timestamp, csv_name);
 
@@ -449,9 +465,9 @@ fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> Str
     content.push_str(&format!("├── Words           {}\n", report.total));
     content.push_str(&format!("├── Tokens          {}\n", report.total_tokens));
     content.push_str(&format!("├── Edits           {}\n", report.total_token_edits));
-    content.push_str(&format!("├── TER             {:.2}%\n", report.token_error_rate));
+    content.push_str(&format!("├── CER             {:.2}%\n", report.token_error_rate));
     content.push_str(&format!(
-        "└── Accept@TER<{:<2}   {}\n",
+        "└── Accept@CER<{:<2}   {}\n",
         ACCEPT_TER,
         report.token_error_rate < ACCEPT_TER
     ));
@@ -479,7 +495,7 @@ fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> Str
 
         for (i, f) in report.failures.iter().enumerate() {
             let (highlighted_actual, highlighted_expected) =
-                highlight_differences(&f.actual, &f.expected);
+                highlight_differences(&f.actual, &f.expected, eval_config);
             content.push_str(&format!(
                 "  {:>3}. {:<width_in$}  {:<width_act$}  {:<width_exp$}\n",
                 i + 1,
@@ -493,8 +509,8 @@ fn write_dataset_report(name: &str, report: &EvalReport, timestamp: &str) -> Str
         }
     }
 
-    // Token error ranking
-    content.push_str(&format_token_errors(&report.token_errors, 20, 40));
+    // Character Error Ranking
+    content.push_str(&format_token_errors("Character Error Ranking", &report.token_errors, usize::MAX));
 
     let mut file = File::create(&filename).expect("Failed to create report file");
     file.write_all(content.as_bytes())
@@ -508,7 +524,6 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
 
     let mut content = String::new();
 
-    // Header
     content.push_str("OVERALL EVALUATION REPORT\n");
     content.push_str(&format!(
         "Generated: {}\n",
@@ -516,42 +531,58 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     ));
     content.push_str(&format!("{}\n\n", "=".repeat(50)));
 
-    // Summary metrics
+    content.push_str("Performance (CER)\n");
+    content.push_str(&format!("{}\n", "-".repeat(50)));
+    content.push_str(&format!(
+        "  {:<8} {:>11} {:>11} {:>11} {:>11}\n",
+        "", "default", "e==i==y", "o==u", "both"
+    ));
+    content.push_str(&format!(
+        "  {:<8} {:>10.2}% {:>10.2}% {:>10.2}% {:>10.2}%\n\n",
+        "CER", metrics.cer_default, metrics.cer_e_i_y, metrics.cer_o_u, metrics.cer_both
+    ));
+
     content.push_str("Summary\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
     content.push_str(&format!("├── Words           {}\n", metrics.words));
     content.push_str(&format!("├── Tokens          {}\n", metrics.tokens));
     content.push_str(&format!("├── Edits           {}\n", metrics.edits));
-    content.push_str(&format!("├── TER             {:.2}%\n", metrics.ter));
+    content.push_str(&format!("├── CER             {:.2}%\n", metrics.ter));
     content.push_str(&format!(
-        "├── Accept@TER<{:<2}   {}\n",
+        "├── Accept@CER<{:<2}   {}\n",
         ACCEPT_TER,
         metrics.ter < ACCEPT_TER
     ));
     content.push_str(&format!(
-        "└── Worst Performer {} (TER {:.2}%)\n",
+        "└── Worst Performer {} (CER {:.2}%)\n",
         metrics.worst_performer, metrics.worst_ter
     ));
 
-    // Per-dataset breakdown
     content.push_str("\nPer-Dataset Metrics\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
-    content.push_str(&format!("  {:<15} {:>10}\n", "Dataset", "TER"));
-    content.push_str(&format!("  {}\n", "-".repeat(27)));
+    content.push_str(&format!("  {:<15} {:>10}\n", "Dataset", "CER"));
+    content.push_str(&format!("  {}\n", "-".repeat(28)));
 
     for dm in &metrics.per_dataset {
         content.push_str(&format!("  {:<15} {:>9.2}%\n", dm.name, dm.ter));
     }
 
-    // Token error ranking
-    content.push_str(&format_token_errors(&metrics.token_errors, 25, 50));
+    content.push_str(&format_token_errors(
+        "Character Error Ranking (5-vowel, default)",
+        &metrics.token_errors,
+        usize::MAX,
+    ));
+    content.push_str(&format_token_errors(
+        "Character Error Ranking (3-vowel, e==i==y and o==u)",
+        &metrics.token_errors_both,
+        usize::MAX,
+    ));
 
-    // Report file locations
     content.push_str("\nIndividual Reports\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
     for dm in &metrics.per_dataset {
         content.push_str(&format!(
-            "  - {} (TER {:.2}%): {}\n",
+            "  - {} (CER {:.2}%): {}\n",
             dm.name, dm.ter, dm.report_file
         ));
     }
@@ -566,52 +597,64 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
 fn print_overall_metrics(metrics: &OverallMetrics) {
     println!("\nOVERALL");
     println!("=======");
+    println!("\nPerformance (CER):");
+    println!("  {:<8} {:>11} {:>11} {:>11} {:>11}", "", "default", "e==i==y", "o==u", "both");
+    println!(
+        "  {:<8} {:>10.2}% {:>10.2}% {:>10.2}% {:>10.2}%",
+        "CER", metrics.cer_default, metrics.cer_e_i_y, metrics.cer_o_u, metrics.cer_both
+    );
+
     println!("├── Words           {}", metrics.words);
     println!("├── Tokens          {}", metrics.tokens);
     println!("├── Edits           {}", metrics.edits);
-    println!("├── TER             {:.2}%", metrics.ter);
+    println!("├── CER             {:.2}%", metrics.ter);
     println!("├── Accept?         {}", metrics.ter < ACCEPT_TER);
     println!(
-        "└── Worst Performer {} (TER {:.2}%)",
+        "└── Worst Performer {} (CER {:.2}%)",
         metrics.worst_performer, metrics.worst_ter
     );
 
     println!("\nPer-Dataset Metrics:");
-    println!("  {:<15} {:>10}", "Dataset", "TER");
-    println!("  {}", "-".repeat(27));
+    println!("  {:<15} {:>10}", "Dataset", "CER");
+    println!("  {}", "-".repeat(28));
     for dm in &metrics.per_dataset {
         println!("  {:<15} {:>9.2}%", dm.name, dm.ter);
     }
 
-    // Top token errors
-    println!("\nTop Token Errors (across all datasets):");
-    println!("  (actual->expected : count : examples)");
-    println!("  {}", "-".repeat(70));
-
-    let mut errors: Vec<_> = metrics.token_errors.iter().collect();
-    errors.sort_by(|a, b| b.1.count.cmp(&a.1.count));
-
-    for (i, (key, error)) in errors.iter().take(15).enumerate() {
-        let examples_str = error.examples.join(", ");
-        println!(
-            "  {:>3}. {:<10} : {:>4} : {}",
-            i + 1,
-            key,
-            error.count,
-            if examples_str.len() > 50 {
-                format!("{}...", &examples_str[..50])
-            } else {
-                examples_str
-            }
-        );
-    }
+    print!("{}", format_token_errors(
+        "Token Errors (5-vowel, default)",
+        &metrics.token_errors,
+        20,
+    ));
+    print!("{}", format_token_errors(
+        "Token Errors (3-vowel, e==i==y and o==u)",
+        &metrics.token_errors_both,
+        20,
+    ));
 }
 
 fn print_report_locations(metrics: &OverallMetrics, overall_file: &str) {
     println!("\nReports written to:");
     println!("  - overall: {}", overall_file);
     for dm in &metrics.per_dataset {
-        println!("  - {} (TER {:.2}%): {}", dm.name, dm.ter, dm.report_file);
+        println!("  - {} (CER {:.2}%): {}", dm.name, dm.ter, dm.report_file);
+    }
+}
+
+fn compute_overall_cer(eval_config: &EvalConfig) -> f64 {
+    let mut total_token_edits_all = 0usize;
+    let mut total_tokens_all = 0usize;
+
+    for fname in GOLD_STANDARDS {
+        let report = evaluate_csv(format!("{}/{}", GOLD_DIR, fname).as_str(), eval_config);
+        total_token_edits_all += report.total_token_edits;
+        total_tokens_all += report.total_tokens;
+    }
+
+    if total_tokens_all == 0 {
+        0.0
+    } else {
+        (total_token_edits_all as f64 / total_tokens_all as f64) * 100.0
     }
 }
 
@@ -621,16 +664,38 @@ fn compare() {
 
     let timestamp = Local::now().format("%m%d%y_%H%M").to_string();
 
+    let eval_config = EvalConfig {
+        equate_e_i: false,
+        equate_o_u: false,
+    };
+    let cer_default = compute_overall_cer(&EvalConfig {
+        equate_e_i: false,
+        equate_o_u: false,
+    });
+    let cer_e_i_y = compute_overall_cer(&EvalConfig {
+        equate_e_i: true,
+        equate_o_u: false,
+    });
+    let cer_o_u = compute_overall_cer(&EvalConfig {
+        equate_e_i: false,
+        equate_o_u: true,
+    });
+    let cer_both = compute_overall_cer(&EvalConfig {
+        equate_e_i: true,
+        equate_o_u: true,
+    });
+
     let mut words_all = 0;
     let mut total_token_edits_all = 0;
     let mut total_tokens_all = 0;
     let mut all_token_errors: HashMap<String, TokenError> = HashMap::new();
+    let mut all_token_errors_both: HashMap<String, TokenError> = HashMap::new();
     let mut per_dataset: Vec<DatasetMetrics> = Vec::new();
 
-    // Evaluate each dataset
+    // Evaluate each dataset using default config for detailed reports
     for fname in GOLD_STANDARDS {
-        let report = evaluate_csv(format!("{}/{}", GOLD_DIR, fname).as_str());
-        let report_file = write_dataset_report(fname, &report, &timestamp);
+        let report = evaluate_csv(format!("{}/{}", GOLD_DIR, fname).as_str(), &eval_config);
+        let report_file = write_dataset_report(fname, &report, &timestamp, &eval_config);
 
         per_dataset.push(DatasetMetrics {
             name: fname.replace(".csv", ""),
@@ -645,14 +710,23 @@ fn compare() {
         merge_token_errors(&mut all_token_errors, report.token_errors, 5);
     }
 
-    // Find worst performer (highest TER)
+    // Collect token errors under the 3-vowel system (e==i==y and o==u)
+    let config_both = EvalConfig { equate_e_i: true, equate_o_u: true };
+    for fname in GOLD_STANDARDS {
+        let report_both = evaluate_csv(format!("{}/{}", GOLD_DIR, fname).as_str(), &config_both);
+        merge_token_errors(&mut all_token_errors_both, report_both.token_errors, 5);
+    }
+
     let worst = per_dataset
         .iter()
         .max_by(|a, b| a.ter.partial_cmp(&b.ter).unwrap())
         .unwrap();
 
-    // Build overall metrics
     let metrics = OverallMetrics {
+        cer_default,
+        cer_e_i_y,
+        cer_o_u,
+        cer_both,
         words: words_all,
         tokens: total_tokens_all,
         edits: total_token_edits_all,
@@ -661,12 +735,11 @@ fn compare() {
         worst_ter: worst.ter,
         per_dataset,
         token_errors: all_token_errors,
+        token_errors_both: all_token_errors_both,
     };
 
-    // Write overall report file
     let overall_file = write_overall_report(&metrics, &timestamp);
 
-    // Print to console
     print_overall_metrics(&metrics);
     print_report_locations(&metrics, &overall_file);
 }
