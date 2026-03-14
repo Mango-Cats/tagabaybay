@@ -10,6 +10,7 @@ use crate::grapheme::filipino::FilipinoGrapheme;
 use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
 use crate::phoneme::tokenizer::ipa::tokenize_ipa;
+use crate::phoneme::tokens::ipa::IPASymbol;
 
 /// Builder for adaptation with customizable configuration
 ///
@@ -178,7 +179,12 @@ impl Adapter {
             ctx.index += 1;
         }
 
-        Ok(result)
+        // <COPILOT>
+        // Apply output-side normalization after all adaptation rules have fired.
+        // This catches duplicate letters emitted by different rule branches and
+        // repairs schwa-driven consonant clusters such as "eybl" -> "eybol".
+        // </COPILOT>
+        Ok(finalize_adaptation(result, &phonemes))
     }
 
     /// Adapt an entire word or phrase
@@ -248,6 +254,80 @@ impl Default for Adapter {
     fn default() -> Self {
         Self::new()
     }
+}
+
+fn finalize_adaptation(
+    adapted: Vec<FilipinoGrapheme>,
+    phonemes: &[IPASymbol],
+) -> Vec<FilipinoGrapheme> {
+    let deduped = collapse_contiguous_duplicates(adapted);
+    let deduped = collapse_redundant_affricate_prefixes(deduped);
+    repair_final_schwa_liquid_cluster(deduped, phonemes)
+}
+
+fn collapse_contiguous_duplicates(adapted: Vec<FilipinoGrapheme>) -> Vec<FilipinoGrapheme> {
+    let mut collapsed = Vec::with_capacity(adapted.len());
+
+    for grapheme in adapted {
+        if collapsed.last() != Some(&grapheme) {
+            collapsed.push(grapheme);
+        }
+    }
+
+    collapsed
+}
+
+fn collapse_redundant_affricate_prefixes(adapted: Vec<FilipinoGrapheme>) -> Vec<FilipinoGrapheme> {
+    let mut result = Vec::with_capacity(adapted.len());
+
+    for i in 0..adapted.len() {
+        let curr = &adapted[i];
+        let next = adapted.get(i + 1);
+
+        if matches!((curr, next), (FilipinoGrapheme::D, Some(FilipinoGrapheme::DY))) {
+            continue;
+        }
+        if matches!((curr, next), (FilipinoGrapheme::T, Some(FilipinoGrapheme::TS))) {
+            continue;
+        }
+
+        result.push(curr.clone());
+    }
+
+    result
+}
+
+fn repair_final_schwa_liquid_cluster(
+    mut adapted: Vec<FilipinoGrapheme>,
+    phonemes: &[IPASymbol],
+) -> Vec<FilipinoGrapheme> {
+    if !contains_schwa(phonemes) {
+        return adapted;
+    }
+
+    if adapted.len() >= 2 {
+        let last_index = adapted.len() - 1;
+        let last = &adapted[last_index];
+        let prev = &adapted[last_index - 1];
+
+        if prev.is_consonant()
+            && matches!(last, FilipinoGrapheme::L | FilipinoGrapheme::R)
+            && !matches!(prev, FilipinoGrapheme::Y | FilipinoGrapheme::W)
+        {
+            adapted.insert(last_index, FilipinoGrapheme::O);
+        }
+    }
+
+    adapted
+}
+
+fn contains_schwa(phonemes: &[IPASymbol]) -> bool {
+    phonemes.iter().any(|phoneme| {
+        matches!(
+            phoneme,
+            IPASymbol::Schwa | IPASymbol::RColoredSchwa | IPASymbol::RColoredMid
+        )
+    })
 }
 
 

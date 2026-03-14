@@ -70,7 +70,14 @@ fn sensitive_consonant(
     // remove duplicates
     if let Some(next) = next {
         if next == curr {
-            if let Some(replacement) = handle_duplicates(ctx, config) {
+            // "cc" case line in accepted
+            if curr == SourceGrapheme::C {
+                if matches!(ctx.lookat_grapheme_low(2), Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE)) {
+                    // do not collapse; let handle_consonant_c process contextually
+                } else if let Some(replacement) = handle_duplicates(ctx, config) {
+                    return Some(replacement);
+                }
+            } else if let Some(replacement) = handle_duplicates(ctx, config) {
                 return Some(replacement);
             }
         }
@@ -350,9 +357,46 @@ fn handle_consonant_l(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGrapheme, consumed))` with the appropriate conversion.
 fn handle_consonant_m(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
-    // "-med" → "-md" (claimed, named, framed)
+    // "-med" handling
     match ctx.next_grapheme_low() {
-        Some(SourceGrapheme::ED) => Some((tokens![FilipinoGrapheme::M, FilipinoGrapheme::D], 2)),
+        Some(SourceGrapheme::ED) => {
+            // <COPILOT>
+            // Preserve E in terminal -med only from phoneme context.
+            // Keep reduced -md behavior for true reduced endings.
+            // </COPILOT>
+            if ctx.lookat_grapheme_low(2).is_none() {
+                let keep_ed = ctx
+                    .phonemes
+                    .last()
+                    .map(|p| {
+                        matches!(
+                            p,
+                            IPASymbol::VoicedAlveolarStop | IPASymbol::VoicelessAlveolarStop
+                        )
+                    })
+                    .unwrap_or(false)
+                    && ctx
+                        .phonemes
+                        .iter()
+                        .rev()
+                        .nth(1)
+                        .map(|p| p.is_vowel())
+                        .unwrap_or(false);
+
+                if keep_ed {
+                    return Some((
+                        tokens![
+                            FilipinoGrapheme::M,
+                            FilipinoGrapheme::E,
+                            FilipinoGrapheme::D
+                        ],
+                        2,
+                    ));
+                }
+            }
+
+            Some((tokens![FilipinoGrapheme::M, FilipinoGrapheme::D], 2))
+        }
         _ => None,
     }
 }
@@ -778,7 +822,29 @@ fn sensitive_digraph(
 
         SourceGrapheme::ED => {
             if ctx.at_end() {
-                Some((tokens![FilipinoGrapheme::D], 1))
+                let keep_ed = ctx
+                    .phonemes
+                    .last()
+                    .map(|p| {
+                        matches!(
+                            p,
+                            IPASymbol::VoicedAlveolarStop | IPASymbol::VoicelessAlveolarStop
+                        )
+                    })
+                    .unwrap_or(false)
+                    && ctx
+                        .phonemes
+                        .iter()
+                        .rev()
+                        .nth(1)
+                        .map(|p| p.is_vowel())
+                        .unwrap_or(false);
+
+                if keep_ed {
+                    Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::D], 1))
+                } else {
+                    Some((tokens![FilipinoGrapheme::D], 1))
+                }
             } else {
                 Some((tokens![FilipinoGrapheme::E, FilipinoGrapheme::D], 1))
             }
@@ -832,10 +898,11 @@ fn sensitive_digraph(
                         ],
                         2,
                     )),
+
                     Some(SourceGrapheme::E) => Some((
                         tokens![
-                            FilipinoGrapheme::S,
-                            FilipinoGrapheme::H,
+                            FilipinoGrapheme::T,
+                            FilipinoGrapheme::I,
                             FilipinoGrapheme::E
                         ],
                         2,
@@ -1251,6 +1318,10 @@ fn handle_vowel_o(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
 ///
 /// Returns `Some((FilipinoGraphemes, consumed))` if a pattern matches, `None` otherwise.
 fn handle_vowel_u(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
+    if ctx.prev_grapheme_low() == Some(SourceGrapheme::Q) {
+        return None;
+    }
+
     match ctx.next_grapheme_low() {
         Some(SourceGrapheme::A) => Some((
             tokens![

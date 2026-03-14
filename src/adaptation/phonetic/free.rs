@@ -73,19 +73,18 @@ pub fn phonetic_replacements(
         return None;
     }
 
+    if is_secondary_vowel_in_cluster(ctx) {
+        return Some((Vec::new(), 1));
+    }
+
     // Alignment see section (### Solution) in top-level documentation
-    let pre_vowels = vowels_before(ctx);
+    let pre_vowels = vowel_clusters_before(ctx);
     let phoneme = find_nth_vowel_phoneme(&ctx.phonemes, pre_vowels)?;
 
-    // Schwa handling: behaviour depends on whether the vowel is at a word boundary.
-    //
-    // A vowel is "word-final" when no further unpredictable-variant graphemes
-    // (a, e, i, o, u, y) appear before the next space/hyphen or end of input —
-    // e.g. the 'e' in "cycle" (…c-l-e), or the 'o' in "doctor" (…c-t-o-r).
-    //
-    // - Word-final schwa: map written o/u → O, everything else → E
-    //   ("cycle"  e→E, "color"  o→O)
-    // - Non-final schwa: return None, let orthographic rules use the written letter
+    if is_medial_r_colored_vowel(ctx, &phoneme) {
+        return Some((vec![preserve_written_vowel(curr)], 1));
+    }
+
     if phoneme == IPASymbol::Schwa {
         if is_word_final_vowel(ctx) {
             let fg = match curr {
@@ -102,12 +101,9 @@ pub fn phonetic_replacements(
         .next_grapheme_low()
         .map(|g| g.is_unpredictable_variant())
         .unwrap_or(false);
+    let vowel_cluster_len = vowel_cluster_len(ctx);
 
     if let Some((result, is_diphthong)) = graphemize(&phoneme) {
-        // When G2P maps to plain 'a' but the written grapheme is 'o' or 'u',
-        // preserve the written vowel. English /ɑ/ ("comment", "problem") and
-        // /ʌ/ ("bupropion") are both written with letters that have distinct
-        // Filipino sounds, so the written form wins.
         let result = if result == [FilipinoGrapheme::A] {
             match curr {
                 SourceGrapheme::O => vec![FilipinoGrapheme::O],
@@ -120,6 +116,8 @@ pub fn phonetic_replacements(
 
         let consumed = if curr.is_tetragraph() {
             1
+        } else if vowel_cluster_len > 1 {
+            vowel_cluster_len
         } else if is_diphthong && next_is_unpredictable_variant {
             2
         } else if next_is_unpredictable_variant
@@ -145,30 +143,77 @@ pub fn phonetic_replacements(
     }
 }
 
-/// Count vowel graphemes before current position
-fn vowels_before(ctx: &Cursor) -> usize {
+/// Count written vowel clusters before the current position.
+fn vowel_clusters_before(ctx: &Cursor) -> usize {
     let mut count = 0;
     for i in 0..ctx.index {
         let g = ctx.graphemes[i].to_lowercase();
-        if g.is_unpredictable_variant() {
+        let prev_is_variant = i > 0
+            && ctx.graphemes[i - 1]
+                .to_lowercase()
+                .is_unpredictable_variant();
+
+        if g.is_unpredictable_variant() && !prev_is_variant {
             count += 1;
         } else if g == SourceGrapheme::ED && i < ctx.graphemes.len() - 1 {
+            count += 1;
+        } else if g == SourceGrapheme::TI && ti_behaves_like_vowel_cluster(ctx, i) {
             count += 1;
         }
     }
     count
 }
 
-/// Find the nth vowel phoneme in the phoneme sequence
-fn find_nth_vowel_phoneme(phonemes: &[IPASymbol], n: usize) -> Option<IPASymbol> {
-    phonemes.iter().filter(|p| p.is_vowel()).nth(n).cloned()
+fn ti_behaves_like_vowel_cluster(ctx: &Cursor, ti_index: usize) -> bool {
+    let next = ctx
+        .graphemes
+        .get(ti_index + 1)
+        .map(|g| g.to_lowercase());
+
+    !matches!(
+        next,
+        Some(SourceGrapheme::A | SourceGrapheme::E | SourceGrapheme::O | SourceGrapheme::U)
+    )
 }
 
-/// Returns true when the current vowel is at a word-final position.
-///
-/// A vowel is word-final if no further unpredictable-variant graphemes
-/// (a, e, i, o, u, y) appear before the next word boundary (space, hyphen,
-/// or end of input). This captures patterns like "-cle", "-ble", "-er", "-or".
+fn is_secondary_vowel_in_cluster(ctx: &Cursor) -> bool {
+    ctx.prev_grapheme_low()
+        .map(|prev| prev.is_unpredictable_variant())
+        .unwrap_or(false)
+}
+
+fn vowel_cluster_len(ctx: &Cursor) -> usize {
+    let mut consumed = 1;
+
+    while let Some(next) = ctx.lookat_grapheme_low(consumed as isize) {
+        if next.is_unpredictable_variant() {
+            consumed += 1;
+        } else {
+            break;
+        }
+    }
+
+    consumed
+}
+
+fn preserve_written_vowel(curr: SourceGrapheme) -> FilipinoGrapheme {
+    match curr {
+        SourceGrapheme::A => FilipinoGrapheme::A,
+        SourceGrapheme::E => FilipinoGrapheme::E,
+        SourceGrapheme::I => FilipinoGrapheme::I,
+        SourceGrapheme::O => FilipinoGrapheme::O,
+        SourceGrapheme::U => FilipinoGrapheme::U,
+        SourceGrapheme::Y => FilipinoGrapheme::I,
+        _ => FilipinoGrapheme::A,
+    }
+}
+
+fn is_medial_r_colored_vowel(ctx: &Cursor, phoneme: &IPASymbol) -> bool {
+    matches!(phoneme, IPASymbol::RColoredSchwa | IPASymbol::RColoredMid)
+        && ctx.next_grapheme_low() == Some(SourceGrapheme::R)
+        && ctx.lookat_grapheme_low(2).is_some()
+}
+
 fn is_word_final_vowel(ctx: &Cursor) -> bool {
     for i in (ctx.index + 1)..ctx.graphemes.len() {
         let g = ctx.graphemes[i].to_lowercase();
@@ -180,4 +225,9 @@ fn is_word_final_vowel(ctx: &Cursor) -> bool {
         }
     }
     true
+}
+
+/// Find the nth vowel phoneme in the phoneme sequence
+fn find_nth_vowel_phoneme(phonemes: &[IPASymbol], n: usize) -> Option<IPASymbol> {
+    phonemes.iter().filter(|p| p.is_vowel()).nth(n).cloned()
 }
