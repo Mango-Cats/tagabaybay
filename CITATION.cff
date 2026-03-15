@@ -36,11 +36,10 @@ authors:
     affiliation: De La Salle University
 repository-code: 'https://github.com/Mango-Cats/tagabaybay/'
 abstract: >-
-  A loanword adaptation algorithm for Filipino.
+  An orthographic nativization algorithm for Filipino.
 keywords:
   - Rust
   - Context-Free Grammars
   - Context-Sensitive Grammars
   - Formal Languages
-  - Grapheme-to-Phoneme
 license: Apache-2.0
