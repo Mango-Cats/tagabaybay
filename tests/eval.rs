@@ -14,6 +14,14 @@ use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
 
+use tagabaybay::g2p::G2Py;
+use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
+use tagabaybay::grapheme::tokenize::source_tokenizer;
+use tagabaybay::alignment::{
+    alignment::phoneme_grapheme_alignment,
+    aligned_string::ipa_to_filipino_graphemes
+};
+
 const GOLD_DIR: &str = "gold/data";
 const GOLD_COUNT: usize = 4;
 const GOLD_STANDARDS: [&str; GOLD_COUNT] = [
@@ -43,6 +51,7 @@ struct EvalConfig {
 fn evaluate_csv(path: &str, eval_config: &EvalConfig) -> EvalReport {
     let config = AdapterConfig::new();
     let mut adapter = Adapter::new_with_config(config.clone());
+    let mut ipa_g2p = G2Py::new().ok();
 
     let file = File::open(path).expect("Failed to open file");
     let reader = BufReader::new(file);
@@ -65,10 +74,23 @@ fn evaluate_csv(path: &str, eval_config: &EvalConfig) -> EvalReport {
 
         let input = parts[0].trim();
         let expected = parts[1].trim();
-        let actual = adapter
-            .adaptation(input)
-            .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
-            .unwrap_or_default();
+        // let actual = adapter
+        //     .adaptation(input)
+        //     .map(|phl_graphemes| graphemes_to_string(&phl_graphemes))
+        //     .unwrap_or_default();
+
+        let mut actual = String::new();
+
+        // align ipa and map to filipino graphemes
+        if let Some(ref mut g2p) = ipa_g2p {
+            if let Ok(phonemes) = g2p.phonemize_phrase(&input, None, None, &config) {
+                let aligned_string = phoneme_grapheme_alignment(tokenize_ipa(&phonemes), source_tokenizer(input));
+                let ipa_to_fg = ipa_to_filipino_graphemes(&aligned_string);
+                let mapped_string = graphemes_to_string(&ipa_to_fg);
+
+                actual = mapped_string;
+            }
+        }
 
         // Normalize both actual and expected for toggle-agnostic comparison
         let actual_normalized = normalize_for_comparison(&actual, eval_config);
