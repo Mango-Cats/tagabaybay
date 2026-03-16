@@ -196,7 +196,7 @@ fn from_csv() {
         for (i, f) in failures.iter().enumerate() {
             let (highlighted_actual, highlighted_expected) =
                 highlight_differences(&f.actual, &f.expected);
-            let valid_mark = if f.valid { "✓" } else { "✗" };
+            let valid_mark = if f.valid { "O" } else { "X" };
             println!(
                 "  {:>3}. {:<width_in$}  {:<width_act$}  {:<width_exp$}  {}",
                 i + 1,
