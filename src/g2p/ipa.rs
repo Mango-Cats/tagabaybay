@@ -368,7 +368,6 @@ impl G2Py {
             })
         })
     }
-
 }
 
 impl Drop for G2Py {

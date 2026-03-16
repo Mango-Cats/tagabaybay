@@ -345,9 +345,7 @@ impl SourceGrapheme {
     pub fn is_tetragraph(&self) -> bool {
         matches!(
             self,
-            SourceGrapheme::AUGH
-                | SourceGrapheme::OUGH
-                | SourceGrapheme::EIGH
+            SourceGrapheme::AUGH | SourceGrapheme::OUGH | SourceGrapheme::EIGH
         )
     }
 
@@ -488,7 +486,7 @@ impl SourceGrapheme {
 /// Match a 4-character string to a tetragraph
 /// Recognizes tetragraphs (four-letter combinations that represent
 /// a single sound or pattern).
-/// 
+///
 /// # Arguments
 ///
 /// * `s` - A 4-character string to match (case-insensitive)
@@ -510,7 +508,7 @@ pub fn match_tetragraph(s: &str) -> Option<SourceGrapheme> {
 /// Match a 3-character string to a trigraph
 /// Recognizes trigraphs (three-letter combinations that represent
 /// a single sound or pattern).
-/// 
+///
 /// # Arguments
 ///
 /// * `s` - A 3-character string to match (case-insensitive)

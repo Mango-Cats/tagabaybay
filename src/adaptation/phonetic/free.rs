@@ -165,10 +165,7 @@ fn vowel_clusters_before(ctx: &Cursor) -> usize {
 }
 
 fn ti_behaves_like_vowel_cluster(ctx: &Cursor, ti_index: usize) -> bool {
-    let next = ctx
-        .graphemes
-        .get(ti_index + 1)
-        .map(|g| g.to_lowercase());
+    let next = ctx.graphemes.get(ti_index + 1).map(|g| g.to_lowercase());
 
     !matches!(
         next,

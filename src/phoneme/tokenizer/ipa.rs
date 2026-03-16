@@ -1,8 +1,4 @@
-use crate::{phoneme::tokens::{
-    ipa::IPASymbol, 
-    map::IPA_STR_TO_SYMBOL,
-    map::IPA_TO_FG,
-}};
+use crate::phoneme::tokens::{ipa::IPASymbol, map::IPA_STR_TO_SYMBOL, map::IPA_TO_FG};
 
 /// Tokenize an IPA string into a vector of IPASymbol.
 ///
@@ -67,8 +63,10 @@ pub fn detokenize_ipa(symbols: &[IPASymbol]) -> String {
 
 /// Convert a vector of IPASymbol back to corresponding mapped filipino grapheme.
 pub fn ipa_to_filipino_graphemes(symbols: Vec<IPASymbol>) -> String {
-    symbols.iter()
-        .filter_map(|s| IPA_TO_FG.get(s).cloned()).flatten()
-        .map(|fg| fg.to_string()) 
+    symbols
+        .iter()
+        .filter_map(|s| IPA_TO_FG.get(s).cloned())
+        .flatten()
+        .map(|fg| fg.to_string())
         .collect()
 }

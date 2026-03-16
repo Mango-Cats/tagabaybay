@@ -72,7 +72,15 @@ fn sensitive_consonant(
         if next == curr {
             // "cc" case line in accepted
             if curr == SourceGrapheme::C {
-                if matches!(ctx.lookat_grapheme_low(2), Some(SourceGrapheme::E | SourceGrapheme::I | SourceGrapheme::Y | SourceGrapheme::EE)) {
+                if matches!(
+                    ctx.lookat_grapheme_low(2),
+                    Some(
+                        SourceGrapheme::E
+                            | SourceGrapheme::I
+                            | SourceGrapheme::Y
+                            | SourceGrapheme::EE
+                    )
+                ) {
                     // do not collapse; let handle_consonant_c process contextually
                 } else if let Some(replacement) = handle_duplicates(ctx, config) {
                     return Some(replacement);
@@ -672,7 +680,14 @@ fn sensitive_trigraph(ctx: &Cursor) -> Option<(Vec<FilipinoGrapheme>, usize)> {
                 return Some((tokens![FilipinoGrapheme::K], 1));
             }
 
-            Some((tokens![FilipinoGrapheme::K, FilipinoGrapheme::W, FilipinoGrapheme::E], 1))
+            Some((
+                tokens![
+                    FilipinoGrapheme::K,
+                    FilipinoGrapheme::W,
+                    FilipinoGrapheme::E
+                ],
+                1,
+            ))
         }
 
         _ => None,

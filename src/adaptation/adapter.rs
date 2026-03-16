@@ -284,10 +284,16 @@ fn collapse_redundant_affricate_prefixes(adapted: Vec<FilipinoGrapheme>) -> Vec<
         let curr = &adapted[i];
         let next = adapted.get(i + 1);
 
-        if matches!((curr, next), (FilipinoGrapheme::D, Some(FilipinoGrapheme::DY))) {
+        if matches!(
+            (curr, next),
+            (FilipinoGrapheme::D, Some(FilipinoGrapheme::DY))
+        ) {
             continue;
         }
-        if matches!((curr, next), (FilipinoGrapheme::T, Some(FilipinoGrapheme::TS))) {
+        if matches!(
+            (curr, next),
+            (FilipinoGrapheme::T, Some(FilipinoGrapheme::TS))
+        ) {
             continue;
         }
 
@@ -329,7 +335,6 @@ fn contains_schwa(phonemes: &[IPASymbol]) -> bool {
         )
     })
 }
-
 
 /// Detect and process abbreviations
 /// Returns (FilipinoGrapheme, graphemes_consumed) or None if not an abbreviation

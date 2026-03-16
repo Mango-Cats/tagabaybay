@@ -11,17 +11,18 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use tagabaybay::adaptation::adapter::Adapter;
+use tagabaybay::alignment::alignment_adapter::adapt_aligned;
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::g2p::G2Py;
-use tagabaybay::alignment::alignment_adapter::adapt_aligned;
 
 const GOLD_DIR: &str = "gold/data";
-const GOLD_COUNT: usize = 4;
+const GOLD_COUNT: usize = 5;
 const GOLD_STANDARDS: [&str; GOLD_COUNT] = [
     "common_drugs.csv",
     "common_eng.csv",
     "ph_fda_human.csv",
     "ching_chua.csv",
+    "wiki.csv",
 ];
 
 const ACCEPT_TER: f64 = 20.;
@@ -56,7 +57,7 @@ fn evaluate_csv(path: &str, eval_config: &EvalConfig) -> EvalReport {
 
     for (i, line) in reader.lines().enumerate() {
         if i == 0 {
-            continue; 
+            continue;
         }
 
         let line = line.unwrap();
@@ -365,7 +366,8 @@ fn merge_token_errors(
         });
         entry.count += error.count;
         for example in error.examples {
-            if entry.examples.len() < max_examples && !entry.examples.iter().any(|e| e == &example) {
+            if entry.examples.len() < max_examples && !entry.examples.iter().any(|e| e == &example)
+            {
                 entry.examples.push(example);
             }
         }
@@ -422,7 +424,9 @@ fn format_token_errors(
 
     content.push_str(&format!("\n{}\n", title));
     content.push_str("  # = absent character\n");
-    content.push_str("  x->y = substitution  |  #->y = missing (insertion)  |  x-># = extra (deletion)\n");
+    content.push_str(
+        "  x->y = substitution  |  #->y = missing (insertion)  |  x-># = extra (deletion)\n",
+    );
     content.push_str("  (actual->expected : count : examples)\n");
     content.push_str(&format!("  {}\n", "-".repeat(60)));
 
@@ -472,8 +476,14 @@ fn write_dataset_report(
     content.push_str(&format!("{}\n", name));
     content.push_str(&format!("├── Words           {}\n", report.total));
     content.push_str(&format!("├── Tokens          {}\n", report.total_tokens));
-    content.push_str(&format!("├── Edits           {}\n", report.total_token_edits));
-    content.push_str(&format!("├── CER             {:.2}%\n", report.token_error_rate));
+    content.push_str(&format!(
+        "├── Edits           {}\n",
+        report.total_token_edits
+    ));
+    content.push_str(&format!(
+        "├── CER             {:.2}%\n",
+        report.token_error_rate
+    ));
     content.push_str(&format!(
         "└── Accept@CER<{:<2}   {}\n",
         ACCEPT_TER,
@@ -518,7 +528,11 @@ fn write_dataset_report(
     }
 
     // Character Error Ranking
-    content.push_str(&format_token_errors("Character Error Ranking", &report.token_errors, usize::MAX));
+    content.push_str(&format_token_errors(
+        "Character Error Ranking",
+        &report.token_errors,
+        usize::MAX,
+    ));
 
     let mut file = File::create(&filename).expect("Failed to create report file");
     file.write_all(content.as_bytes())
@@ -606,7 +620,10 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
     println!("\nOVERALL");
     println!("=======");
     println!("\nPerformance (CER):");
-    println!("  {:<8} {:>11} {:>11} {:>11} {:>11}", "", "default", "e==i==y", "o==u", "both");
+    println!(
+        "  {:<8} {:>11} {:>11} {:>11} {:>11}",
+        "", "default", "e==i==y", "o==u", "both"
+    );
     println!(
         "  {:<8} {:>10.2}% {:>10.2}% {:>10.2}% {:>10.2}%",
         "CER", metrics.cer_default, metrics.cer_e_i_y, metrics.cer_o_u, metrics.cer_both
@@ -629,16 +646,18 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
         println!("  {:<15} {:>9.2}%", dm.name, dm.ter);
     }
 
-    print!("{}", format_token_errors(
-        "Token Errors (5-vowel, default)",
-        &metrics.token_errors,
-        20,
-    ));
-    print!("{}", format_token_errors(
-        "Token Errors (3-vowel, e==i==y and o==u)",
-        &metrics.token_errors_both,
-        20,
-    ));
+    print!(
+        "{}",
+        format_token_errors("Token Errors (5-vowel, default)", &metrics.token_errors, 20,)
+    );
+    print!(
+        "{}",
+        format_token_errors(
+            "Token Errors (3-vowel, e==i==y and o==u)",
+            &metrics.token_errors_both,
+            20,
+        )
+    );
 }
 
 fn print_report_locations(metrics: &OverallMetrics, overall_file: &str) {
@@ -719,7 +738,10 @@ fn compare() {
     }
 
     // Collect token errors under the 3-vowel system (e==i==y and o==u)
-    let config_both = EvalConfig { equate_e_i: true, equate_o_u: true };
+    let config_both = EvalConfig {
+        equate_e_i: true,
+        equate_o_u: true,
+    };
     for fname in GOLD_STANDARDS {
         let report_both = evaluate_csv(format!("{}/{}", GOLD_DIR, fname).as_str(), &config_both);
         merge_token_errors(&mut all_token_errors_both, report_both.token_errors, 5);

@@ -9,22 +9,21 @@
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use tagabaybay::alignment::{
+    aligned_string::ipa_to_filipino_graphemes, alignment::phoneme_grapheme_alignment,
+};
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::g2p::G2Py;
 use tagabaybay::grapheme::filipino::graphemes_to_string;
-use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 use tagabaybay::grapheme::tokenize::source_tokenizer;
-use tagabaybay::alignment::{
-    alignment::phoneme_grapheme_alignment,
-    aligned_string::ipa_to_filipino_graphemes
-};
+use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 
 const CSV_PATH: &str = "tests/data/";
 
 struct TestResult {
     input: String,
     expected: String,
-    actual: String
+    actual: String,
 }
 
 fn highlight_differences(actual: &str, expected: &str) -> (String, String) {
@@ -106,7 +105,8 @@ fn evaluate_csv() {
         if let Some(ref mut g2p) = ipa_g2p {
             if let Ok(phonemes) = g2p.phonemize_phrase(&input, None, None, &config) {
                 println!("* {phonemes}");
-                let aligned_string = phoneme_grapheme_alignment(tokenize_ipa(&phonemes), source_tokenizer(input));
+                let aligned_string =
+                    phoneme_grapheme_alignment(tokenize_ipa(&phonemes), source_tokenizer(input));
                 let ipa_to_fg = ipa_to_filipino_graphemes(&aligned_string);
                 let mapped_string = graphemes_to_string(&ipa_to_fg);
                 println!("-> {mapped_string} || {expected}\n");
@@ -124,7 +124,7 @@ fn evaluate_csv() {
             failures.push(TestResult {
                 input: input.to_string(),
                 expected: expected.clone(),
-                actual: actual.clone()
+                actual: actual.clone(),
             });
         }
     }

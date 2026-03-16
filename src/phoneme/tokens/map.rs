@@ -1,5 +1,5 @@
-use crate::{grapheme::{filipino::FilipinoGrapheme}, phoneme::tokens::arpabet::ArpabetSymbols};
 use super::ipa::IPASymbol;
+use crate::{grapheme::filipino::FilipinoGrapheme, phoneme::tokens::arpabet::ArpabetSymbols};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, vec};
 
@@ -70,7 +70,7 @@ pub static IPA_STR_TO_SYMBOL: Lazy<HashMap<&'static str, IPASymbol>> = Lazy::new
         ("ʍ", IPASymbol::VoicelessLabialVelar),
         // Tap
         ("ɾ", IPASymbol::AlveolarTap),
-        // Miscellaneous 
+        // Miscellaneous
         // ("ː", IPASymbol::TriangularColon),
         // (":", IPASymbol::RegularColon),
     ])
@@ -130,72 +130,115 @@ pub static ARPA_TO_IPA: Lazy<HashMap<ArpabetSymbols, IPASymbol>> = Lazy::new(|| 
 });
 
 /// IPA to FilipinoGraphemes
-/// Converting IPA symbols from AlignedString to its corresponding filipino graphemes 
+/// Converting IPA symbols from AlignedString to its corresponding filipino graphemes
 pub static IPA_TO_FG: Lazy<HashMap<IPASymbol, Vec<FilipinoGrapheme>>> = Lazy::new(|| {
     HashMap::from([
         // Vowels
         (IPASymbol::OpenBackUnrounded, vec![FilipinoGrapheme::A]), // "ɑ"
-        (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]), // "æ"
-        (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::A]), // "ʌ" 
-        (IPASymbol::Schwa, vec![FilipinoGrapheme::O]), // "ə" 
+        (IPASymbol::NearOpenFront, vec![FilipinoGrapheme::A]),     // "æ"
+        (IPASymbol::OpenMidBack, vec![FilipinoGrapheme::A]),       // "ʌ"
+        (IPASymbol::Schwa, vec![FilipinoGrapheme::O]),             // "ə"
         (IPASymbol::OpenMidBackRounded, vec![FilipinoGrapheme::O]), // "ɔ"
-        (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E]), // "ɛ"
-        (IPASymbol::OpenMidCentral, vec![FilipinoGrapheme::U, FilipinoGrapheme::R]), // "ɜ"
-        (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]), // "ɝ"
-        (IPASymbol::RColoredSchwa, vec![FilipinoGrapheme::E, FilipinoGrapheme::R]), // "ɚ"
-        (IPASymbol::NearCloseFront, vec![FilipinoGrapheme::I]), // "ɪ"
-        (IPASymbol::CloseFront, vec![FilipinoGrapheme::I]), // "i"
-        (IPASymbol::NearCloseBack, vec![FilipinoGrapheme::U]), // "ʊ"
-        (IPASymbol::CloseBack, vec![FilipinoGrapheme::U]), // "u"
-        
+        (IPASymbol::OpenMidFront, vec![FilipinoGrapheme::E]),      // "ɛ"
+        (
+            IPASymbol::OpenMidCentral,
+            vec![FilipinoGrapheme::U, FilipinoGrapheme::R],
+        ), // "ɜ"
+        (IPASymbol::RColoredMid, vec![FilipinoGrapheme::I]),       // "ɝ"
+        (
+            IPASymbol::RColoredSchwa,
+            vec![FilipinoGrapheme::E, FilipinoGrapheme::R],
+        ), // "ɚ"
+        (IPASymbol::NearCloseFront, vec![FilipinoGrapheme::I]),    // "ɪ"
+        (IPASymbol::CloseFront, vec![FilipinoGrapheme::I]),        // "i"
+        (IPASymbol::NearCloseBack, vec![FilipinoGrapheme::U]),     // "ʊ"
+        (IPASymbol::CloseBack, vec![FilipinoGrapheme::U]),         // "u"
         // Diphthongs
-        (IPASymbol::DiphthongAU, vec![FilipinoGrapheme::A, FilipinoGrapheme::W]), // "aʊ"
-        (IPASymbol::DiphthongAI, vec![FilipinoGrapheme::A, FilipinoGrapheme::Y]), // "aɪ"
-        (IPASymbol::DiphthongEI, vec![FilipinoGrapheme::E, FilipinoGrapheme::Y]), // "eɪ"
+        (
+            IPASymbol::DiphthongAU,
+            vec![FilipinoGrapheme::A, FilipinoGrapheme::W],
+        ), // "aʊ"
+        (
+            IPASymbol::DiphthongAI,
+            vec![FilipinoGrapheme::A, FilipinoGrapheme::Y],
+        ), // "aɪ"
+        (
+            IPASymbol::DiphthongEI,
+            vec![FilipinoGrapheme::E, FilipinoGrapheme::Y],
+        ), // "eɪ"
         (IPASymbol::DiphthongOU, vec![FilipinoGrapheme::O]), // "oʊ"
-        (IPASymbol::DiphthongOI, vec![FilipinoGrapheme::O, FilipinoGrapheme::Y]), // "ɔɪ"
-        
-        // Stops 
+        (
+            IPASymbol::DiphthongOI,
+            vec![FilipinoGrapheme::O, FilipinoGrapheme::Y],
+        ), // "ɔɪ"
+        // Stops
         (IPASymbol::VoicelessBilabialStop, vec![FilipinoGrapheme::P]), // "p"
-        (IPASymbol::VoicedBilabialStop, vec![FilipinoGrapheme::B]), // "b"
+        (IPASymbol::VoicedBilabialStop, vec![FilipinoGrapheme::B]),    // "b"
         (IPASymbol::VoicelessAlveolarStop, vec![FilipinoGrapheme::T]), // "t"
-        (IPASymbol::VoicedAlveolarStop, vec![FilipinoGrapheme::D]), // "d"
-        (IPASymbol::VoicelessVelarStop, vec![FilipinoGrapheme::K]), // "k"
-        (IPASymbol::VoicedVelarStop, vec![FilipinoGrapheme::G]), // "g"
-        (IPASymbol::GlottalStop, vec![FilipinoGrapheme::T]), // "ʔ"
-        
+        (IPASymbol::VoicedAlveolarStop, vec![FilipinoGrapheme::D]),    // "d"
+        (IPASymbol::VoicelessVelarStop, vec![FilipinoGrapheme::K]),    // "k"
+        (IPASymbol::VoicedVelarStop, vec![FilipinoGrapheme::G]),       // "g"
+        (IPASymbol::GlottalStop, vec![FilipinoGrapheme::T]),           // "ʔ"
         // Fricatives
-        (IPASymbol::VoicelessLabiodentalFricative, vec![FilipinoGrapheme::F]), // "f"
-        (IPASymbol::VoicedLabiodentalFricative, vec![FilipinoGrapheme::B]), // "v"
-        (IPASymbol::VoicelessDentalFricative, vec![FilipinoGrapheme::T]), // "θ"
+        (
+            IPASymbol::VoicelessLabiodentalFricative,
+            vec![FilipinoGrapheme::F],
+        ), // "f"
+        (
+            IPASymbol::VoicedLabiodentalFricative,
+            vec![FilipinoGrapheme::B],
+        ), // "v"
+        (
+            IPASymbol::VoicelessDentalFricative,
+            vec![FilipinoGrapheme::T],
+        ), // "θ"
         (IPASymbol::VoicedDentalFricative, vec![FilipinoGrapheme::D]), // "ð"
-        (IPASymbol::VoicelessAlveolarFricative, vec![FilipinoGrapheme::S]), // "s"
-        (IPASymbol::VoicedAlveolarFricative, vec![FilipinoGrapheme::S]), // "z"
-        (IPASymbol::VoicelessPostalveolarFricative, vec![FilipinoGrapheme::S, FilipinoGrapheme::Y]), // "ʃ"
-        (IPASymbol::VoicedPostalveolarFricative, vec![FilipinoGrapheme::S]), // "ʒ"
-        (IPASymbol::VoicelessGlottalFricative, vec![FilipinoGrapheme::H]), // "h"
-
+        (
+            IPASymbol::VoicelessAlveolarFricative,
+            vec![FilipinoGrapheme::S],
+        ), // "s"
+        (
+            IPASymbol::VoicedAlveolarFricative,
+            vec![FilipinoGrapheme::S],
+        ), // "z"
+        (
+            IPASymbol::VoicelessPostalveolarFricative,
+            vec![FilipinoGrapheme::S, FilipinoGrapheme::Y],
+        ), // "ʃ"
+        (
+            IPASymbol::VoicedPostalveolarFricative,
+            vec![FilipinoGrapheme::S],
+        ), // "ʒ"
+        (
+            IPASymbol::VoicelessGlottalFricative,
+            vec![FilipinoGrapheme::H],
+        ), // "h"
         // Affricates
-        (IPASymbol::VoicelessPostalveolarAffricate, vec![FilipinoGrapheme::T, FilipinoGrapheme::S]), // "tʃ"
-        (IPASymbol::VoicedPostalveolarAffricate, vec![FilipinoGrapheme::D, FilipinoGrapheme::Y]), // "dʒ"
-
+        (
+            IPASymbol::VoicelessPostalveolarAffricate,
+            vec![FilipinoGrapheme::T, FilipinoGrapheme::S],
+        ), // "tʃ"
+        (
+            IPASymbol::VoicedPostalveolarAffricate,
+            vec![FilipinoGrapheme::D, FilipinoGrapheme::Y],
+        ), // "dʒ"
         // Nasals
         (IPASymbol::BilabialNasal, vec![FilipinoGrapheme::M]), // "m"
         (IPASymbol::AlveolarNasal, vec![FilipinoGrapheme::N]), // "n"
-        (IPASymbol::VelarNasal, vec![FilipinoGrapheme::Ng]), // "ŋ"
-        (IPASymbol::PalatalNasal, vec![FilipinoGrapheme::N, FilipinoGrapheme::Y]), // "ɲ"
-
+        (IPASymbol::VelarNasal, vec![FilipinoGrapheme::Ng]),   // "ŋ"
+        (
+            IPASymbol::PalatalNasal,
+            vec![FilipinoGrapheme::N, FilipinoGrapheme::Y],
+        ), // "ɲ"
         // Approximants
         (IPASymbol::AlveolarLateral, vec![FilipinoGrapheme::L]), // "l"
         (IPASymbol::AlveolarApproximant, vec![FilipinoGrapheme::R]), // "ɹ"
-        (IPASymbol::AlveolarTrill, vec![FilipinoGrapheme::R]), // "r"
+        (IPASymbol::AlveolarTrill, vec![FilipinoGrapheme::R]),   // "r"
         (IPASymbol::LabialVelarApproximant, vec![FilipinoGrapheme::W]), // "w"
         (IPASymbol::PalatalApproximant, vec![FilipinoGrapheme::Y]), // "j"
         (IPASymbol::VoicelessLabialVelar, vec![FilipinoGrapheme::W]), // "ʍ"
-
         // Tap
         (IPASymbol::AlveolarTap, vec![FilipinoGrapheme::T]), // "ɾ"
-
     ])
 });
 
