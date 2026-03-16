@@ -169,7 +169,6 @@ struct OverallMetrics {
 
 struct DatasetMetrics {
     name: String,
-    ter: f64,
     cer_5_vowel: f64,
     cer_e_i_y: f64,
     cer_o_u: f64,
@@ -591,15 +590,15 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     content.push_str("\nPer-Dataset Metrics\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
     content.push_str(&format!(
-        "  {:<15} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
-        "Dataset", "5-vowel", "e=i=y", "o=u", "3-vowel", "CER"
+        "  {:<15} {:>10} {:>10} {:>10} {:>10}\n",
+        "Dataset", "5-vowel", "e=i=y", "o=u", "3-vowel"
     ));
-    content.push_str(&format!("  {}\n", "-".repeat(70)));
+    content.push_str(&format!("  {}\n", "-".repeat(60)));
 
     for dm in &metrics.per_dataset {
         content.push_str(&format!(
-            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}%\n",
-            dm.name, dm.cer_5_vowel, dm.cer_e_i_y, dm.cer_o_u, dm.cer_3_vowel, dm.ter
+            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}%\n",
+            dm.name, dm.cer_5_vowel, dm.cer_e_i_y, dm.cer_o_u, dm.cer_3_vowel
         ));
     }
 
@@ -619,7 +618,7 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     for dm in &metrics.per_dataset {
         content.push_str(&format!(
             "  - {} (CER {:.2}%): {}\n",
-            dm.name, dm.ter, dm.report_file
+            dm.name, dm.cer_5_vowel, dm.report_file
         ));
     }
 
@@ -655,14 +654,14 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
 
     println!("\nPer-Dataset Metrics:");
     println!(
-        "  {:<15} {:>10} {:>10} {:>10} {:>10} {:>10}",
-        "Dataset", "5-vowel", "e=i=y", "o=u", "3-vowel", "CER"
+        "  {:<15} {:>10} {:>10} {:>10} {:>10}",
+        "Dataset", "5-vowel", "e=i=y", "o=u", "3-vowel"
     );
-    println!("  {}", "-".repeat(70));
+    println!("  {}", "-".repeat(60));
     for dm in &metrics.per_dataset {
         println!(
-            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}%",
-            dm.name, dm.cer_5_vowel, dm.cer_e_i_y, dm.cer_o_u, dm.cer_3_vowel, dm.ter
+            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}%",
+            dm.name, dm.cer_5_vowel, dm.cer_e_i_y, dm.cer_o_u, dm.cer_3_vowel
         );
     }
 
@@ -684,7 +683,10 @@ fn print_report_locations(metrics: &OverallMetrics, overall_file: &str) {
     println!("\nReports written to:");
     println!("  - overall: {}", overall_file);
     for dm in &metrics.per_dataset {
-        println!("  - {} (CER {:.2}%): {}", dm.name, dm.ter, dm.report_file);
+        println!(
+            "  - {} (CER {:.2}%): {}",
+            dm.name, dm.cer_5_vowel, dm.report_file
+        );
     }
 }
 
@@ -793,7 +795,6 @@ fn compare() {
 
         per_dataset.push(DatasetMetrics {
             name: fname.replace(".csv", ""),
-            ter: report.token_error_rate,
             cer_5_vowel: dataset_cer_5_vowel,
             cer_e_i_y: dataset_cer_e_i_y,
             cer_o_u: dataset_cer_o_u,
@@ -820,7 +821,7 @@ fn compare() {
 
     let worst = per_dataset
         .iter()
-        .max_by(|a, b| a.ter.partial_cmp(&b.ter).unwrap())
+        .max_by(|a, b| a.cer_5_vowel.partial_cmp(&b.cer_5_vowel).unwrap())
         .unwrap();
 
     let metrics = OverallMetrics {
@@ -833,7 +834,7 @@ fn compare() {
         edits: total_token_edits_all,
         ter: (total_token_edits_all as f64 / total_tokens_all as f64) * 100.0,
         worst_performer: worst.name.clone(),
-        worst_ter: worst.ter,
+        worst_ter: worst.cer_5_vowel,
         per_dataset,
         token_errors: all_token_errors,
         token_errors_both: all_token_errors_both,
