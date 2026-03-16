@@ -170,6 +170,10 @@ struct OverallMetrics {
 struct DatasetMetrics {
     name: String,
     ter: f64,
+    cer_5_vowel: f64,
+    cer_e_i_y: f64,
+    cer_o_u: f64,
+    cer_3_vowel: f64,
     report_file: String,
 }
 
@@ -450,6 +454,10 @@ fn format_token_errors(
 fn write_dataset_report(
     name: &str,
     report: &EvalReport,
+    cer_5_vowel: f64,
+    cer_e_i_y: f64,
+    cer_o_u: f64,
+    cer_3_vowel: f64,
     timestamp: &str,
     eval_config: &EvalConfig,
 ) -> String {
@@ -480,10 +488,10 @@ fn write_dataset_report(
         "├── Edits           {}\n",
         report.total_token_edits
     ));
-    content.push_str(&format!(
-        "├── CER             {:.2}%\n",
-        report.token_error_rate
-    ));
+    content.push_str(&format!("├── CER (5-vowel)   {:.2}%\n", cer_5_vowel));
+    content.push_str(&format!("├── CER (e=i=y)     {:.2}%\n", cer_e_i_y));
+    content.push_str(&format!("├── CER (o=u)       {:.2}%\n", cer_o_u));
+    content.push_str(&format!("├── CER (3-vowel)   {:.2}%\n", cer_3_vowel));
     content.push_str(&format!(
         "└── Accept@CER<{:<2}   {}\n",
         ACCEPT_TER,
@@ -557,7 +565,7 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
     content.push_str(&format!("{}\n", "-".repeat(50)));
     content.push_str(&format!(
         "  {:<8} {:>11} {:>11} {:>11} {:>11}\n",
-        "", "default", "e==i==y", "o==u", "both"
+        "", "5-vowel", "e=i=y", "o=u", "3-vowel"
     ));
     content.push_str(&format!(
         "  {:<8} {:>10.2}% {:>10.2}% {:>10.2}% {:>10.2}%\n\n",
@@ -582,20 +590,26 @@ fn write_overall_report(metrics: &OverallMetrics, timestamp: &str) -> String {
 
     content.push_str("\nPer-Dataset Metrics\n");
     content.push_str(&format!("{}\n", "-".repeat(50)));
-    content.push_str(&format!("  {:<15} {:>10}\n", "Dataset", "CER"));
-    content.push_str(&format!("  {}\n", "-".repeat(28)));
+    content.push_str(&format!(
+        "  {:<15} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+        "Dataset", "5-vowel", "e=i=y", "o=u", "3-vowel", "CER"
+    ));
+    content.push_str(&format!("  {}\n", "-".repeat(70)));
 
     for dm in &metrics.per_dataset {
-        content.push_str(&format!("  {:<15} {:>9.2}%\n", dm.name, dm.ter));
+        content.push_str(&format!(
+            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}%\n",
+            dm.name, dm.cer_5_vowel, dm.cer_e_i_y, dm.cer_o_u, dm.cer_3_vowel, dm.ter
+        ));
     }
 
     content.push_str(&format_token_errors(
-        "Character Error Ranking (5-vowel, default)",
+        "Character Error Ranking (5-vowel)",
         &metrics.token_errors,
         usize::MAX,
     ));
     content.push_str(&format_token_errors(
-        "Character Error Ranking (3-vowel, e==i==y and o==u)",
+        "Character Error Ranking (3-vowel, e=i=y and o=u)",
         &metrics.token_errors_both,
         usize::MAX,
     ));
@@ -622,7 +636,7 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
     println!("\nPerformance (CER):");
     println!(
         "  {:<8} {:>11} {:>11} {:>11} {:>11}",
-        "", "default", "e==i==y", "o==u", "both"
+        "", "5-vowel", "e=i=y", "o=u", "3-vowel"
     );
     println!(
         "  {:<8} {:>10.2}% {:>10.2}% {:>10.2}% {:>10.2}%",
@@ -640,20 +654,26 @@ fn print_overall_metrics(metrics: &OverallMetrics) {
     );
 
     println!("\nPer-Dataset Metrics:");
-    println!("  {:<15} {:>10}", "Dataset", "CER");
-    println!("  {}", "-".repeat(28));
+    println!(
+        "  {:<15} {:>10} {:>10} {:>10} {:>10} {:>10}",
+        "Dataset", "5-vowel", "e=i=y", "o=u", "3-vowel", "CER"
+    );
+    println!("  {}", "-".repeat(70));
     for dm in &metrics.per_dataset {
-        println!("  {:<15} {:>9.2}%", dm.name, dm.ter);
+        println!(
+            "  {:<15} {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}% {:>9.2}%",
+            dm.name, dm.cer_5_vowel, dm.cer_e_i_y, dm.cer_o_u, dm.cer_3_vowel, dm.ter
+        );
     }
 
     print!(
         "{}",
-        format_token_errors("Token Errors (5-vowel, default)", &metrics.token_errors, 20,)
+        format_token_errors("Token Errors (5-vowel)", &metrics.token_errors, 20,)
     );
     print!(
         "{}",
         format_token_errors(
-            "Token Errors (3-vowel, e==i==y and o==u)",
+            "Token Errors (3-vowel, e=i=y and o=u)",
             &metrics.token_errors_both,
             20,
         )
@@ -722,11 +742,62 @@ fn compare() {
     // Evaluate each dataset using default config for detailed reports
     for fname in GOLD_STANDARDS {
         let report = evaluate_csv(format!("{}/{}", GOLD_DIR, fname).as_str(), &eval_config);
-        let report_file = write_dataset_report(fname, &report, &timestamp, &eval_config);
+
+        // Compute CER for all configurations for this dataset
+        let dataset_cer_5_vowel = evaluate_csv(
+            format!("{}/{}", GOLD_DIR, fname).as_str(),
+            &EvalConfig {
+                equate_e_i: false,
+                equate_o_u: false,
+            },
+        )
+        .token_error_rate;
+
+        let dataset_cer_e_i_y = evaluate_csv(
+            format!("{}/{}", GOLD_DIR, fname).as_str(),
+            &EvalConfig {
+                equate_e_i: true,
+                equate_o_u: false,
+            },
+        )
+        .token_error_rate;
+
+        let dataset_cer_o_u = evaluate_csv(
+            format!("{}/{}", GOLD_DIR, fname).as_str(),
+            &EvalConfig {
+                equate_e_i: false,
+                equate_o_u: true,
+            },
+        )
+        .token_error_rate;
+
+        let dataset_cer_3_vowel = evaluate_csv(
+            format!("{}/{}", GOLD_DIR, fname).as_str(),
+            &EvalConfig {
+                equate_e_i: true,
+                equate_o_u: true,
+            },
+        )
+        .token_error_rate;
+
+        let report_file = write_dataset_report(
+            fname,
+            &report,
+            dataset_cer_5_vowel,
+            dataset_cer_e_i_y,
+            dataset_cer_o_u,
+            dataset_cer_3_vowel,
+            &timestamp,
+            &eval_config,
+        );
 
         per_dataset.push(DatasetMetrics {
             name: fname.replace(".csv", ""),
             ter: report.token_error_rate,
+            cer_5_vowel: dataset_cer_5_vowel,
+            cer_e_i_y: dataset_cer_e_i_y,
+            cer_o_u: dataset_cer_o_u,
+            cer_3_vowel: dataset_cer_3_vowel,
             report_file,
         });
 
@@ -737,7 +808,7 @@ fn compare() {
         merge_token_errors(&mut all_token_errors, report.token_errors, 5);
     }
 
-    // Collect token errors under the 3-vowel system (e==i==y and o==u)
+    // Collect token errors under the 3-vowel system (e=i=y and o=u)
     let config_both = EvalConfig {
         equate_e_i: true,
         equate_o_u: true,

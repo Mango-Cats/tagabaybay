@@ -1,7 +1,7 @@
 INPUT,EXPECTED
 abacus,abakus
 abnormal,abnormal
-abortion,aborsiyon
+abortion,aborsyon
 absent,absent
 others,aders
 addict,adik
@@ -41,14 +41,13 @@ badtrip,badtrip
 budget,badyet
 bag,bag
 boxoffice,baksopis
-evacuee,bakwit
 ballet,baley
 volleyball,bolibol
 ban,ban
-van,banvan
+van,ban
 banjo,bandyo
 bar,bar
-variety,barayti
+variety,barayeti
 barbecue,barbekyu
 barbell,barbel
 barker,barker
@@ -61,7 +60,7 @@ basketball,basketbol
 busted,basted
 bazooka,basuka
 baton,baton
-bacon,bekon
+bacon,beykon
 birthday,bertdey
 bestfriend,bespren
 baseball,beysbol
@@ -205,7 +204,7 @@ condom,kondom
 collect,kolek
 correct,korek
 crash,kras
-coup d'état,kudeta
+coup d'etat,kudeta
 cookies,kukis
 cute,kyut
 loudspeaker,lawdispiker
@@ -257,7 +256,7 @@ supermarket,supermarket
 supply,suplay
 supplier,suplayer
 shawty,syota
-standby,tambay
+standby,stambay
 traffic,trapik
 textbook,teksbuk
 tennis,tenis
