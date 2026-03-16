@@ -206,6 +206,26 @@ pub fn ipa_to_filipino_graphemes(aligned: &AlignedString) -> Vec<FilipinoGraphem
                     continue;
                 }
 
+                // "i"
+                if *symbol == IPASymbol::CloseFront {
+                    let next_grapheme = aligned.get(idx + 1).map(|(next_g, _)| next_g);
+                    let fg = match grapheme {
+                        SourceGrapheme::I => {
+                            if next_grapheme == Some(&SourceGrapheme::A) {
+                                vec![FilipinoGrapheme::Y]
+                            } else {
+                                vec![FilipinoGrapheme::I]
+                            }
+                        },
+                        _ => vec![FilipinoGrapheme::I],
+                    };
+
+                    for g in fg {
+                        result.push(g)
+                    }
+                    continue;
+                }
+
                 // "ɚ"
                 if *symbol == IPASymbol::RColoredSchwa {
                     let fg = match grapheme {
