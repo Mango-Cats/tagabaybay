@@ -31,6 +31,18 @@ See [LICENSE](LICENSE) for details.
 
 If you use this software in your research, consider citing our work (see [`CITATION.cff`](/CITATION.cff)).
 
+**Cite as** Ganituen, Z. R., Chua, E. G., Ching, J. E., Jimenez, J. J., Ang, C. J., Ang, C. I., Campo, R. C., & Oco, N. TagaBaybay [Computer software]. https://github.com/Mango-Cats/tagabaybay/
+
+BibTeX:
+```bib
+@software{tagabaybay,
+  author = {Ganituen, Zhean Robby and Chua, Erin Gabrielle and Ching, Justin Ethan and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Ang, Clarence Ivan and Campo, Roan Cedric and Oco, Nathaniel},
+  license = {Apache-2.0},
+  title = {{TagaBaybay}},
+  url = {https://github.com/Mango-Cats/tagabaybay/}
+}
+```
+
 ## Bibliography
 
 1. Ma. Lourdes S. Bautista. 2000. Defining Standard Philippine English: Its status and grammatical features. De La Salle University Press.
