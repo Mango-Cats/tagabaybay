@@ -239,43 +239,55 @@ def main():
     overall_accept = overall_metrics["5-vowel"] < 20
 
     timestamp_full = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print("\noverall\n")
-    print("OVERALL EVALUATION REPORT")
-    print(f"Generated: {timestamp_full}")
-    print("=" * 50)
+    timestamp_file = datetime.now().strftime("%m%d%y_%H%M")
     
-    print("\nPerformance (CER)")
-    print("-" * 50)
-    print(f"               {'5-vowel':>10s}  {'e=i=y':>10s}  {'o=u':>10s}  {'3-vowel':>10s}")
-    print(f" CER           {overall_metrics['5-vowel']:>9.2f}%  {overall_metrics['e=i=y']:>9.2f}%  {overall_metrics['o=u']:>9.2f}%  {overall_metrics['3-vowel']:>9.2f}%")
+    overall_out = []
+    overall_out.append("\noverall\n")
+    overall_out.append("OVERALL EVALUATION REPORT")
+    overall_out.append(f"Generated: {timestamp_full}")
+    overall_out.append("=" * 50)
+    
+    overall_out.append("\nPerformance (CER)")
+    overall_out.append("-" * 50)
+    overall_out.append(f"               {'5-vowel':>10s}  {'e=i=y':>10s}  {'o=u':>10s}  {'3-vowel':>10s}")
+    overall_out.append(f" CER           {overall_metrics['5-vowel']:>9.2f}%  {overall_metrics['e=i=y']:>9.2f}%  {overall_metrics['o=u']:>9.2f}%  {overall_metrics['3-vowel']:>9.2f}%")
 
-    print("\nSummary")
-    print("-" * 50)
-    print(f"├── Words           {total_words}")
-    print(f"├── Tokens          {total_tokens}")
-    print(f"├── Edits           {total_edits_5v}")
-    print(f"├── CER             {overall_metrics['5-vowel']:.2f}%")
-    print(f"├── Accept@CER<20   {str(overall_accept).lower()}")
-    print(f"└── Worst Performer {worst_dataset['name']} (CER {worst_dataset['metrics']['5-vowel']:.2f}%)")
+    overall_out.append("\nSummary")
+    overall_out.append("-" * 50)
+    overall_out.append(f"├── Words           {total_words}")
+    overall_out.append(f"├── Tokens          {total_tokens}")
+    overall_out.append(f"├── Edits           {total_edits_5v}")
+    overall_out.append(f"├── CER             {overall_metrics['5-vowel']:.2f}%")
+    overall_out.append(f"├── Accept@CER<20   {str(overall_accept).lower()}")
+    overall_out.append(f"└── Worst Performer {worst_dataset['name']} (CER {worst_dataset['metrics']['5-vowel']:.2f}%)")
 
-    print("\nPer-Dataset Metrics")
-    print("-" * 50)
-    print(f"  {'Dataset':<18s} {'5-vowel':>10s}  {'e=i=y':>10s}  {'o=u':>10s}  {'3-vowel':>10s}")
-    print("  " + "-" * 60)
+    overall_out.append("\nPer-Dataset Metrics")
+    overall_out.append("-" * 50)
+    overall_out.append(f"  {'Dataset':<18s} {'5-vowel':>10s}  {'e=i=y':>10s}  {'o=u':>10s}  {'3-vowel':>10s}")
+    overall_out.append("  " + "-" * 60)
     for ds in dataset_summaries:
         m = ds["metrics"]
-        print(f"  {ds['name']:<18s} {m['5-vowel']:>9.2f}%  {m['e=i=y']:>9.2f}%  {m['o=u']:>9.2f}%  {m['3-vowel']:>9.2f}%")
+        overall_out.append(f"  {ds['name']:<18s} {m['5-vowel']:>9.2f}%  {m['e=i=y']:>9.2f}%  {m['o=u']:>9.2f}%  {m['3-vowel']:>9.2f}%")
 
-    print("\nCharacter Error Ranking (5-vowel)")
-    print(format_error_ranking(overall_errors_5v, limit=112))
+    overall_out.append("\nCharacter Error Ranking (5-vowel)")
+    overall_out.append(format_error_ranking(overall_errors_5v, limit=112))
 
-    print("\nCharacter Error Ranking (3-vowel, e=i=y and o=u)")
-    print(format_error_ranking(overall_errors_3v, limit=73))
+    overall_out.append("\nCharacter Error Ranking (3-vowel, e=i=y and o=u)")
+    overall_out.append(format_error_ranking(overall_errors_3v, limit=73))
 
-    print("\nIndividual Reports")
-    print("-" * 50)
+    overall_out.append("\nIndividual Reports")
+    overall_out.append("-" * 50)
     for ds in dataset_summaries:
-        print(f"  - {ds['name']} (CER {ds['metrics']['5-vowel']:.2f}%): {ds['report_path']}")
+        overall_out.append(f"  - {ds['name']} (CER {ds['metrics']['5-vowel']:.2f}%): {ds['report_path']}")
+
+    overall_report_str = "\n".join(overall_out)
+    print(overall_report_str)
+    
+    overall_report_file = reports_dir / f"{timestamp_file}_overall.txt"
+    with open(overall_report_file, "w", encoding="utf-8") as f:
+        f.write(overall_report_str)
+        
+    print(f"\n[+] Overall report successfully saved to: {overall_report_file}")
 
 if __name__ == "__main__":
     main()
