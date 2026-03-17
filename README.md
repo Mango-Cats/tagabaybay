@@ -23,27 +23,13 @@ Written in Rust.
 
 ## License
 
-TagaBaybay is (as of December 15, 2025) is a private project, but it is distributed
-under the terms of Apache License Version 2.0.
+TagaBaybay is distributed under the terms of Apache License Version 2.0.
 
 See [LICENSE](LICENSE) for details.
 
 ## Citation
 
-If you use this software in your research, consider citing our work.
-
-BibTeX:
-
-```bibtex
-@software{Ganituen_TagaBaybay,
-    author = {Ganituen, Zhean Robby and Ang, Clarence Ivan and Campo, Roan Cedric and Ching, Justin Ethan and Chua, Erin Gabrielle and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Oco, Nathaniel},
-    license = {Apache-2.0},
-    title = {{TagaBaybay}},
-    url = {https://github.com/Mango-Cats/tagabaybay/}
-}
-```
-
-Also see [`CITATION.cff`](/CITATION.cff).
+If you use this software in your research, consider citing our work (see [`CITATION.cff`](/CITATION.cff)).
 
 ## Bibliography
 
