@@ -2,7 +2,8 @@
 
 **Question**: _How do we orthographically adapt frequently used loanwords in Filipino?_
 
-Written in Rust.
+**Abstract**: _Orthographic nativization_, generating standardized written forms of loanwords in a recipient language, remains understudied computationally despite its importance for text normalization and multilingual NLP. We present a rule-based rewrite cascade for orthographic nativization of English loanwords into Filipino. The system operates through four stages: graphemic tokenization, priority-ordered rewrite rules, phonetic resolution via grapheme-to-phoneme lookup, and output normalization. Rules are hand-authored from prescriptive orthographic guidelines and descriptive phonological sources, enabling deployment without parallel training corpora. We evaluate on a newly constructed gold standard of 2,319 English-Filipino loanword pairs. The proposed method achieves 5.14% character error rate under a 5-vowel evaluation and 4.05% under a 3-vowel evaluation that accounts for Filipino's vowel variation. The system outperforms a regular expressions, an orthographic-only ablation without phonetic resolution, and zero-shot prompting of a large language model given the same mapping rules. Error analysis reveals that most remaining errors stem from schwa ambiguity in unstressed syllables, glide insertion, and the quality of the phonetic transcription, suggesting directions for refinement. The linguistically grounded approach demonstrates that prescriptive rules can be operationalized into effective orthographic nativization systems for low-resource languages.
+</details>
 
 ## Project Team
 
@@ -30,6 +31,18 @@ See [LICENSE](LICENSE) for details.
 ## Citation
 
 If you use this software in your research, consider citing our work (see [`CITATION.cff`](/CITATION.cff)).
+
+**Cite as** Ganituen, Z. R., Chua, E. G., Ching, J. E., Jimenez, J. J., Ang, C. J., Ang, C. I., Campo, R. C., & Oco, N. TagaBaybay [Computer software]. https://github.com/Mango-Cats/tagabaybay/
+
+BibTeX:
+```bib
+@software{tagabaybay,
+  author = {Ganituen, Zhean Robby and Chua, Erin Gabrielle and Ching, Justin Ethan and Jimenez, Jaztin Jacob and Ang, Clive Jarel and Ang, Clarence Ivan and Campo, Roan Cedric and Oco, Nathaniel},
+  license = {Apache-2.0},
+  title = {{TagaBaybay}},
+  url = {https://github.com/Mango-Cats/tagabaybay/}
+}
+```
 
 ## Bibliography
 

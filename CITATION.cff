@@ -8,14 +8,14 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Erin Gabrielle
-    family-names: Chua
-    affiliation: De La Salle University
   - given-names: Zhean Robby
     family-names: Ganituen
     email: zr.gntn@gmail.com
     affiliation: De La Salle University
     orcid: 'https://orcid.org/0009-0002-3266-5384'
+  - given-names: Erin Gabrielle
+    family-names: Chua
+    affiliation: De La Salle University
   - given-names: Justin Ethan
     family-names: Ching
     affiliation: De La Salle University
@@ -38,8 +38,6 @@ repository-code: 'https://github.com/Mango-Cats/tagabaybay/'
 abstract: >-
   An orthographic nativization algorithm for Filipino.
 keywords:
-  - Rust
-  - Context-Free Grammars
-  - Context-Sensitive Grammars
+  - NLP
   - Formal Languages
 license: Apache-2.0
