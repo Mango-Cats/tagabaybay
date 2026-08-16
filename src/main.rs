@@ -12,7 +12,7 @@ use tagabaybay::phoneme::tokenizer::ipa::tokenize_ipa;
 use tagabaybay::syllabification::algorithm::syllabify;
 
 fn main() {
-    let config = AdapterConfig::new();
+    let mut config = AdapterConfig::new();
     let mut adapter = Adapter::new_with_config(config.clone());
 
     println!("TagaBaybay Interactive Shell");
@@ -27,6 +27,7 @@ fn main() {
 
     println!("\nCommands:");
     println!("  qq - quit");
+    println!("  !stress - toggle stress/prominence assignment (off by default)");
     println!("  <word> - normal processing\n");
 
     loop {
@@ -37,6 +38,17 @@ fn main() {
         let input = input.trim();
         if input == "qq" {
             break;
+        }
+
+        if input == "!stress" {
+            let enabled = !config.assign_prominence;
+            config = config.set_assign_prominence(enabled);
+            adapter = Adapter::new_with_config(config.clone());
+            println!(
+                "* stress/prominence assignment: {}\n",
+                if enabled { "ON" } else { "OFF" }
+            );
+            continue;
         }
 
         if let Some(ref mut g2p) = ipa_g2p {
@@ -57,7 +69,23 @@ fn main() {
                 println!("* {}\t-> {}", input, graphemes_to_string(&result));
                 if let Some((syll, is_valid)) = syllabify(&result) {
                     let hyph = hyphenate(&syll);
-                    println!("* {}\t|| {}\n", hyph, is_valid)
+                    println!("* {}\t|| {}", hyph, is_valid)
+                }
+                if config.assign_prominence {
+                    match adapter.prominence(input, &result) {
+                        Ok(Some(prominence)) => {
+                            println!("* respelled:            {}", prominence.respelled);
+                            println!("* with stress:          {}", prominence.with_stress);
+                            println!(
+                                "* with stress+syllable: {}\n",
+                                prominence.with_stress_and_syllabified
+                            );
+                        }
+                        Ok(None) => println!("* prominent syllable: unknown (no stress info)\n"),
+                        Err(_) => println!(),
+                    }
+                } else {
+                    println!();
                 }
             }
             Err(_) => (),

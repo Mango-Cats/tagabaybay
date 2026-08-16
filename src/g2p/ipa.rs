@@ -130,13 +130,20 @@ if platform.system() == "Windows":
         EspeakWrapper.set_library(lib)
 
 backend = EspeakBackend('en-us', with_stress=False)
+backend_stressed = EspeakBackend('en-us', with_stress=True)
 separator = Separator(phone=' ', word='')
 
 def g2p(word):
     result = backend.phonemize([word], separator=separator, strip=True)
     return result[0].replace(' ', '') if result else ''
 
+def g2p_stressed(word):
+    result = backend_stressed.phonemize([word], separator=separator, strip=True)
+    return result[0].replace(' ', '') if result else ''
+
 print("READY", flush=True)
+
+STRESS_PREFIX = "STRESS\t"
 
 for line in sys.stdin:
     word = line.strip()
@@ -144,6 +151,12 @@ for line in sys.stdin:
         print("", flush=True)
     elif word == "CEXIT":
         break
+    elif word.startswith(STRESS_PREFIX):
+        target = word[len(STRESS_PREFIX):]
+        try:
+            print(g2p_stressed(target), flush=True)
+        except Exception as e:
+            print(f"ERROR:{e}", flush=True)
     else:
         try:
             print(g2p(word), flush=True)
@@ -288,6 +301,73 @@ impl G2Py {
     pub fn phonemize(&mut self, word: &str) -> Result<String, G2PError> {
         let word_lower = word.to_lowercase();
         writeln!(self.stdin, "{}", word_lower).map_err(|e| {
+            G2PError::with_input(
+                G2PErrorKind::ServerUnavailable {
+                    reason: format!("failed to write to G2P process: {}", e),
+                },
+                word,
+            )
+        })?;
+
+        self.stdin.flush().map_err(|e| {
+            G2PError::with_input(
+                G2PErrorKind::ServerUnavailable {
+                    reason: format!("failed to flush G2P stdin: {}", e),
+                },
+                word,
+            )
+        })?;
+
+        let mut response = String::new();
+        self.stdout.read_line(&mut response).map_err(|e| {
+            G2PError::with_input(
+                G2PErrorKind::ServerUnavailable {
+                    reason: format!("failed to read G2P response: {}", e),
+                },
+                word,
+            )
+        })?;
+
+        let response = response.trim();
+        if response.starts_with("ERROR:") {
+            let error_msg = response[6..].trim();
+            return Err(G2PError::with_input(
+                G2PErrorKind::TranscriptionFailed {
+                    message: error_msg.to_string(),
+                },
+                word,
+            ));
+        }
+
+        if response.is_empty() {
+            return Err(G2PError::with_input(
+                G2PErrorKind::TranscriptionFailed {
+                    message: "empty IPA transcription returned".to_string(),
+                },
+                word,
+            ));
+        }
+
+        Ok(response.to_string())
+    }
+
+    /// Phonemize a single word to stress-marked IPA.
+    ///
+    /// Like [`Self::phonemize`], but the returned IPA retains eSpeak's
+    /// stress marks (`ˈ` primary, `ˌ` secondary) so callers can locate the
+    /// primary-stressed syllable. Used by [`crate::stress::espeak`] for the
+    /// stress prominence rule.
+    ///
+    /// # Arguments
+    ///
+    /// * `word` - A single word to phonemize (will be lowercased)
+    ///
+    /// # Errors
+    ///
+    /// Same error conditions as [`Self::phonemize`].
+    pub fn phonemize_stressed(&mut self, word: &str) -> Result<String, G2PError> {
+        let word_lower = word.to_lowercase();
+        writeln!(self.stdin, "STRESS\t{}", word_lower).map_err(|e| {
             G2PError::with_input(
                 G2PErrorKind::ServerUnavailable {
                     reason: format!("failed to write to G2P process: {}", e),

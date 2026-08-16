@@ -32,4 +32,5 @@ pub mod error;
 pub mod g2p;
 pub mod grapheme;
 pub mod phoneme;
+pub mod stress;
 pub mod syllabification;

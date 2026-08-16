@@ -3,7 +3,7 @@ use crate::adaptation::orthographic::free::free_replacement;
 use crate::adaptation::orthographic::sensitive::sensitive_replacement;
 use crate::adaptation::orthographic::spelling::letter_to_phonetic;
 use crate::adaptation::phonetic::free::phonetic_replacements;
-use crate::configs::AdapterConfig;
+use crate::configs::{AdapterConfig, ProminenceBackend};
 use crate::error::{AdaptationError, ErrorTypes};
 use crate::g2p::G2Py;
 use crate::grapheme::filipino::FilipinoGrapheme;
@@ -11,6 +11,8 @@ use crate::grapheme::source::SourceGrapheme;
 use crate::grapheme::tokenize::source_tokenizer;
 use crate::phoneme::tokenizer::ipa::tokenize_ipa;
 use crate::phoneme::tokens::ipa::IPASymbol;
+use crate::stress::{CmuDict, Prominence, apply_stress_rule, stress_position_from_ipa};
+use crate::syllabification::algorithm::syllabify;
 
 /// Builder for adaptation with customizable configuration
 ///
@@ -40,6 +42,7 @@ use crate::phoneme::tokens::ipa::IPASymbol;
 pub struct Adapter {
     pub config: AdapterConfig,
     g2p: Option<G2Py>,
+    cmudict: Option<CmuDict>,
 }
 
 impl Adapter {
@@ -48,12 +51,17 @@ impl Adapter {
         Self {
             config: AdapterConfig::default(),
             g2p: None,
+            cmudict: None,
         }
     }
 
     /// Create a Adapter with a custom configuration
     pub fn new_with_config(config: AdapterConfig) -> Self {
-        Self { config, g2p: None }
+        Self {
+            config,
+            g2p: None,
+            cmudict: None,
+        }
     }
 
     fn adapter_internal(
@@ -247,6 +255,80 @@ impl Adapter {
             results.push(self.adapter_internal(word, Some(i), Some(dataset_name)));
         }
         results
+    }
+
+    /// Compute stress/prominence assignment for `word` (the stress rule)
+    ///
+    /// Looks up `word`'s English primary stress via the configured
+    /// [`ProminenceBackend`] to confirm the word is known (this gates
+    /// applicability), then applies the stress rule to the syllabification
+    /// of `adapted` (its already-adapted Filipino graphemes, e.g. from
+    /// [`Self::adaptation`]): an open penult retains length and stays
+    /// prominent; a closed penult shifts prominence to the final syllable.
+    ///
+    /// Gated by [`AdapterConfig::assign_prominence`]; returns `Ok(None)`
+    /// immediately when that toggle is off. Also returns `Ok(None)` (rather
+    /// than an error) when the stress lookup finds nothing for `word` (e.g.
+    /// it's absent from a CMUdict file) or `adapted` doesn't syllabify.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use tagabaybay::adaptation::adapter::Adapter;
+    /// use tagabaybay::configs::AdapterConfig;
+    ///
+    /// let config = AdapterConfig::new().set_assign_prominence(true);
+    /// let mut adapter = Adapter::new_with_config(config);
+    ///
+    /// let word = "acetaminophen";
+    /// let adapted = adapter.adaptation(word).unwrap();
+    /// if let Some(prominence) = adapter.prominence(word, &adapted).unwrap() {
+    ///     println!("{} -> {} (long: {})", word, prominence.syllable, prominence.is_long);
+    /// }
+    /// ```
+    pub fn prominence(
+        &mut self,
+        word: &str,
+        adapted: &[FilipinoGrapheme],
+    ) -> Result<Option<Prominence>, ErrorTypes> {
+        if !self.config.assign_prominence {
+            return Ok(None);
+        }
+
+        let stress = match &self.config.prominence_backend {
+            ProminenceBackend::Espeak => {
+                if self.g2p.is_none() {
+                    self.g2p = Some(G2Py::new().map_err(ErrorTypes::G2P)?);
+                }
+                let ipa = self
+                    .g2p
+                    .as_mut()
+                    .unwrap()
+                    .phonemize_stressed(word)
+                    .map_err(ErrorTypes::G2P)?;
+                stress_position_from_ipa(&ipa)
+            }
+            ProminenceBackend::Cmudict { dict_path } => {
+                if self.cmudict.is_none() {
+                    self.cmudict = Some(CmuDict::load(dict_path).map_err(ErrorTypes::G2P)?);
+                }
+                self.cmudict.as_ref().unwrap().primary_stress(word)
+            }
+        };
+
+        // The English lookup gates applicability: if the source word carries
+        // no known stress (e.g. absent from a CMUdict file), there's no
+        // basis for stress to apply. Its actual position isn't otherwise
+        // used - stress itself judges the Filipino word's penult directly.
+        if stress.is_none() {
+            return Ok(None);
+        }
+
+        let Some((syllables, _valid)) = syllabify(adapted) else {
+            return Ok(None);
+        };
+
+        Ok(apply_stress_rule(&syllables))
     }
 }
 

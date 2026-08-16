@@ -24,6 +24,9 @@
 //! - `{"cmd":"config","allow_v_letter":false,"allow_z_letter":false}` — update
 //!   the adapter configuration (any omitted flag keeps its current value). The
 //!   adapter is rebuilt with the new config for subsequent `adapt` calls.
+//!   Also accepts `assign_prominence` (bool) and `cmudict_path` (string) to
+//!   toggle stress stress/prominence assignment; setting `cmudict_path`
+//!   switches the lookup backend from eSpeak to that CMUdict file.
 //! - `{"cmd":"ping"}` — liveness check; replies with a `pong`.
 //! - `{"cmd":"shutdown"}` — clean exit. Closing stdin (EOF) also exits.
 //!
@@ -41,6 +44,13 @@
 //!
 //! When the IPA G2P backend is unavailable (eSpeak-NG / UV missing) the `ipa`
 //! and `ipa_mapped` fields are omitted from results.
+//!
+//! When `assign_prominence` is enabled via `config`, results also carry three
+//! progressively-annotated forms of the word (the stress rule; see
+//! [`tagabaybay::stress`]): `respelled` (plain), `with_stress` (the prominent
+//! syllable capitalized), and `with_stress_and_syllabified` (the same,
+//! hyphenated into syllables). These are omitted when the source word's
+//! English stress can't be looked up.
 
 use std::io::{self, BufRead, Write};
 
@@ -49,7 +59,7 @@ use serde::{Deserialize, Serialize};
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::alignment::aligned_string::ipa_to_filipino_graphemes;
 use tagabaybay::alignment::alignment::phoneme_grapheme_alignment;
-use tagabaybay::configs::AdapterConfig;
+use tagabaybay::configs::{AdapterConfig, ProminenceBackend};
 use tagabaybay::g2p::G2Py;
 use tagabaybay::grapheme::filipino::{graphemes_to_string, hyphenate};
 use tagabaybay::grapheme::tokenize::source_tokenizer;
@@ -81,6 +91,12 @@ struct Request {
     allow_v_letter: Option<bool>,
     #[serde(default)]
     g2p_unpredictable_variants: Option<bool>,
+    #[serde(default)]
+    assign_prominence: Option<bool>,
+    /// Path to a CMUdict-format file. Setting this switches the prominence
+    /// backend to CMUdict; leave unset to use (or stay on) eSpeak.
+    #[serde(default)]
+    cmudict_path: Option<String>,
 }
 
 /// A single response line back to the parent process.
@@ -102,6 +118,12 @@ struct Response {
     #[serde(skip_serializing_if = "Option::is_none")]
     ipa_mapped: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    respelled: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    with_stress: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    with_stress_and_syllabified: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message: Option<String>,
 }
 
@@ -116,6 +138,9 @@ impl Response {
             valid: None,
             ipa: None,
             ipa_mapped: None,
+            respelled: None,
+            with_stress: None,
+            with_stress_and_syllabified: None,
             message: None,
         }
     }
@@ -209,6 +234,14 @@ fn main() {
                 if let Some(v) = request.g2p_unpredictable_variants {
                     config = config.set_g2p_unpredictable_variants(v);
                 }
+                if let Some(path) = request.cmudict_path {
+                    config = config.set_prominence_backend(ProminenceBackend::Cmudict {
+                        dict_path: path.into(),
+                    });
+                }
+                if let Some(v) = request.assign_prominence {
+                    config = config.set_assign_prominence(v);
+                }
                 // Rebuild the adapter so later `adapt` calls use the new config.
                 adapter = Adapter::new_with_config(config.clone());
                 emit(&mut stdout, &Response::empty(request.id, "ok"));
@@ -248,6 +281,12 @@ fn main() {
                         if let Some((syll, is_valid)) = syllabify(&result) {
                             response.syllables = Some(hyphenate(&syll));
                             response.valid = Some(is_valid);
+                        }
+                        if let Ok(Some(prominence)) = adapter.prominence(word, &result) {
+                            response.respelled = Some(prominence.respelled);
+                            response.with_stress = Some(prominence.with_stress);
+                            response.with_stress_and_syllabified =
+                                Some(prominence.with_stress_and_syllabified);
                         }
                         emit(&mut stdout, &response);
                     }

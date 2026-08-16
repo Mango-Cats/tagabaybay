@@ -28,6 +28,29 @@ pub struct AdapterConfig {
     pub allow_v_letter: bool,
     /// Whether to use G2P for unpredictable variant graphemes.
     pub g2p_unpredictable_variants: bool,
+    /// Whether to compute stress/prominence assignment (the stress rule)
+    /// alongside adaptation. Off by default: it requires an extra English
+    /// primary-stress lookup (via [`ProminenceBackend`]) on top of the
+    /// normal adaptation pipeline. See [`crate::stress`] and
+    /// [`crate::adaptation::adapter::Adapter::prominence`].
+    pub assign_prominence: bool,
+    /// Backend used for the English primary-stress lookup when
+    /// `assign_prominence` is enabled.
+    pub prominence_backend: ProminenceBackend,
+}
+
+/// Backend used to look up a source word's English primary stress for the
+/// stress prominence rule.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProminenceBackend {
+    /// Query eSpeak-NG's English frontend, reusing the same G2P subprocess
+    /// already used for phonemization.
+    Espeak,
+    /// Look up a local CMUdict-format dictionary file.
+    Cmudict {
+        /// Path to a CMUdict-format `.dict` file.
+        dict_path: std::path::PathBuf,
+    },
 }
 
 impl Default for AdapterConfig {
@@ -48,6 +71,8 @@ impl Default for AdapterConfig {
             allow_j_letter: true,
             allow_v_letter: true,
             g2p_unpredictable_variants: true,
+            assign_prominence: false,
+            prominence_backend: ProminenceBackend::Espeak,
         }
     }
 }
@@ -140,6 +165,34 @@ impl AdapterConfig {
 
     pub fn set_g2p_unpredictable_variants(mut self, value: bool) -> Self {
         self.g2p_unpredictable_variants = value;
+        self
+    }
+
+    /// Toggle stress/prominence assignment (the stress rule)
+    ///
+    /// When enabled, [`crate::adaptation::adapter::Adapter::prominence`]
+    /// looks up the source word's English primary stress and applies the
+    /// stress rule to determine which syllable of the adapted Filipino word
+    /// is prominent and whether it is long. Disabled by default since it
+    /// requires an extra lookup beyond normal adaptation.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - `true` to enable stress/prominence assignment
+    pub fn set_assign_prominence(mut self, value: bool) -> Self {
+        self.assign_prominence = value;
+        self
+    }
+
+    /// Set the backend used for the English primary-stress lookup
+    ///
+    /// Only consulted when `assign_prominence` is enabled.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - `ProminenceBackend::Espeak` or `ProminenceBackend::Cmudict { dict_path }`
+    pub fn set_prominence_backend(mut self, value: ProminenceBackend) -> Self {
+        self.prominence_backend = value;
         self
     }
 }
