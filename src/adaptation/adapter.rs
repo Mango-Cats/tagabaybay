@@ -318,17 +318,18 @@ impl Adapter {
 
         // The English lookup gates applicability: if the source word carries
         // no known stress (e.g. absent from a CMUdict file), there's no
-        // basis for stress to apply. Its actual position isn't otherwise
-        // used - stress itself judges the Filipino word's penult directly.
-        if stress.is_none() {
+        // basis for stress to apply. Its actual position also feeds
+        // `apply_stress_rule` directly, which only marks a Filipino syllable
+        // when English stress is itself penultimate.
+        let Some(stress) = stress else {
             return Ok(None);
-        }
+        };
 
         let Some((syllables, _valid)) = syllabify(adapted) else {
             return Ok(None);
         };
 
-        Ok(apply_stress_rule(&syllables))
+        Ok(apply_stress_rule(&syllables, stress))
     }
 }
 

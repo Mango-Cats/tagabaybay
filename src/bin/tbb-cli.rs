@@ -45,12 +45,20 @@
 //! When the IPA G2P backend is unavailable (eSpeak-NG / UV missing) the `ipa`
 //! and `ipa_mapped` fields are omitted from results.
 //!
-//! When `assign_prominence` is enabled via `config`, results also carry three
-//! progressively-annotated forms of the word (the stress rule; see
-//! [`tagabaybay::stress`]): `respelled` (plain), `with_stress` (the prominent
-//! syllable capitalized), and `with_stress_and_syllabified` (the same,
-//! hyphenated into syllables). These are omitted when the source word's
-//! English stress can't be looked up.
+//! `assign_prominence` is **on by default**, so every `adapt` result also
+//! carries three progressively-annotated forms of the word (the stress rule;
+//! see [`tagabaybay::stress`]): `respelled` (plain), `with_stress` (the
+//! prominent syllable capitalized), and `with_stress_and_syllabified` (the
+//! same, hyphenated into syllables), plus `english_stress_on_penult` (bool) -
+//! whether the source word's English primary stress actually falls on the
+//! penult, which is what gates marking in the first place. A word can come
+//! back with `with_stress` identical to `respelled` (nothing marked) for two
+//! different reasons distinguishable via this field: the penult is closed,
+//! or English stress isn't penultimate at all - the latter is common for
+//! pharmaceutical names. All four fields are omitted when the source word's
+//! English stress can't be looked up. Send `{"cmd":"config",
+//! "assign_prominence":false}` to turn the lookup off (saves the extra
+//! English-stress lookup per word).
 
 use std::io::{self, BufRead, Write};
 
@@ -124,6 +132,8 @@ struct Response {
     #[serde(skip_serializing_if = "Option::is_none")]
     with_stress_and_syllabified: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    english_stress_on_penult: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message: Option<String>,
 }
 
@@ -141,6 +151,7 @@ impl Response {
             respelled: None,
             with_stress: None,
             with_stress_and_syllabified: None,
+            english_stress_on_penult: None,
             message: None,
         }
     }
@@ -287,6 +298,8 @@ fn main() {
                             response.with_stress = Some(prominence.with_stress);
                             response.with_stress_and_syllabified =
                                 Some(prominence.with_stress_and_syllabified);
+                            response.english_stress_on_penult =
+                                Some(prominence.english_stress_on_penult);
                         }
                         emit(&mut stdout, &response);
                     }

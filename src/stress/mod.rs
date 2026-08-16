@@ -12,11 +12,16 @@
 //!    stress info), there's nothing to adapt and the pipeline stops here.
 //! 2. Syllabify the adapted Filipino word (see
 //!    [`crate::syllabification::algorithm::syllabify`]).
-//! 3. Apply [`rules::apply_stress_rule`]: the word's penult is open (ends in a
-//!    vowel) -> length is retained, prominence stays on the penult. The
-//!    penult is closed (ends in a consonant) -> prominence shifts to the
-//!    final syllable instead, since Filipino cannot lengthen a checked
-//!    syllable.
+//! 3. Apply [`rules::apply_stress_rule`], which is itself gated by
+//!    [`rules::english_stress_on_penult`]: only when English primary stress
+//!    actually falls on the penult does the word's own penult weight decide
+//!    anything - open (ends in a vowel) -> length is retained and the penult
+//!    is marked; closed (ends in a consonant) -> emitted unmarked, since
+//!    Filipino cannot lengthen a checked syllable. When English stress isn't
+//!    penultimate at all (common for pharmaceutical names - eSpeak-NG puts
+//!    primary stress off the penult for a majority of drug names in
+//!    practice), the word is emitted unmarked regardless of its own penult's
+//!    weight.
 //!
 //! This whole feature is opt-in: it only runs when
 //! [`crate::configs::AdapterConfig::assign_prominence`] is enabled, via

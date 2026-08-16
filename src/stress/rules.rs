@@ -1,8 +1,9 @@
 //! Rules for Stress Assignment
 //!
-//! Once a loanword is known to carry (penultimate)
-//! stress in English, Filipino's realization of that stress on the adapted
-//! form depends purely on the *weight* of its penult syllable:
+//! This rule only fires when the source word actually carries **penultimate**
+//! stress in English (see [`english_stress_on_penult`]). When it does,
+//! Filipino's realization of that stress on the adapted form depends purely
+//! on the *weight* of its penult syllable:
 //!
 //! - **Open penult** (no coda at all) -> length is retained: the vowel
 //!   nucleus of the penult is marked (the "malumay" pattern).
@@ -11,8 +12,16 @@
 //!   cannot lengthen a checked syllable, and there is no established
 //!   orthographic device for marking unlengthened final stress here, so
 //!   nothing is capitalized anywhere.
+//!
+//! When English stress falls elsewhere (antepenult, final, ...), this rule
+//! doesn't govern the word at all: it is emitted completely unmarked,
+//! regardless of the Filipino penult's own weight. Concretely, pharmaceutical
+//! names phonemized via eSpeak-NG carry non-penultimate primary stress a
+//! majority of the time (e.g. "metformin", "losartan"), so this gate matters
+//! in practice, not just at the margins.
 
 use crate::grapheme::filipino::FilipinoGrapheme;
+use crate::stress::StressPosition;
 
 /// The result of applying stress to a Filipino-adapted word.
 ///
@@ -28,6 +37,15 @@ pub struct Prominence {
     pub syllable: String,
     /// Whether the penult is open (and thus long / gets its vowel marked).
     pub is_long: bool,
+    /// Whether the source word's English primary stress actually falls on
+    /// the penult (or, for a monosyllabic English word, on its only
+    /// syllable). This is the gate: when `false`, `is_long` is always
+    /// `false` and nothing is marked, regardless of the Filipino penult's
+    /// own weight. Exposed here (rather than only used internally) so
+    /// callers can distinguish "unmarked because the penult is closed" from
+    /// "unmarked because English stress isn't even penultimate" - useful as
+    /// a feature in its own right.
+    pub english_stress_on_penult: bool,
     /// The adapted word, respelled with no stress marking, e.g. `"tsokoleyt"`.
     pub respelled: String,
     /// `respelled` with the penult's vowel nucleus capitalized when the
@@ -40,9 +58,29 @@ pub struct Prominence {
     pub with_stress_and_syllabified: String,
 }
 
-/// Apply the Kaufman rule to a syllabified Filipino word.
+/// Whether `english_stress` puts primary stress on the penult - or, for a
+/// monosyllabic English word, trivially "on" its only syllable, which stands
+/// in for the penult the same way it does on the Filipino side.
 ///
-/// Looks only at the word's penult (second-to-last syllable):
+/// Positions are compared using [`StressPosition`]'s own from-the-end
+/// counting, so a mismatch in syllable count between the English source and
+/// the (possibly shorter or longer) Filipino-adapted form doesn't misalign
+/// this check.
+pub fn english_stress_on_penult(english_stress: StressPosition) -> bool {
+    match english_stress.syllable_count {
+        0 => false,
+        1 => true,
+        _ => english_stress.stressed_index_from_end == 2,
+    }
+}
+
+/// Apply the Kaufman rule to a syllabified Filipino word, gated by whether
+/// the source word's English stress is actually penultimate.
+///
+/// If [`english_stress_on_penult`] is `false` for `english_stress`, the word
+/// is emitted completely unmarked and `is_long` is `false` - this rule only
+/// ever marks a syllable that English also treats as prominent. Otherwise,
+/// looks only at the word's penult (second-to-last syllable):
 ///
 /// - **Open penult** (no coda) -> its vowel nucleus is capitalized via an
 ///   explicit lookup (`a`->`A`, `e`->`E`, `i`->`I`, `o`->`O`, `u`->`U`).
@@ -62,7 +100,10 @@ pub struct Prominence {
 /// Returns `None` for an empty syllabification.
 ///
 /// Reference: Daniel Kaufman (2025). PHILIPPINE PROSODY AND CONTRAST PRESERVATION
-pub fn apply_stress_rule(syllables: &[Vec<FilipinoGrapheme>]) -> Option<Prominence> {
+pub fn apply_stress_rule(
+    syllables: &[Vec<FilipinoGrapheme>],
+    english_stress: StressPosition,
+) -> Option<Prominence> {
     if syllables.is_empty() {
         return None;
     }
@@ -81,7 +122,8 @@ pub fn apply_stress_rule(syllables: &[Vec<FilipinoGrapheme>]) -> Option<Prominen
         .collect();
     let respelled = rendered.concat();
 
-    let is_long = is_open_syllable(penult);
+    let on_penult = english_stress_on_penult(english_stress);
+    let is_long = on_penult && is_open_syllable(penult);
 
     let marked_penult = if is_long {
         mark_vowel_nucleus(penult)
@@ -95,8 +137,9 @@ pub fn apply_stress_rule(syllables: &[Vec<FilipinoGrapheme>]) -> Option<Prominen
             syllables_out[penult_index] = marked;
             (syllables_out.concat(), syllables_out.join("-"))
         }
-        // Closed penult, or an open penult whose vowel nucleus couldn't be
-        // unambiguously identified: emit completely unmarked.
+        // English stress isn't penultimate, or the penult is closed, or an
+        // open penult's vowel nucleus couldn't be unambiguously identified:
+        // emit completely unmarked.
         None => (respelled.clone(), rendered.join("-")),
     };
 
@@ -104,6 +147,7 @@ pub fn apply_stress_rule(syllables: &[Vec<FilipinoGrapheme>]) -> Option<Prominen
         syllable_index: penult_index,
         syllable: rendered[penult_index].clone(),
         is_long,
+        english_stress_on_penult: on_penult,
         respelled,
         with_stress,
         with_stress_and_syllabified,

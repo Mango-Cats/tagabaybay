@@ -62,6 +62,7 @@ impl Default for AdapterConfig {
     /// - `allow_z_letter`: true (converts z → s)
     /// - `allow_j_letter`: true (converts j -> j not dy)
     /// - `g2p_unpredictable_variants`: true (uses phonetic rules for unpredictable variant graphemes)
+    /// - `assign_prominence`: true (looks up English stress and emits stress-marked forms)
     fn default() -> Self {
         Self {
             panic_at_error: false,
@@ -71,7 +72,7 @@ impl Default for AdapterConfig {
             allow_j_letter: true,
             allow_v_letter: true,
             g2p_unpredictable_variants: true,
-            assign_prominence: false,
+            assign_prominence: true,
             prominence_backend: ProminenceBackend::Espeak,
         }
     }

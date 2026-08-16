@@ -27,7 +27,7 @@ fn main() {
 
     println!("\nCommands:");
     println!("  qq - quit");
-    println!("  !stress - toggle stress/prominence assignment (off by default)");
+    println!("  !stress - toggle stress/prominence assignment (on by default)");
     println!("  <word> - normal processing\n");
 
     loop {
@@ -77,8 +77,12 @@ fn main() {
                             println!("* respelled:            {}", prominence.respelled);
                             println!("* with stress:          {}", prominence.with_stress);
                             println!(
-                                "* with stress+syllable: {}\n",
+                                "* with stress+syllable: {}",
                                 prominence.with_stress_and_syllabified
+                            );
+                            println!(
+                                "* english stress on penult: {}\n",
+                                prominence.english_stress_on_penult
                             );
                         }
                         Ok(None) => println!("* prominent syllable: unknown (no stress info)\n"),

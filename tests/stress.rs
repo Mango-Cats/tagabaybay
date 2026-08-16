@@ -11,10 +11,31 @@
 use tagabaybay::adaptation::adapter::Adapter;
 use tagabaybay::configs::AdapterConfig;
 use tagabaybay::grapheme::filipino::FilipinoGrapheme::*;
+use tagabaybay::stress::StressPosition;
 use tagabaybay::stress::apply_stress_rule;
 use tagabaybay::stress::cmudict::CmuDict;
 use tagabaybay::stress::espeak::stress_position_from_ipa;
 use tagabaybay::tokens;
+
+/// English stress reported as landing on the penult, for a word with
+/// `syllable_count` syllables. Used by tests that exercise the Filipino
+/// open/closed-penult logic and want the English-stress gate to pass through
+/// as a no-op.
+fn penult_stress(syllable_count: usize) -> StressPosition {
+    StressPosition {
+        syllable_count,
+        stressed_index_from_end: 2,
+    }
+}
+
+/// English stress reported as landing on a monosyllabic word's only
+/// syllable, which trivially stands in for the penult.
+fn monosyllabic_stress() -> StressPosition {
+    StressPosition {
+        syllable_count: 1,
+        stressed_index_from_end: 1,
+    }
+}
 
 // ---------------------------------------------------------------------
 // stress rule: open penult -> mark its vowel nucleus; closed penult -> word
@@ -26,10 +47,11 @@ fn stress_open_penult_marks_only_its_vowel_nucleus() {
     // "tso-ko-leyt" (chocolate): penult "ko" is open -> mark just the "o".
     let syllables = vec![tokens![T, S, O], tokens![K, O], tokens![L, E, Y, T]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(3)).unwrap();
     assert_eq!(prominence.syllable_index, 1);
     assert_eq!(prominence.syllable, "ko");
     assert!(prominence.is_long);
+    assert!(prominence.english_stress_on_penult);
 
     assert_eq!(prominence.respelled, "tsokoleyt");
     assert_eq!(prominence.with_stress, "tsokOleyt");
@@ -47,7 +69,7 @@ fn stress_amoxicillin_marks_penult_vowel() {
         tokens![L, I, N],
     ];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(5)).unwrap();
     assert_eq!(prominence.syllable_index, 3);
     assert_eq!(prominence.syllable, "si");
     assert!(prominence.is_long);
@@ -60,13 +82,16 @@ fn stress_amoxicillin_marks_penult_vowel() {
 #[test]
 fn stress_closed_penult_emits_word_completely_unmarked() {
     // met-for-min: penult "for" is closed by /r/ (no exemption) -> the whole
-    // word is emitted unmarked, not shifted-and-marked onto "min".
+    // word is emitted unmarked, not shifted-and-marked onto "min". English
+    // stress is (for this test) still on the penult, isolating the
+    // open/closed check from the English-stress gate.
     let syllables = vec![tokens![M, E, T], tokens![F, O, R], tokens![M, I, N]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(3)).unwrap();
     assert_eq!(prominence.syllable_index, 1);
     assert_eq!(prominence.syllable, "for");
     assert!(!prominence.is_long);
+    assert!(prominence.english_stress_on_penult);
 
     assert_eq!(prominence.respelled, "metformin");
     assert_eq!(prominence.with_stress, "metformin");
@@ -78,7 +103,7 @@ fn stress_closed_penult_nasal_coda_also_unmarked() {
     // No exemption for nasal codas either: penult "tam" closed by /m/.
     let syllables = vec![tokens![A], tokens![S, I], tokens![T, A, M], tokens![N, O]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(4)).unwrap();
     assert_eq!(prominence.syllable_index, 2);
     assert_eq!(prominence.syllable, "tam");
     assert!(!prominence.is_long);
@@ -94,7 +119,7 @@ fn stress_closed_penult_liquid_l_coda_also_unmarked() {
     // in some analyses - this rule draws no distinction between coda types.
     let syllables = vec![tokens![S, A, L], tokens![B, U, T], tokens![A, M, O, L]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(3)).unwrap();
     assert_eq!(prominence.syllable_index, 1);
     assert_eq!(prominence.syllable, "but");
     assert!(!prominence.is_long);
@@ -105,7 +130,7 @@ fn stress_closed_penult_liquid_l_coda_also_unmarked() {
 fn stress_two_syllable_open_penult() {
     let syllables = vec![tokens![B, A], tokens![S, A]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(2)).unwrap();
     assert_eq!(prominence.syllable_index, 0);
     assert_eq!(prominence.syllable, "ba");
     assert!(prominence.is_long);
@@ -116,7 +141,7 @@ fn stress_two_syllable_open_penult() {
 fn stress_monosyllabic_word_open() {
     let syllables = vec![tokens![K, A]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, monosyllabic_stress()).unwrap();
     assert_eq!(prominence.syllable_index, 0);
     assert_eq!(prominence.syllable, "ka");
     assert!(prominence.is_long);
@@ -129,7 +154,7 @@ fn stress_monosyllabic_word_closed() {
     // completely unmarked.
     let syllables = vec![tokens![K, A, T]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, monosyllabic_stress()).unwrap();
     assert_eq!(prominence.syllable_index, 0);
     assert_eq!(prominence.syllable, "kat");
     assert!(!prominence.is_long);
@@ -143,7 +168,7 @@ fn stress_ambiguous_nucleus_left_unmarked() {
     // mark, so it's left unmarked rather than guessed at.
     let syllables = vec![tokens![A, I], tokens![N]];
 
-    let prominence = apply_stress_rule(&syllables).unwrap();
+    let prominence = apply_stress_rule(&syllables, penult_stress(2)).unwrap();
     assert_eq!(prominence.syllable_index, 0);
     assert_eq!(prominence.syllable, "ai");
     assert!(prominence.is_long); // structurally open ("ai" ends in a vowel)
@@ -153,7 +178,65 @@ fn stress_ambiguous_nucleus_left_unmarked() {
 #[test]
 fn stress_empty_syllabification_returns_none() {
     let syllables: Vec<Vec<tagabaybay::grapheme::filipino::FilipinoGrapheme>> = vec![];
-    assert!(apply_stress_rule(&syllables).is_none());
+    assert!(apply_stress_rule(&syllables, monosyllabic_stress()).is_none());
+}
+
+// ---------------------------------------------------------------------
+// the English-stress gate: this rule must never mark a Filipino syllable
+// that English itself doesn't treat as prominent, regardless of whether
+// that Filipino penult happens to be open. Regression coverage for a real
+// bug: `Adapter::prominence` used to look up English stress only to check
+// presence/absence, discarding *where* it fell, so it would mark based on
+// Filipino penult weight alone. Verified against real espeak-ng output that
+// this is not a rare edge case for pharmaceutical names (e.g. "metformin",
+// "losartan" both carry non-penultimate English primary stress).
+// ---------------------------------------------------------------------
+
+#[test]
+fn stress_gate_blocks_marking_when_english_stress_is_antepenultimate() {
+    // "ba-sa": penult "ba" is open (would be marked if the gate were
+    // missing), but English stress here is reported on the antepenult, not
+    // the penult -> must come back completely unmarked.
+    let syllables = vec![tokens![B, A], tokens![S, A]];
+    let antepenult_stress = StressPosition {
+        syllable_count: 3,
+        stressed_index_from_end: 3,
+    };
+
+    let prominence = apply_stress_rule(&syllables, antepenult_stress).unwrap();
+    assert!(!prominence.english_stress_on_penult);
+    assert!(!prominence.is_long);
+    assert_eq!(prominence.with_stress, prominence.respelled);
+}
+
+#[test]
+fn stress_gate_blocks_marking_when_english_stress_is_final() {
+    let syllables = vec![tokens![B, A], tokens![S, A]];
+    let final_stress = StressPosition {
+        syllable_count: 2,
+        stressed_index_from_end: 1,
+    };
+
+    let prominence = apply_stress_rule(&syllables, final_stress).unwrap();
+    assert!(!prominence.english_stress_on_penult);
+    assert!(!prominence.is_long);
+    assert_eq!(prominence.with_stress, prominence.respelled);
+}
+
+#[test]
+fn english_stress_on_penult_helper_matches_stressed_index_two() {
+    use tagabaybay::stress::rules::english_stress_on_penult;
+
+    assert!(english_stress_on_penult(penult_stress(3)));
+    assert!(english_stress_on_penult(monosyllabic_stress()));
+    assert!(!english_stress_on_penult(StressPosition {
+        syllable_count: 3,
+        stressed_index_from_end: 3,
+    }));
+    assert!(!english_stress_on_penult(StressPosition {
+        syllable_count: 3,
+        stressed_index_from_end: 1,
+    }));
 }
 
 // ---------------------------------------------------------------------
@@ -280,8 +363,11 @@ fn prominence_end_to_end() {
         match adapter.prominence(name, &adapted) {
             Ok(Some(prominence)) => {
                 println!(
-                    "{name}: {} -> {} -> {}",
-                    prominence.respelled, prominence.with_stress, prominence.with_stress_and_syllabified
+                    "{name}: {} -> {} -> {} (english stress on penult: {})",
+                    prominence.respelled,
+                    prominence.with_stress,
+                    prominence.with_stress_and_syllabified,
+                    prominence.english_stress_on_penult
                 );
             }
             Ok(None) => println!("{name}: no prominence result"),
@@ -295,7 +381,8 @@ fn prominence_end_to_end() {
 
 #[test]
 fn prominence_returns_none_when_disabled() {
-    let mut adapter = Adapter::new(); // assign_prominence defaults to false
+    let config = AdapterConfig::new().set_assign_prominence(false);
+    let mut adapter = Adapter::new_with_config(config);
     let adapted = adapter.adaptation("cat").unwrap();
     let prominence = adapter.prominence("cat", &adapted).unwrap();
     assert!(prominence.is_none());
